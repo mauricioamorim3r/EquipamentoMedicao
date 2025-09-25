@@ -63,6 +63,8 @@ export interface IStorage {
   // Placas de Orifício
   getPlacasOrificio(equipamentoId?: number): Promise<PlacaOrificio[]>;
   createPlacaOrificio(placa: InsertPlacaOrificio): Promise<PlacaOrificio>;
+  updatePlacaOrificio(id: number, placa: InsertPlacaOrificio): Promise<PlacaOrificio>;
+  deletePlacaOrificio(id: number): Promise<void>;
 
   // Análises Químicas
   getPlanosColetas(pontoMedicaoId?: number): Promise<PlanoColeta[]>;
@@ -304,6 +306,19 @@ export class DatabaseStorage implements IStorage {
   async createPlacaOrificio(placa: InsertPlacaOrificio): Promise<PlacaOrificio> {
     const [newPlaca] = await db.insert(placasOrificio).values(placa).returning();
     return newPlaca;
+  }
+
+  async updatePlacaOrificio(id: number, placa: InsertPlacaOrificio): Promise<PlacaOrificio> {
+    const [updatedPlaca] = await db
+      .update(placasOrificio)
+      .set({ ...placa, updatedAt: new Date() })
+      .where(eq(placasOrificio.id, id))
+      .returning();
+    return updatedPlaca;
+  }
+
+  async deletePlacaOrificio(id: number): Promise<void> {
+    await db.delete(placasOrificio).where(eq(placasOrificio.id, id));
   }
 
   async getPlanosColetas(pontoMedicaoId?: number): Promise<PlanoColeta[]> {

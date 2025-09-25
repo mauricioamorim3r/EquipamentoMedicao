@@ -52,7 +52,7 @@ export default function OrificePlateForm({ plate, onClose, onSuccess }: OrificeP
 
   const { data: equipamentos } = useQuery({
     queryKey: ["/api/equipamentos"],
-    queryFn: api.getEquipamentos,
+    queryFn: () => api.getEquipamentos(),
   });
 
   const createMutation = useMutation({

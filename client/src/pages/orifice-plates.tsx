@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Search, Filter, Download, Edit, Trash2, Eye, Circle, Calendar, AlertCircle, CheckCircle } from "lucide-react";
 import { api } from "@/lib/api";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import OrificePlateForm from "@/components/orifice-plate-form";
 import type { PlacaOrificio } from "@shared/schema";
 
@@ -16,6 +18,8 @@ export default function OrificePlates() {
   const [selectedEquipment, setSelectedEquipment] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPlate, setEditingPlate] = useState<PlacaOrificio | null>(null);
+  
+  const { toast } = useToast();
 
   // Fetch data
   const { data: placas, isLoading: placasLoading } = useQuery({
@@ -72,6 +76,30 @@ export default function OrificePlates() {
   const closeForm = () => {
     setIsFormOpen(false);
     setEditingPlate(null);
+  };
+
+  const deleteMutation = useMutation({
+    mutationFn: api.deletePlacaOrificio,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/placas-orificio"] });
+      toast({
+        title: "Sucesso",
+        description: "Placa de orifício excluída com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao excluir placa de orifício",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDelete = (placa: PlacaOrificio) => {
+    if (window.confirm(`Tem certeza que deseja excluir a placa "${placa.cartaNumero}"?`)) {
+      deleteMutation.mutate(placa.id);
+    }
   };
 
   return (
@@ -328,6 +356,8 @@ export default function OrificePlates() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => handleDelete(placa)}
+                          disabled={deleteMutation.isPending}
                           data-testid={`button-delete-${placa.id}`}
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />

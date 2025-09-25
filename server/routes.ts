@@ -258,6 +258,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/placas-orificio/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertPlacaOrificioSchema.parse(req.body);
+      const placa = await storage.updatePlacaOrificio(id, data);
+      res.json(placa);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error updating placa orificio:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/placas-orificio/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deletePlacaOrificio(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting placa orificio:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Pontos de Medição routes
   app.get("/api/pontos-medicao", async (req, res) => {
     try {

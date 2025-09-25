@@ -60,6 +60,8 @@ export const api = {
     return fetch(url).then(res => res.json());
   },
   createPlacaOrificio: (data: any) => apiRequest("POST", "/api/placas-orificio", data),
+  updatePlacaOrificio: (id: number, data: any) => apiRequest("PUT", `/api/placas-orificio/${id}`, data),
+  deletePlacaOrificio: (id: number) => apiRequest("DELETE", `/api/placas-orificio/${id}`),
   
   // Pontos de Medição
   getPontosMedicao: (equipamentoId?: number) => {
