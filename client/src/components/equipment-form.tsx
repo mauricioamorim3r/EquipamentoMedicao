@@ -311,9 +311,12 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="ativo">Ativo</SelectItem>
-                      <SelectItem value="inativo">Inativo</SelectItem>
-                      <SelectItem value="manutencao">Manutenção</SelectItem>
+                      <SelectItem value="em_operacao">Em Operação</SelectItem>
+                      <SelectItem value="fora_operacao">Fora de Operação</SelectItem>
+                      <SelectItem value="em_calibracao">Em Calibração</SelectItem>
+                      <SelectItem value="em_manutencao">Em Manutenção</SelectItem>
+                      <SelectItem value="fora_uso">Fora de Uso</SelectItem>
+                      <SelectItem value="sobressalente">Sobressalente</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

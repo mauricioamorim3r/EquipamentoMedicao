@@ -176,7 +176,7 @@ export default function Reports() {
                 <SelectValue placeholder="Todos os Polos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os Polos</SelectItem>
+                <SelectItem value="all">Todos os Polos</SelectItem>
                 {polos?.map((polo: any) => (
                   <SelectItem key={polo.id} value={polo.id.toString()}>
                     {polo.sigla} - {polo.nome}

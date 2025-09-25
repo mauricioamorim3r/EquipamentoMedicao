@@ -23,6 +23,13 @@ export default function EquipmentModal({
 
   const getStatusColor = (status?: string) => {
     switch (status) {
+      case 'em_operacao': return 'bg-green-100 text-green-800';
+      case 'fora_operacao': return 'bg-red-100 text-red-800';
+      case 'em_calibracao': return 'bg-blue-100 text-blue-800';
+      case 'em_manutencao': return 'bg-yellow-100 text-yellow-800';
+      case 'fora_uso': return 'bg-gray-100 text-gray-800';
+      case 'sobressalente': return 'bg-purple-100 text-purple-800';
+      // Backward compatibility
       case 'ativo': return 'bg-green-100 text-green-800';
       case 'inativo': return 'bg-gray-100 text-gray-800';
       case 'manutencao': return 'bg-yellow-100 text-yellow-800';

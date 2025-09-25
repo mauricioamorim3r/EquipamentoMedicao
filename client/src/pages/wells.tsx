@@ -238,7 +238,7 @@ export default function Wells() {
                 <SelectValue placeholder="Todos os Polos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os Polos</SelectItem>
+                <SelectItem value="all">Todos os Polos</SelectItem>
                 {polos?.map((polo: Polo) => (
                   <SelectItem key={polo.id} value={polo.id.toString()}>
                     {polo.sigla} - {polo.nome}
@@ -252,7 +252,7 @@ export default function Wells() {
                 <SelectValue placeholder="Todas as Instalações" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as Instalações</SelectItem>
+                <SelectItem value="all">Todas as Instalações</SelectItem>
                 {instalacoes?.map((instalacao: Instalacao) => (
                   <SelectItem key={instalacao.id} value={instalacao.id.toString()}>
                     {instalacao.sigla} - {instalacao.nome}

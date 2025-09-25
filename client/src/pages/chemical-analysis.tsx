@@ -254,7 +254,7 @@ export default function ChemicalAnalysis() {
                     <SelectValue placeholder="Todos os Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os Status</SelectItem>
+                    <SelectItem value="all">Todos os Status</SelectItem>
                     <SelectItem value="pendente">Pendente</SelectItem>
                     <SelectItem value="agendado">Agendado</SelectItem>
                     <SelectItem value="em-andamento">Em Andamento</SelectItem>

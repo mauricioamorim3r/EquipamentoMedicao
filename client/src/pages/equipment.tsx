@@ -80,6 +80,19 @@ export default function Equipment() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'em_operacao':
+        return { text: 'Em Operação', className: 'bg-green-100 text-green-800' };
+      case 'fora_operacao':
+        return { text: 'Fora de Operação', className: 'bg-red-100 text-red-800' };
+      case 'em_calibracao':
+        return { text: 'Em Calibração', className: 'bg-blue-100 text-blue-800' };
+      case 'em_manutencao':
+        return { text: 'Em Manutenção', className: 'bg-yellow-100 text-yellow-800' };
+      case 'fora_uso':
+        return { text: 'Fora de Uso', className: 'bg-gray-100 text-gray-800' };
+      case 'sobressalente':
+        return { text: 'Sobressalente', className: 'bg-purple-100 text-purple-800' };
+      // Backward compatibility
       case 'ativo':
         return { text: 'Ativo', className: 'bg-green-100 text-green-800' };
       case 'inativo':
@@ -224,9 +237,12 @@ export default function Equipment() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="ativo">Ativo</SelectItem>
-                <SelectItem value="inativo">Inativo</SelectItem>
-                <SelectItem value="manutencao">Manutenção</SelectItem>
+                <SelectItem value="em_operacao">Em Operação</SelectItem>
+                <SelectItem value="fora_operacao">Fora de Operação</SelectItem>
+                <SelectItem value="em_calibracao">Em Calibração</SelectItem>
+                <SelectItem value="em_manutencao">Em Manutenção</SelectItem>
+                <SelectItem value="fora_uso">Fora de Uso</SelectItem>
+                <SelectItem value="sobressalente">Sobressalente</SelectItem>
               </SelectContent>
             </Select>
 

@@ -205,7 +205,7 @@ export default function OrificePlates() {
                 <SelectValue placeholder="Todos os Equipamentos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os Equipamentos</SelectItem>
+                <SelectItem value="all">Todos os Equipamentos</SelectItem>
                 {equipamentos?.map((equip: any) => (
                   <SelectItem key={equip.id} value={equip.id.toString()}>
                     {equip.tag} - {equip.nome}
