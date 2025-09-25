@@ -1,0 +1,279 @@
+erDiagram
+    %% Hierarquia Organizacional
+    POLOS {
+        int polo_id PK
+        string nome_polo
+        string sigla_polo UK
+        string diretoria
+        string empresa
+        string cnpj
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+
+    INSTALACOES {
+        int instalacao_id PK
+        int polo_id FK
+        string nome_instalacao
+        string sigla_instalacao UK
+        string tipo_instalacao
+        string situacao
+        string ambiente
+        float lamina_agua
+        string estado
+        string cidade
+        string operadora
+        string campo
+        float capacidade_petroleo
+        float capacidade_gas
+        float latitude
+        float longitude
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+
+    EQUIPAMENTOS {
+        int equipamento_id PK
+        string numero_serie UK
+        string tag_equipamento UK
+        string nome_equipamento
+        string modelo
+        string fabricante
+        string unidade_medida
+        float faixa_min_equipamento
+        float faixa_max_equipamento
+        float faixa_min_pam
+        float faixa_max_pam
+        float faixa_min_calibrada
+        float faixa_max_calibrada
+        int instalacao_id FK
+        int polo_id FK
+        string classificacao
+        int frequencia_calibracao_anp
+        boolean ativo_mxm
+        string plano_manutencao_mxm
+        string criterio_aceitacao
+        float erro_maximo_admissivel
+        string status_equipamento
+        datetime created_at
+        datetime updated_at
+    }
+
+    PONTOS_MEDICAO {
+        int ponto_medicao_id PK
+        int equipamento_id FK
+        string tag_ponto_medicao UK
+        string nome_ponto_medicao
+        string classificacao
+        string localizacao
+        string tipo_medidor_primario
+        string status_ponto
+        datetime created_at
+        datetime updated_at
+    }
+
+    %% Controle de Calibrações
+    PLANO_CALIBRACAO {
+        int calibracao_id PK
+        int equipamento_id FK
+        date data_ultima_calibracao
+        date data_proxima_calibracao
+        int dias_para_vencer
+        string status_calibracao
+        string certificado_calibracao
+        string laboratorio
+        string responsavel_tecnico
+        text observacoes
+        datetime created_at
+        datetime updated_at
+    }
+
+    HISTORICO_CALIBRACOES {
+        int historico_id PK
+        int equipamento_id FK
+        date data_calibracao
+        string certificado_numero
+        string certificado_path
+        string laboratorio
+        string resultado
+        float incerteza_expandida
+        string responsavel
+        text observacoes
+        datetime created_at
+    }
+
+    %% Validações e Controles
+    RM_EQUIP {
+        int rm_id PK
+        string codigo_rm UK
+        string descricao_criterio
+        string tipo_equipamento
+        float limite_minimo
+        float limite_maximo
+        string unidade
+        string formula_calculo
+        string norma_referencia
+        boolean ativo
+    }
+
+    CONTROLE_INCERTEZAS {
+        int incerteza_id PK
+        int equipamento_id FK
+        date data_medicao
+        string numero_certificado
+        float vazao_volumetrica
+        float incerteza_expandida
+        float incerteza_expandida_relativa
+        float criterio_aceitacao_percentual
+        string tipo_incerteza
+        string status
+        text comentarios
+        datetime created_at
+        datetime updated_at
+    }
+
+    INCERTEZA_LIMITE {
+        int limite_id PK
+        string fluido
+        string classificacao
+        float limite_percentual
+        string norma_referencia
+        text observacoes
+    }
+
+    %% Equipamentos Especializados
+    PLACAS_ORIFICIO {
+        int placa_id PK
+        int equipamento_id FK
+        float diametro_externo_20c
+        float diametro_orificio_20c
+        float espessura
+        string material
+        string classe_pressao
+        date data_inspecao
+        date data_instalacao
+        date data_maxima_uso
+        string carta_numero
+        string criterio_aceitacao
+        float ema_especifico
+        string certificado_dimensional
+        datetime created_at
+        datetime updated_at
+    }
+
+    TRECHOS_RETOS {
+        int trecho_id PK
+        int equipamento_id FK
+        float diametro_nominal
+        float diametro_interno
+        string material_confeccao
+        string classe_pressao
+        date data_inspecao
+        date data_instalacao
+        string normas_tecnicas
+        boolean retificador
+        datetime created_at
+        datetime updated_at
+    }
+
+    VALVULAS {
+        int valvula_id PK
+        int equipamento_id FK
+        string tag_valvula UK
+        string tipo_valvula
+        float diametro_nominal
+        float pressao_trabalho
+        string material_corpo
+        string acionamento
+        int teste_estanqueidade_periodicidade
+        date data_ultimo_teste
+        date data_proximo_teste
+        string status_valvula
+        datetime created_at
+        datetime updated_at
+    }
+
+    %% Controle de Poços
+    CADASTRO_POCO {
+        int poco_id PK
+        string codigo_poco UK
+        int polo_id FK
+        int instalacao_id FK
+        string nome_poco
+        string tipo_poco
+        string codigo_anp UK
+        int frequencia_teste_dias
+        string status_poco
+        datetime created_at
+        datetime updated_at
+    }
+
+    TESTE_POCO {
+        int teste_id PK
+        int poco_id FK
+        date data_teste
+        string tipo_teste
+        float vazao_oleo
+        float vazao_gas
+        float vazao_agua
+        float bsw
+        float rgo
+        string numero_boletim
+        string arquivo_btp_path
+        string responsavel_teste
+        string status_teste
+        text observacoes
+        datetime created_at
+    }
+
+    PLANO_COLETA {
+        int coleta_id PK
+        int ponto_medicao_id FK
+        date data_embarque
+        date data_desembarque
+        boolean validado_operacao
+        boolean validado_laboratorio
+        boolean cilindros_disponiveis
+        boolean embarque_agendado
+        boolean embarque_realizado
+        boolean coleta_realizada
+        boolean resultado_emitido
+        date data_real_embarque
+        text observacoes
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+
+    REGRA_ANALISES_FQ {
+        int regra_id PK
+        string fluido
+        string tipo_analise
+        int periodicidade_dias
+        string sigla
+        string regulamento
+        string parametros_analisados
+        boolean ativo
+    }
+
+    %% Relacionamentos
+    POLOS ||--o{ INSTALACOES : "contém"
+    POLOS ||--o{ EQUIPAMENTOS : "possui"
+    POLOS ||--o{ CADASTRO_POCO : "tem"
+    
+    INSTALACOES ||--o{ EQUIPAMENTOS : "aloca"
+    INSTALACOES ||--o{ CADASTRO_POCO : "contém"
+    
+    EQUIPAMENTOS ||--o{ PONTOS_MEDICAO : "monitora"
+    EQUIPAMENTOS ||--o{ PLANO_CALIBRACAO : "agenda"
+    EQUIPAMENTOS ||--o{ HISTORICO_CALIBRACOES : "registra"
+    EQUIPAMENTOS ||--o{ CONTROLE_INCERTEZAS : "valida"
+    EQUIPAMENTOS ||--o| PLACAS_ORIFICIO : "especifica"
+    EQUIPAMENTOS ||--o| TRECHOS_RETOS : "especifica"
+    EQUIPAMENTOS ||--o| VALVULAS : "especifica"
+    
+    PONTOS_MEDICAO ||--o{ PLANO_COLETA : "programa"
+    
+    CADASTRO_POCO ||--o{ TESTE_POCO : "executa"

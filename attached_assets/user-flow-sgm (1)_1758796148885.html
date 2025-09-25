@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluxo de Experiência do Usuário - SGM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        
+        .flow-section {
+            margin-bottom: 50px;
+        }
+        
+        .flow-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .flow-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            padding: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .flow-step {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            min-width: 200px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .flow-step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+        
+        .flow-step.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+        
+        .step-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .step-description {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .active .step-description {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .arrow {
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            font-size: 24px;
+            z-index: 1;
+        }
+        
+        .decision-box {
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            border-radius: 15px;
+            padding: 20px;
+            min-width: 200px;
+            text-align: center;
+        }
+        
+        .decision-icon {
+            font-size: 40px;
+            color: #ffc107;
+            margin-bottom: 10px;
+        }
+        
+        .branch {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .branch-option {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .branch-option:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .alerts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .alert-card {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .alert-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .alert-ok {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+        
+        .alert-proximo {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+        }
+        
+        .alert-alerta {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+        }
+        
+        .alert-critico {
+            background: linear-gradient(135deg, #F44336, #D32F2F);
+        }
+        
+        .alert-vencido {
+            background: linear-gradient(135deg, #9E9E9E, #616161);
+        }
+        
+        .alert-days {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .alert-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .alert-action {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .alert-action:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            background: white;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .feature-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-list {
+            list-style: none;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .feature-list li {
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .feature-list li:before {
+            content: "✓";
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .flow-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .arrow {
+                display: none;
+            }
+            
+            .alerts-grid,
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Fluxo de Experiência do Usuário - SGM</h1>
+        <p class="subtitle">Sistema de Gestão Metrológica - Petróleo & Gás Natural</p>
+        
+        <!-- Fluxo Principal de Navegação -->
+        <div class="flow-section">
+            <div class="flow-title">
+                <span>🏠</span> Fluxo Principal de Navegação
+            </div>
+            <div class="flow-container">
+                <div class="flow-step active">
+                    <div class="step-icon">🔐</div>
+                    <div class="step-title">Login</div>
+                    <div class="step-description">Autenticação local com senha</div>
+                    <div class="arrow">→</div>
+                </div>
+                
+                <div class="flow-step">
+                    <div class="step-icon">📊</div>
+                    <div class="step-title">Dashboard</div>
+                    <div class="step-description">KPIs e alertas principais</div>
+                    <div class="arrow">→</div>
+                </div>
+                
+                <div class="decision-box">
+                    <div class="decision-icon">🤔</div>
+                    <div class="step-title">Escolher Módulo</div>
+                    <div class="step-description">Selecionar área de trabalho</div>
+                </div>
+            </div>
+            
+            <div class="branch">
+                <div class="branch-option">
+                    <strong>🔧 Gestão de Equipamentos:</strong> Cadastro, edição, visualização de 370+ equipamentos
+                </div>
+                <div class="branch-option">
+                    <strong>📅 Controle de Calibrações:</strong> Calendário, alertas, registro de certificados
+                </div>
+                <div class="branch-option">
+                    <strong>🛢️ Gestão de Poços:</strong> Controle BTP, testes de 90 dias, análises FQ
+                </div>
+                <div class="branch-option">
+                    <strong>📈 Relatórios:</strong> ANP, Compliance, KPIs, Exportação Excel
+                </div>
+                <div class="branch-option">
+                    <strong>⚙️ Configurações:</strong> Parâmetros, backup, usuário
+                </div>
+            </div>
+        </div>
+        
+        <!-- Fluxo de Cadastro de Equipamento -->
+        <div class="flow-section">
+            <div class="flow-title">
+                <span>➕</span> Fluxo de Cadastro de Equipamento
+            </div>
+            <div class="flow-container">
+                <div class="flow-step">
+                    <div class="step-icon">🏭</div>
+                    <div class="step-title">Selecionar Polo</div>
+                    <div class="step-description">Escolher entre 7 polos</div>
+                    <div class="arrow">→</div>
+                </div>
+                
+                <div class="flow-step">
+                    <div class="step-icon">🏗️</div>
+                    <div class="step-title">Selecionar Instalação</div>
+                    <div class="step-description">Instalações do polo</div>
+                    <div class="arrow">→</div>
+                </div>
+                
+                <div class="flow-step">
+                    <div class="step-icon">📋</div>
+                    <div class="step-title">Dados Básicos</div>
+                    <div class="step-description">Série, TAG, modelo</div>
+                    <div class="arrow">→</div>
+                </div>
+                
+                <div class="flow-step">
+                    <div class="step-icon">🔬</div>
+                    <div class="step-title">Dados Técnicos</div>
+                    <div class="step-description">Faixas, critérios, frequência</div>
+                    <div class="arrow">→</div>
+                </div>
+                
+                <div class="flow-step">
+                    <div class="step-icon">✅</div>
+                    <div class="step-title">Validação</div>
+                    <div class="step-description">RM_EQUIP, ANP</div>
+                    <div class="arrow">→</div>
+                </div>
+                
+                <div class="flow-step active">
+                    <div class="step-icon">💾</div>
+                    <div class="step-title">Salvar</div>
+                    <div class="step-description">Registro completo</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sistema de Alertas de Calibração -->
+        <div class="flow-section">
+            <div class="flow-title">
+                <span>⚠️</span> Sistema de Alertas de Calibração
+            </div>
+            <div class="alerts-grid">
+                <div class="alert-card alert-ok">
+                    <div class="alert-days">&gt; 90</div>
+                    <div class="alert-label">dias para vencer</div>
+                    <div class="alert-action">Status: OK</div>
+                </div>
+                
+                <div class="alert-card alert-proximo">
+                    <div class="alert-days">31-90</div>
+                    <div class="alert-label">dias para vencer</div>
+                    <div class="alert-action">Email Mensal</div>
+                </div>
+                
+                <div class="alert-card alert-alerta">
+                    <div class="alert-days">8-30</div>
+                    <div class="alert-label">dias para vencer</div>
+                    <div class="alert-action">Email Semanal</div>
+                </div>
+                
+                <div class="alert-card alert-critico">
+                    <div class="alert-days">1-7</div>
+                    <div class="alert-label">dias para vencer</div>
+                    <div class="alert-action">Email Diário + Push</div>
+                </div>
+                
+                <div class="alert-card alert-vencido">
+                    <div class="alert-days">0</div>
+                    <div class="alert-label">VENCIDO</div>
+                    <div class="alert-action">Bloqueio + Escalação</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Funcionalidades por Módulo -->
+        <div class="flow-section">
+            <div class="flow-title">
+                <span>🎯</span> Funcionalidades Principais por Módulo
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-title">
+                        <span>📊</span> Dashboard Principal
+                    </div>
+                    <ul class="feature-list">
+                        <li>Taxa de conformidade em tempo real</li>
+                        <li>Alertas por criticidade</li>
+                        <li>Timeline de calibrações</li>
+                        <li>KPIs operacionais</li>
+                        <li>Gráficos de tendência</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-title">
+                        <span>🔧</span> Gestão de Equipamentos
+                    </div>
+                    <ul class="feature-list">
+                        <li>CRUD completo com validações</li>
+                        <li>Upload de certificados</li>
+                        <li>Histórico de alterações</li>
+                        <li>Filtros avançados</li>
+                        <li>Exportação em lote</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-title">
+                        <span>📅</span> Controle de Calibrações
+                    </div>
+                    <ul class="feature-list">
+                        <li>Calendário visual</li>
+                        <li>Agendamento automático</li>
+                        <li>Cálculo de incertezas</li>
+                        <li>Validação contra limites</li>
+                        <li>Histórico completo</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-title">
+                        <span>🛢️</span> Gestão de Poços
+                    </div>
+                    <ul class="feature-list">
+                        <li>Controle BTP 90 dias</li>
+                        <li>Registro de vazões</li>
+                        <li>Upload de boletins</li>
+                        <li>Gráficos de produção</li>
+                        <li>Análises FQ</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-title">
+                        <span>📈</span> Relatórios
+                    </div>
+                    <ul class="feature-list">
+                        <li>Relatório ANP mensal</li>
+                        <li>Dashboard executivo</li>
+                        <li>Análise de compliance</li>
+                        <li>Exportação Excel/PDF</li>
+                        <li>Relatórios customizados</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-title">
+                        <span>⚙️</span> Configurações
+                    </div>
+                    <ul class="feature-list">
+                        <li>Periodicidades de calibração</li>
+                        <li>Limites de incerteza</li>
+                        <li>Laboratórios acreditados</li>
+                        <li>Backup automático</li>
+                        <li>Logs de auditoria</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Fluxo de Validações -->
+        <div class="flow-section">
+            <div class="flow-title">
+                <span>✔️</span> Fluxo de Validações Automáticas
+            </div>
+            <div class="flow-container">
+                <div class="flow-step">
+                    <div class="step-icon">📝</div>
+                    <div class="step-title">Entrada de Dados</div>
+                    <div class="step-description">Usuário insere informações</div>
+                    <div class="arrow">→</div>
+                </div>
+                
+                <div class="flow-step">
+                    <div class="step-icon">🔍</div>
+                    <div class="step-title">Validação RM_EQUIP</div>
+                    <div class="step-description">41 critérios técnicos</div>
+                    <div class="arrow">→</div>
+                </div>
+                
+                <div class="flow-step">
+                    <div class="step-icon">📏</div>
+                    <div class="step-title">Limites de Incerteza</div>
+                    <div class="step-description">Comparação com ANP</div>
+                    <div class="arrow">→</div>
+                </div>
+                
+                <div class="flow-step">
+                    <div class="step-icon">🏷️</div>
+                    <div class="step-title">Classificação</div>
+                    <div class="step-description">Fiscal/Apropriação/Operacional</div>
+                    <div class="arrow">→</div>
+                </div>
+                
+                <div class="flow-step active">
+                    <div class="step-icon">✅</div>
+                    <div class="step-title">Aprovação</div>
+                    <div class="step-description">Registro validado</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
