@@ -20,12 +20,12 @@ export default function OrificePlates() {
   // Fetch data
   const { data: placas, isLoading: placasLoading } = useQuery({
     queryKey: ["/api/placas-orificio"],
-    queryFn: api.getPlacasOrificio,
+    queryFn: () => api.getPlacasOrificio(),
   });
 
   const { data: equipamentos } = useQuery({
     queryKey: ["/api/equipamentos"],
-    queryFn: api.getEquipamentos,
+    queryFn: () => api.getEquipamentos(),
   });
 
   // Filter plates based on search

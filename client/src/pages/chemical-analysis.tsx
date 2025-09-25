@@ -26,12 +26,12 @@ export default function ChemicalAnalysis() {
   // Fetch data
   const { data: planosColeta, isLoading: plansLoading } = useQuery({
     queryKey: ["/api/planos-coleta"],
-    queryFn: api.getPlanosColeta,
+    queryFn: () => api.getPlanosColeta(),
   });
 
   const { data: pontosMedicao } = useQuery({
     queryKey: ["/api/pontos-medicao"],
-    queryFn: api.getPontosMedicao,
+    queryFn: () => api.getPontosMedicao(),
   });
 
   // Filter collection plans based on search and filters

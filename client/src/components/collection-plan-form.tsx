@@ -52,7 +52,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
 
   const { data: pontosMedicao } = useQuery({
     queryKey: ["/api/pontos-medicao"],
-    queryFn: api.getPontosMedicao,
+    queryFn: () => api.getPontosMedicao(),
   });
 
   const createMutation = useMutation({
@@ -209,7 +209,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value || false}
                       onCheckedChange={field.onChange}
                       data-testid="checkbox-validated-operation"
                     />
@@ -228,7 +228,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value || false}
                       onCheckedChange={field.onChange}
                       data-testid="checkbox-validated-laboratory"
                     />
@@ -247,7 +247,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value || false}
                       onCheckedChange={field.onChange}
                       data-testid="checkbox-cylinders-available"
                     />
@@ -266,7 +266,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value || false}
                       onCheckedChange={field.onChange}
                       data-testid="checkbox-embark-scheduled"
                     />
@@ -285,7 +285,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value || false}
                       onCheckedChange={field.onChange}
                       data-testid="checkbox-embark-completed"
                     />
@@ -304,7 +304,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value || false}
                       onCheckedChange={field.onChange}
                       data-testid="checkbox-collection-completed"
                     />
@@ -323,7 +323,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value || false}
                       onCheckedChange={field.onChange}
                       data-testid="checkbox-result-issued"
                     />
@@ -350,6 +350,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
                 <FormControl>
                   <Textarea 
                     {...field} 
+                    value={field.value || ""}
                     placeholder="Observações sobre o plano de coleta"
                     data-testid="textarea-observations"
                   />

@@ -23,7 +23,7 @@ export default function Calibrations() {
 
   const { data: calibracoes, isLoading: calibrationLoading } = useQuery({
     queryKey: ["/api/calibracoes"],
-    queryFn: api.getCalibracoes,
+    queryFn: () => api.getCalibracoes(),
   });
 
   const { data: equipamentos } = useQuery({

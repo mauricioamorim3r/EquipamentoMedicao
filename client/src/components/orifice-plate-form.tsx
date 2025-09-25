@@ -22,31 +22,31 @@ const formSchema = insertPlacaOrificioSchema.extend({
 type FormValues = z.infer<typeof formSchema>;
 
 interface OrificePlateFormProps {
-  orifice?: PlacaOrificio | null;
+  plate?: PlacaOrificio | null;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export default function OrificePlateForm({ orifice, onClose, onSuccess }: OrificePlateFormProps) {
+export default function OrificePlateForm({ plate, onClose, onSuccess }: OrificePlateFormProps) {
   const { toast } = useToast();
-  const isEditing = !!orifice;
+  const isEditing = !!plate;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      equipamentoId: orifice?.equipamentoId || 0,
-      diametroExterno20c: orifice?.diametroExterno20c || undefined,
-      diametroOrificio20c: orifice?.diametroOrificio20c || undefined,
-      espessura: orifice?.espessura || undefined,
-      material: orifice?.material || "",
-      classePressao: orifice?.classePressao || "",
-      dataInspecao: orifice?.dataInspecao || "",
-      dataInstalacao: orifice?.dataInstalacao || "",
-      dataMaximaUso: orifice?.dataMaximaUso || "",
-      cartaNumero: orifice?.cartaNumero || "",
-      criterioAceitacao: orifice?.criterioAceitacao || "",
-      emaEspecifico: orifice?.emaEspecifico || undefined,
-      certificadoDimensional: orifice?.certificadoDimensional || "",
+      equipamentoId: plate?.equipamentoId || 0,
+      diametroExterno20c: plate?.diametroExterno20c || undefined,
+      diametroOrificio20c: plate?.diametroOrificio20c || undefined,
+      espessura: plate?.espessura || undefined,
+      material: plate?.material || "",
+      classePressao: plate?.classePressao || "",
+      dataInspecao: plate?.dataInspecao || "",
+      dataInstalacao: plate?.dataInstalacao || "",
+      dataMaximaUso: plate?.dataMaximaUso || "",
+      cartaNumero: plate?.cartaNumero || "",
+      criterioAceitacao: plate?.criterioAceitacao || "",
+      emaEspecifico: plate?.emaEspecifico || undefined,
+      certificadoDimensional: plate?.certificadoDimensional || "",
     },
   });
 
@@ -95,8 +95,8 @@ export default function OrificePlateForm({ orifice, onClose, onSuccess }: Orific
   });
 
   const onSubmit = (data: FormValues) => {
-    if (isEditing && orifice) {
-      updateMutation.mutate({ id: orifice.id, data });
+    if (isEditing && plate) {
+      updateMutation.mutate({ id: plate.id, data });
     } else {
       createMutation.mutate(data);
     }

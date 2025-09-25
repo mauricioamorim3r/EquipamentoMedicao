@@ -180,7 +180,7 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
                   <FormItem>
                     <FormLabel>Fabricante</FormLabel>
                     <FormControl>
-                      <Input {...field} data-testid="input-manufacturer" />
+                      <Input {...field} value={field.value || ""} data-testid="input-manufacturer" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -194,7 +194,7 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
                   <FormItem>
                     <FormLabel>Modelo</FormLabel>
                     <FormControl>
-                      <Input {...field} data-testid="input-model" />
+                      <Input {...field} value={field.value || ""} data-testid="input-model" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -210,7 +210,7 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
                   <FormItem>
                     <FormLabel>Unidade de Medida</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: m³/h, bar, °C" data-testid="input-unit" />
+                      <Input {...field} value={field.value || ""} placeholder="Ex: m³/h, bar, °C" data-testid="input-unit" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -223,7 +223,7 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Classificação</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                       <FormControl>
                         <SelectTrigger data-testid="select-classification">
                           <SelectValue placeholder="Selecionar classificação" />
@@ -345,7 +345,7 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value || false}
                       onCheckedChange={field.onChange}
                       data-testid="checkbox-mxm"
                     />
@@ -512,6 +512,7 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
                   <FormControl>
                     <Textarea 
                       {...field} 
+                      value={field.value || ""}
                       placeholder="Descreva os critérios de aceitação"
                       data-testid="textarea-acceptance-criteria"
                     />
@@ -549,7 +550,7 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
                   <FormItem>
                     <FormLabel>Plano de Manutenção MXM</FormLabel>
                     <FormControl>
-                      <Input {...field} data-testid="input-maintenance-plan" />
+                      <Input {...field} value={field.value || ""} data-testid="input-maintenance-plan" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
