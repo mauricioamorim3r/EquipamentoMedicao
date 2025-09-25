@@ -1,0 +1,346 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Search, Filter, Download, Edit, Trash2, Eye, Circle, Calendar, AlertCircle, CheckCircle } from "lucide-react";
+import { api } from "@/lib/api";
+import OrificePlateForm from "@/components/orifice-plate-form";
+import type { PlacaOrificio } from "@shared/schema";
+
+export default function OrificePlates() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedEquipment, setSelectedEquipment] = useState<string>("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingPlate, setEditingPlate] = useState<PlacaOrificio | null>(null);
+
+  // Fetch data
+  const { data: placas, isLoading: placasLoading } = useQuery({
+    queryKey: ["/api/placas-orificio"],
+    queryFn: api.getPlacasOrificio,
+  });
+
+  const { data: equipamentos } = useQuery({
+    queryKey: ["/api/equipamentos"],
+    queryFn: api.getEquipamentos,
+  });
+
+  // Filter plates based on search
+  const filteredPlacas = placas?.filter((placa: PlacaOrificio) => {
+    const matchesSearch = !searchTerm || 
+      placa.cartaNumero?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      placa.material?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesEquipment = !selectedEquipment || placa.equipamentoId.toString() === selectedEquipment;
+    
+    return matchesSearch && matchesEquipment;
+  }) || [];
+
+  const getInspectionStatusBadge = (dataInspecao?: string, dataMaximaUso?: string) => {
+    if (!dataInspecao || !dataMaximaUso) {
+      return { text: 'Sem dados', className: 'bg-gray-100 text-gray-800' };
+    }
+    
+    const today = new Date();
+    const maxUseDate = new Date(dataMaximaUso);
+    const daysUntilExpiry = Math.floor((maxUseDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilExpiry < 0) {
+      return { text: 'Vencida', className: 'bg-red-100 text-red-800' };
+    } else if (daysUntilExpiry <= 30) {
+      return { text: 'Próxima troca', className: 'bg-orange-100 text-orange-800' };
+    } else if (daysUntilExpiry <= 90) {
+      return { text: 'Alerta', className: 'bg-yellow-100 text-yellow-800' };
+    } else {
+      return { text: 'OK', className: 'bg-green-100 text-green-800' };
+    }
+  };
+
+  const handleEdit = (placa: PlacaOrificio) => {
+    setEditingPlate(placa);
+    setIsFormOpen(true);
+  };
+
+  const openNewPlateForm = () => {
+    setEditingPlate(null);
+    setIsFormOpen(true);
+  };
+
+  const closeForm = () => {
+    setIsFormOpen(false);
+    setEditingPlate(null);
+  };
+
+  return (
+    <div className="p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground" data-testid="page-title">
+            Placas de Orifício
+          </h1>
+          <p className="text-muted-foreground">
+            Gestão de placas de orifício para medição de vazão
+          </p>
+        </div>
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={openNewPlateForm} data-testid="button-new-plate">
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Placa
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl max-h-screen overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingPlate ? 'Editar Placa de Orifício' : 'Nova Placa de Orifício'}
+              </DialogTitle>
+            </DialogHeader>
+            <OrificePlateForm
+              plate={editingPlate}
+              onClose={closeForm}
+              onSuccess={closeForm}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <Card data-testid="card-total-plates">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total de Placas</p>
+                <p className="text-3xl font-bold text-foreground">{filteredPlacas.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
+                <Circle className="text-primary w-6 h-6" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-ok-plates">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Em Condições</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {filteredPlacas.filter(p => {
+                    const badge = getInspectionStatusBadge(p.dataInspecao || undefined, p.dataMaximaUso || undefined);
+                    return badge.text === 'OK';
+                  }).length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                <CheckCircle className="text-green-500 w-6 h-6" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-expiring-plates">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Próximas à Troca</p>
+                <p className="text-3xl font-bold text-orange-600">
+                  {filteredPlacas.filter(p => {
+                    const badge = getInspectionStatusBadge(p.dataInspecao || undefined, p.dataMaximaUso || undefined);
+                    return badge.text === 'Próxima troca';
+                  }).length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                <Calendar className="text-orange-500 w-6 h-6" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-expired-plates">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Vencidas</p>
+                <p className="text-3xl font-bold text-red-600">
+                  {filteredPlacas.filter(p => {
+                    const badge = getInspectionStatusBadge(p.dataInspecao || undefined, p.dataMaximaUso || undefined);
+                    return badge.text === 'Vencida';
+                  }).length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
+                <AlertCircle className="text-red-500 w-6 h-6" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-lg">Filtros</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por carta ou material"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+                data-testid="search-input"
+              />
+            </div>
+            
+            <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
+              <SelectTrigger data-testid="filter-equipment">
+                <SelectValue placeholder="Todos os Equipamentos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos os Equipamentos</SelectItem>
+                {equipamentos?.map((equip: any) => (
+                  <SelectItem key={equip.id} value={equip.id.toString()}>
+                    {equip.tag} - {equip.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button variant="outline">
+              <Filter className="w-4 h-4 mr-2" />
+              Mais Filtros
+            </Button>
+
+            <Button variant="outline" data-testid="button-export">
+              <Download className="w-4 h-4 mr-2" />
+              Exportar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Plates List */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>
+              Placas de Orifício ({filteredPlacas.length})
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {placasLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-20 bg-muted rounded-lg animate-pulse"></div>
+              ))}
+            </div>
+          ) : filteredPlacas.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Circle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-2">Nenhuma placa encontrada</p>
+              <p className="text-sm">
+                {searchTerm || selectedEquipment
+                  ? 'Tente ajustar os filtros de busca'
+                  : 'Adicione a primeira placa de orifício'
+                }
+              </p>
+              {!searchTerm && !selectedEquipment && (
+                <Button className="mt-4" onClick={openNewPlateForm}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Placa
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredPlacas.map((placa: PlacaOrificio) => {
+                const statusBadge = getInspectionStatusBadge(
+                  placa.dataInspecao || undefined, 
+                  placa.dataMaximaUso || undefined
+                );
+                
+                return (
+                  <div
+                    key={placa.id}
+                    className="border border-border rounded-lg p-4 hover:bg-accent/50 transition-colors"
+                    data-testid={`plate-card-${placa.id}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-4 mb-2">
+                          <h3 className="font-semibold text-lg">
+                            Carta: {placa.cartaNumero || 'N/A'}
+                          </h3>
+                          <Badge className={statusBadge.className}>
+                            {statusBadge.text}
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
+                          <div>
+                            <p className="font-medium text-foreground">Equipamento: {placa.equipamentoId}</p>
+                            <p>Material: {placa.material || 'N/A'}</p>
+                            <p>Classe: {placa.classePressao || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p>Diâmetro Externo: {placa.diametroExterno20c ? `${placa.diametroExterno20c} mm` : 'N/A'}</p>
+                            <p>Diâmetro Orifício: {placa.diametroOrificio20c ? `${placa.diametroOrificio20c} mm` : 'N/A'}</p>
+                            <p>Espessura: {placa.espessura ? `${placa.espessura} mm` : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p>Data Inspeção: {placa.dataInspecao ? new Date(placa.dataInspecao).toLocaleDateString('pt-BR') : 'N/A'}</p>
+                            <p>Data Instalação: {placa.dataInstalacao ? new Date(placa.dataInstalacao).toLocaleDateString('pt-BR') : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className={statusBadge.text === 'Vencida' ? 'text-red-600 font-medium' : ''}>
+                              Máxima Uso: {placa.dataMaximaUso ? new Date(placa.dataMaximaUso).toLocaleDateString('pt-BR') : 'N/A'}
+                            </p>
+                            <p>EMA: {placa.emaEspecifico ? `${placa.emaEspecifico}%` : 'N/A'}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 ml-4">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          data-testid={`button-view-${placa.id}`}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(placa)}
+                          data-testid={`button-edit-${placa.id}`}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          data-testid={`button-delete-${placa.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
