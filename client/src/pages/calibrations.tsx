@@ -13,8 +13,8 @@ import type { CalibrationStats } from "@/types";
 
 export default function Calibrations() {
   const [activeTab, setActiveTab] = useState("calendar");
-  const [selectedPolo, setSelectedPolo] = useState<string>("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedPolo, setSelectedPolo] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
 
   const { data: calibrationStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/calibracoes/stats"],
@@ -80,8 +80,8 @@ export default function Calibrations() {
   ];
 
   const filteredEquipments = equipamentos?.filter((eq: any) => {
-    const matchesPolo = !selectedPolo || eq.poloId.toString() === selectedPolo;
-    const matchesStatus = !selectedStatus || (
+    const matchesPolo = selectedPolo === "all" || eq.poloId.toString() === selectedPolo;
+    const matchesStatus = selectedStatus === "all" || (
       selectedStatus === 'vencido' ? (eq.diasParaVencer !== undefined && eq.diasParaVencer <= 0) :
       selectedStatus === 'critico' ? (eq.diasParaVencer !== undefined && eq.diasParaVencer > 0 && eq.diasParaVencer <= 7) :
       selectedStatus === 'alerta' ? (eq.diasParaVencer !== undefined && eq.diasParaVencer > 7 && eq.diasParaVencer <= 30) :
@@ -207,7 +207,7 @@ export default function Calibrations() {
                     <SelectValue placeholder="Todos os Polos" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os Polos</SelectItem>
+                    <SelectItem value="all">Todos os Polos</SelectItem>
                     {polos?.map((polo: any) => (
                       <SelectItem key={polo.id} value={polo.id.toString()}>
                         {polo.sigla} - {polo.nome}
@@ -221,7 +221,7 @@ export default function Calibrations() {
                     <SelectValue placeholder="Todos os Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os Status</SelectItem>
+                    <SelectItem value="all">Todos os Status</SelectItem>
                     <SelectItem value="vencido">Vencido</SelectItem>
                     <SelectItem value="critico">Crítico (1-7 dias)</SelectItem>
                     <SelectItem value="alerta">Alerta (8-30 dias)</SelectItem>
