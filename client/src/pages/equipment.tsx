@@ -49,6 +49,7 @@ export default function Equipment() {
     mutationFn: (id: number) => api.deleteEquipamento(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/equipamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/equipamentos/with-calibration"] });
       toast({
         title: "Sucesso",
         description: "Equipamento excluído com sucesso",

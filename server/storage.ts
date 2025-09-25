@@ -181,6 +181,7 @@ export class DatabaseStorage implements IStorage {
   async getEquipamentosWithCalibrationStatus(): Promise<any[]> {
     return await db.select({
       id: equipamentos.id,
+      numeroSerie: equipamentos.numeroSerie,
       tag: equipamentos.tag,
       nome: equipamentos.nome,
       fabricante: equipamentos.fabricante,

@@ -79,6 +79,7 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
     mutationFn: (data: InsertEquipamento) => api.createEquipamento(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/equipamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/equipamentos/with-calibration"] });
       toast({
         title: "Sucesso",
         description: "Equipamento criado com sucesso",
@@ -99,6 +100,7 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
       api.updateEquipamento(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/equipamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/equipamentos/with-calibration"] });
       toast({
         title: "Sucesso",
         description: "Equipamento atualizado com sucesso",

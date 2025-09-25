@@ -85,6 +85,10 @@ export default function EquipmentModal({
                 <p className="font-medium" data-testid="equipment-name">{equipment.nome}</p>
               </div>
               <div>
+                <p className="text-muted-foreground">Número de Série:</p>
+                <p className="font-medium font-mono" data-testid="equipment-serial">{equipment.numeroSerie || 'N/A'}</p>
+              </div>
+              <div>
                 <p className="text-muted-foreground">Fabricante:</p>
                 <p className="font-medium" data-testid="equipment-manufacturer">{equipment.fabricante || 'N/A'}</p>
               </div>
