@@ -17,6 +17,9 @@ const formSchema = insertPlanoColetaSchema.extend({
   dataEmbarque: z.string().optional(),
   dataDesembarque: z.string().optional(),
   dataRealEmbarque: z.string().optional(),
+}).refine((data) => data.pontoMedicaoId && data.pontoMedicaoId > 0, {
+  message: "Ponto de medição é obrigatório",
+  path: ["pontoMedicaoId"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -34,7 +37,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      pontoMedicaoId: plan?.pontoMedicaoId || 0,
+      pontoMedicaoId: plan?.pontoMedicaoId || undefined,
       dataEmbarque: plan?.dataEmbarque?.toString() || "",
       dataDesembarque: plan?.dataDesembarque?.toString() || "",
       validadoOperacao: plan?.validadoOperacao || false,
@@ -58,7 +61,9 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
   const createMutation = useMutation({
     mutationFn: (data: InsertPlanoColeta) => api.createPlanoColeta(data),
     onSuccess: () => {
+      // Force refetch to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ["/api/planos-coleta"] });
+      queryClient.refetchQueries({ queryKey: ["/api/planos-coleta"] });
       toast({
         title: "Sucesso",
         description: "Plano de coleta criado com sucesso",
@@ -74,6 +79,28 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<InsertPlanoColeta> }) => 
+      api.updatePlanoColeta(id, data),
+    onSuccess: () => {
+      // Force refetch to ensure UI updates
+      queryClient.invalidateQueries({ queryKey: ["/api/planos-coleta"] });
+      queryClient.refetchQueries({ queryKey: ["/api/planos-coleta"] });
+      toast({
+        title: "Sucesso",
+        description: "Plano de coleta atualizado com sucesso!",
+      });
+      onSuccess();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao atualizar plano de coleta",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: FormValues) => {
     const submitData = {
       ...data,
@@ -82,7 +109,11 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
       dataRealEmbarque: data.dataRealEmbarque ? new Date(data.dataRealEmbarque) : null,
     };
     
-    createMutation.mutate(submitData as InsertPlanoColeta);
+    if (isEditing && plan) {
+      updateMutation.mutate({ id: plan.id, data: submitData });
+    } else {
+      createMutation.mutate(submitData as InsertPlanoColeta);
+    }
   };
 
   return (
@@ -101,7 +132,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
                   <FormLabel>Ponto de Medição *</FormLabel>
                   <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
                     <FormControl>
-                      <SelectTrigger data-testid="select-measurement-point">
+                      <SelectTrigger data-testid="select-measurement-point" aria-label="Selecionar ponto de medição">
                         <SelectValue placeholder="Selecionar ponto de medição" />
                       </SelectTrigger>
                     </FormControl>
@@ -129,6 +160,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
                       type="date" 
                       {...field} 
                       data-testid="input-embark-date"
+                      aria-label="Data de embarque"
                     />
                   </FormControl>
                   <FormMessage />
@@ -147,6 +179,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
                       type="date" 
                       {...field} 
                       data-testid="input-disembark-date"
+                      aria-label="Data de desembarque"
                     />
                   </FormControl>
                   <FormMessage />
@@ -180,7 +213,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
                   <FormLabel>Status</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger data-testid="select-status">
+                      <SelectTrigger data-testid="select-status" aria-label="Status do plano de coleta">
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>
@@ -373,10 +406,12 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
           </Button>
           <Button 
             type="submit" 
-            disabled={createMutation.isPending}
+            disabled={createMutation.isPending || updateMutation.isPending}
             data-testid="button-save"
           >
-            {createMutation.isPending ? "Salvando..." : isEditing ? "Atualizar" : "Criar"}
+            {(createMutation.isPending || updateMutation.isPending) 
+              ? (isEditing ? "Atualizando..." : "Salvando...") 
+              : (isEditing ? "Atualizar" : "Criar")}
           </Button>
         </div>
       </form>

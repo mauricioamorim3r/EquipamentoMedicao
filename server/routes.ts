@@ -325,6 +325,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/planos-coleta", async (req, res) => {
     try {
       const data = insertPlanoColetaSchema.parse(req.body);
+      
+      // Validate that measurement point exists
+      if (!data.pontoMedicaoId || data.pontoMedicaoId === 0) {
+        return res.status(400).json({ 
+          error: "Ponto de medição é obrigatório" 
+        });
+      }
+
+      // Check if measurement point exists
+      const pontoExists = await storage.getPontosMedicao();
+      const validPonto = pontoExists.find(p => p.id === data.pontoMedicaoId);
+      if (!validPonto) {
+        return res.status(400).json({ 
+          error: "Ponto de medição selecionado não existe" 
+        });
+      }
+
       const plano = await storage.createPlanoColeta(data);
       res.status(201).json(plano);
     } catch (error) {

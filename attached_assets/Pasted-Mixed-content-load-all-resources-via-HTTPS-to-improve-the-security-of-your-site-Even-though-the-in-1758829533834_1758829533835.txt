@@ -1,0 +1,27 @@
+Mixed content: load all resources via HTTPS to improve the security of your site
+Even though the initial HTML page is loaded over a secure HTTPS connection, some resources like images, stylesheets or scripts are being accessed over an insecure HTTP connection. Usage of insecure resources is restricted to strengthen the security of your entire site.
+
+To resolve this issue, load all resources over a secure HTTPS connection.
+
+1 resource
+Name	Restriction Status
+?X-OpenDNS-Session=aa51dc5c0ccc5aad4_cd98c2550625a047060a4050bb519283cf72_9c9f0352ba4eb55a25dd0ad91d0f5685d5012cbe_url=dfd5fee9-76e3-47e5-9ad2-ed771d84e1e5-00-2czaplmk3xc42.riker.replit.dev%2F__replco%2Fworkspace_iframe.html%3FinitialPath%3D%252F%26id%3D%253Ar1s%253A&server=sao12&prefs=&tagging=&nref	blocked
+Learn more: Preventing mixed content
+Improvements
+A form field element should have an id or name attribute
+A form field element has neither an id nor a name attribute. This might prevent the browser from correctly autofilling the form.
+
+To fix this issue, add a unique id or name attribute to a form field. This is not strictly needed, but still recommended even if you have an autocomplete attribute on the same element.
+
+3 resources
+Violating node
+Violating node
+Violating node
+Learn more: The form input element
+Users may have difficulties reading text content due to insufficient color contrast
+Low-contrast text is difficult or impossible for users to read. A minimum contrast ratio (AA) of 4.5 is recommended for all text. Since font size and weight affect color perception, an exception is made for very large or bold text — in this case, a contrast ratio of 3.0 is allowed. The enhanced conformance level (AAA) requires the contrast ratio to be above 7.0 for regular text and 4.5 for large text.
+
+Update colors or change the font size or weight to achieve sufficient contrast. You can use the “Suggest color” feature in the DevTools color picker to automatically select a better text color.
+
+55 elements
+Learn more: Color and contrast accessibility

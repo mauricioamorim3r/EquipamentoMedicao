@@ -51,16 +51,19 @@ export default function ChemicalAnalysis() {
   }) || [];
 
   const getCollectionStatusBadge = (plan: PlanoColeta) => {
-    if (plan.resultadoEmitido) {
-      return { text: 'Concluído', className: 'bg-green-100 text-green-800' };
-    } else if (plan.coletaRealizada) {
-      return { text: 'Aguardando resultado', className: 'bg-blue-100 text-blue-800' };
-    } else if (plan.embarqueRealizado) {
-      return { text: 'Em coleta', className: 'bg-orange-100 text-orange-800' };
-    } else if (plan.embarqueAgendado) {
-      return { text: 'Agendado', className: 'bg-yellow-100 text-yellow-800' };
-    } else {
-      return { text: 'Pendente', className: 'bg-gray-100 text-gray-800' };
+    // Use the actual status field instead of inferring from checkboxes
+    switch (plan.status) {
+      case 'concluido':
+        return { text: 'Concluído', className: 'bg-green-100 text-green-800' };
+      case 'laboratorio':
+        return { text: 'Laboratório', className: 'bg-blue-100 text-blue-800' };
+      case 'coletado':
+        return { text: 'Coletado', className: 'bg-orange-100 text-orange-800' };
+      case 'agendado':
+        return { text: 'Agendado', className: 'bg-yellow-100 text-yellow-800' };
+      case 'pendente':
+      default:
+        return { text: 'Pendente', className: 'bg-gray-100 text-gray-800' };
     }
   };
 
@@ -121,13 +124,13 @@ export default function ChemicalAnalysis() {
     }
   };
 
-  // Calculate summary statistics
+  // Calculate summary statistics using status field
   const summaryStats = {
     total: filteredPlans.length,
-    pending: filteredPlans.filter(p => !p.embarqueAgendado).length,
-    scheduled: filteredPlans.filter(p => p.embarqueAgendado && !p.embarqueRealizado).length,
-    inProgress: filteredPlans.filter(p => p.embarqueRealizado && !p.resultadoEmitido).length,
-    completed: filteredPlans.filter(p => p.resultadoEmitido).length,
+    pending: filteredPlans.filter(p => p.status === 'pendente').length,
+    scheduled: filteredPlans.filter(p => p.status === 'agendado').length,
+    inProgress: filteredPlans.filter(p => p.status === 'coletado' || p.status === 'laboratorio').length,
+    completed: filteredPlans.filter(p => p.status === 'concluido').length,
   };
 
   return (
