@@ -294,6 +294,11 @@ export const insertCadastroPocoSchema = createInsertSchema(cadastroPocos).omit({
   updatedAt: true,
 });
 
+export const insertTestePocoSchema = createInsertSchema(testesPocos).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertPlacaOrificioSchema = createInsertSchema(placasOrificio).omit({
   id: true,
   createdAt: true,
@@ -323,5 +328,7 @@ export type CadastroPoço = typeof cadastroPocos.$inferSelect;
 export type InsertCadastroPoço = z.infer<typeof insertCadastroPocoSchema>;
 export type PlacaOrificio = typeof placasOrificio.$inferSelect;
 export type InsertPlacaOrificio = z.infer<typeof insertPlacaOrificioSchema>;
+export type TestePoco = typeof testesPocos.$inferSelect;
+export type InsertTestePoco = z.infer<typeof insertTestePocoSchema>;
 export type PlanoColeta = typeof planoColetas.$inferSelect;
 export type InsertPlanoColeta = z.infer<typeof insertPlanoColetaSchema>;

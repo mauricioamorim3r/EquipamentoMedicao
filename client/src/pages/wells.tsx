@@ -6,12 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, Filter, Download, Edit, Trash2, Eye, MapPin, Calendar, AlertCircle, Flame, Upload, FileText } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Search, Filter, Download, Edit, Trash2, Eye, MapPin, Calendar, AlertCircle, Flame, Upload, FileText, TestTube } from "lucide-react";
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import WellForm from "@/components/well-form";
-import type { CadastroPoço, Polo, Instalacao } from "@shared/schema";
+import BtpTestForm from "@/components/btp-test-form";
+import WellCard from "@/components/well-card";
+import { format, differenceInDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import type { CadastroPoço, Polo, Instalacao, TestePoco } from "@shared/schema";
 
 export default function Wells() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -19,6 +25,8 @@ export default function Wells() {
   const [selectedInstalacao, setSelectedInstalacao] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingWell, setEditingWell] = useState<CadastroPoço | null>(null);
+  const [testDialogOpen, setTestDialogOpen] = useState(false);
+  const [selectedWell, setSelectedWell] = useState<CadastroPoço | null>(null);
   
   const { toast } = useToast();
 
@@ -30,6 +38,9 @@ export default function Wells() {
       instalacaoId: selectedInstalacao ? parseInt(selectedInstalacao) : undefined 
     }),
   });
+
+  // Use the original wells data - individual WellCard components will handle test loading
+  const wellsWithTests = wells || [];
 
   const { data: polos } = useQuery({
     queryKey: ["/api/polos"],
@@ -43,14 +54,14 @@ export default function Wells() {
   });
 
   // Filter wells based on search
-  const filteredWells = wells?.filter((well: CadastroPoço) => {
+  const filteredWells = wellsWithTests.filter((well: any) => {
     const matchesSearch = !searchTerm || 
       well.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       well.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       well.codigoAnp?.toLowerCase().includes(searchTerm.toLowerCase());
     
     return matchesSearch;
-  }) || [];
+  });
 
   const getWellStatusBadge = (status: string) => {
     switch (status) {
@@ -101,10 +112,64 @@ export default function Wells() {
     setEditingWell(null);
   };
 
-  // Mock data for BTP status since we don't have actual test data
-  const getBtpDays = (well: CadastroPoço) => {
-    // Mock calculation - in real app this would come from actual test data
-    return Math.floor(Math.random() * 120); // Random days for demo
+  const openBtpTestForm = (well: CadastroPoço) => {
+    setSelectedWell(well);
+    setTestDialogOpen(true);
+  };
+
+  const closeBtpTestForm = () => {
+    setTestDialogOpen(false);
+    setSelectedWell(null);
+  };
+
+  // Calculate BTP test status based on actual test data
+  const getBtpStatus = (well: CadastroPoço, tests?: TestePoco[]) => {
+    if (!tests || tests.length === 0) {
+      return {
+        status: 'sem_teste',
+        daysSinceTest: -1,
+        daysOverdue: -1,
+        lastTestDate: null,
+        badge: { text: 'Sem teste', className: 'bg-gray-100 text-gray-800' }
+      };
+    }
+
+    // Get most recent test
+    const latestTest = tests.sort((a, b) => 
+      new Date(b.dataTeste).getTime() - new Date(a.dataTeste).getTime()
+    )[0];
+
+    const today = new Date();
+    const testDate = new Date(latestTest.dataTeste);
+    const daysSinceTest = differenceInDays(today, testDate);
+    const frequencyDays = well.frequenciaTesteDias || 90;
+    const daysOverdue = daysSinceTest - frequencyDays;
+
+    if (daysOverdue <= 0) {
+      return {
+        status: 'em_dia',
+        daysSinceTest,
+        daysOverdue,
+        lastTestDate: latestTest.dataTeste,
+        badge: { text: 'Em dia', className: 'bg-green-100 text-green-800' }
+      };
+    } else if (daysOverdue <= 7) {
+      return {
+        status: 'proximo',
+        daysSinceTest,
+        daysOverdue,
+        lastTestDate: latestTest.dataTeste,
+        badge: { text: 'Próximo ao prazo', className: 'bg-yellow-100 text-yellow-800' }
+      };
+    } else {
+      return {
+        status: 'vencido',
+        daysSinceTest,
+        daysOverdue,
+        lastTestDate: latestTest.dataTeste,
+        badge: { text: 'Vencido', className: 'bg-red-100 text-red-800' }
+      };
+    }
   };
 
   return (
@@ -147,6 +212,22 @@ export default function Wells() {
         </div>
       </div>
 
+      {/* BTP Test Dialog */}
+      <Dialog open={testDialogOpen} onOpenChange={setTestDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Registro de Teste BTP</DialogTitle>
+          </DialogHeader>
+          {selectedWell && (
+            <BtpTestForm
+              well={selectedWell}
+              onClose={closeBtpTestForm}
+              onSuccess={closeBtpTestForm}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <Card data-testid="card-total-wells">
@@ -184,9 +265,8 @@ export default function Wells() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Testes Vencidos</p>
-                <p className="text-3xl font-bold text-red-600">
-                  {filteredWells.filter(w => getBtpDays(w) > 90).length}
-                </p>
+                <p className="text-3xl font-bold text-red-600">0</p>
+                <p className="text-xs text-muted-foreground">Carregando dados...</p>
               </div>
               <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
                 <AlertCircle className="text-red-500 w-6 h-6" />
@@ -200,12 +280,8 @@ export default function Wells() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Próximos ao Prazo</p>
-                <p className="text-3xl font-bold text-orange-600">
-                  {filteredWells.filter(w => {
-                    const days = getBtpDays(w);
-                    return days > 83 && days <= 90;
-                  }).length}
-                </p>
+                <p className="text-3xl font-bold text-orange-600">0</p>
+                <p className="text-xs text-muted-foreground">Carregando dados...</p>
               </div>
               <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
                 <Calendar className="text-orange-500 w-6 h-6" />
@@ -304,96 +380,14 @@ export default function Wells() {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredWells.map((well: CadastroPoço) => {
-                const statusBadge = getWellStatusBadge(well.status);
-                const btpDays = getBtpDays(well);
-                const btpStatus = btpDays > 90 ? 'vencido' : btpDays > 83 ? 'proximo' : 'ok';
-                const btpBadge = {
-                  vencido: { text: 'Vencido', className: 'bg-red-100 text-red-800' },
-                  proximo: { text: 'Próximo', className: 'bg-orange-100 text-orange-800' },
-                  ok: { text: 'Em dia', className: 'bg-green-100 text-green-800' }
-                }[btpStatus];
-                
-                return (
-                  <div
-                    key={well.id}
-                    className="border border-border rounded-lg p-4 hover:bg-accent/50 transition-colors"
-                    data-testid={`well-card-${well.id}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-4 mb-2">
-                          <h3 className="font-semibold text-lg font-mono">{well.codigo}</h3>
-                          <Badge className={statusBadge.className}>
-                            {statusBadge.text}
-                          </Badge>
-                          <Badge className={btpBadge.className}>
-                            BTP: {btpBadge.text}
-                          </Badge>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                          <div>
-                            <p className="font-medium text-foreground">{well.nome}</p>
-                            <p>Tipo: {well.tipo || 'N/A'}</p>
-                            <p>Código ANP: {well.codigoAnp}</p>
-                          </div>
-                          <div>
-                            <p className="flex items-center">
-                              <MapPin className="w-3 h-3 mr-1" />
-                              Polo: {well.poloId} | Instalação: {well.instalacaoId}
-                            </p>
-                            <p>Frequência teste: {well.frequenciaTesteDias || 90} dias</p>
-                          </div>
-                          <div>
-                            <p className={`flex items-center ${btpStatus === 'vencido' ? 'text-red-600 font-medium' : ''}`}>
-                              <Calendar className="w-3 h-3 mr-1" />
-                              BTP: {btpDays} dias
-                            </p>
-                            {btpStatus === 'vencido' && (
-                              <p className="text-red-600 text-xs font-medium">
-                                Vencido há {btpDays - 90} dias
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 ml-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          data-testid={`button-view-${well.id}`}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(well)}
-                          data-testid={`button-edit-${well.id}`}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          data-testid={`button-btp-${well.id}`}
-                        >
-                          <FileText className="w-4 h-4 text-blue-500" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          data-testid={`button-delete-${well.id}`}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {filteredWells.map((well: CadastroPoço) => (
+                <WellCard
+                  key={well.id}
+                  well={well}
+                  onEdit={handleEdit}
+                  onBtpTest={openBtpTestForm}
+                />
+              ))}
             </div>
           )}
         </CardContent>

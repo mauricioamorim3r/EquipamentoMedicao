@@ -88,3 +88,27 @@ The system uses a hierarchical organizational structure:
 - **drizzle-zod**: Automatic Zod schema generation from Drizzle schemas
 
 The application is designed as a full-stack TypeScript solution with a focus on type safety, performance, and regulatory compliance for metrology management in the oil and gas industry.
+
+## Recent Changes
+
+### September 25, 2025 - Wells Management & BTP Testing Module
+- **Wells Management**: Implemented comprehensive well registry system with:
+  - Well creation/editing with full metadata (código, nome, ANP code, type, status)
+  - Integration with polos and instalações hierarchy  
+  - 90-day BTP test frequency tracking and compliance monitoring
+
+- **BTP Testing System**: Developed complete BTP (Boletim de Teste de Produção) functionality:
+  - Comprehensive test registration form with production measurements
+  - Oil flow, gas flow, water flow rates (bbl/d, Mm³/d)
+  - BSW (Basic Sediment and Water) and RGO (Gas-Oil Ratio) tracking
+  - Test bulletin numbering and responsible technician tracking
+  - Real-time compliance status calculation (Em dia, Próximo, Vencido)
+
+- **Technical Architecture**:
+  - WellCard component with independent data loading per well
+  - Robust cache invalidation system for real-time UI updates
+  - Zod validation for all test data with comprehensive error handling
+  - Database schema with `cadastroPocos` and `testesPocos` tables
+  - RESTful API endpoints for wells and test management
+
+- **Previous Updates**: Equipment operational status expansion from 2 to 6 distinct states with proper color coding and filtering (Em Operação, Fora de Operação, Em Calibração, Em Manutenção, Fora de Uso, Sobressalente).

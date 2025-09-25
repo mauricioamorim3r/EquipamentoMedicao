@@ -288,6 +288,11 @@ export class DatabaseStorage implements IStorage {
     return await query.orderBy(desc(testesPocos.dataTeste));
   }
 
+  async createTestePoco(teste: any): Promise<any> {
+    const [newTeste] = await db.insert(testesPocos).values(teste).returning();
+    return newTeste;
+  }
+
   async getPlacasOrificio(equipamentoId?: number): Promise<PlacaOrificio[]> {
     const query = db.select().from(placasOrificio);
     if (equipamentoId) {

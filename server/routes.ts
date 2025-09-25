@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { 
   insertPoloSchema, insertInstalacaoSchema, insertEquipamentoSchema,
   insertPontoMedicaoSchema, insertPlanoCalibracaoSchema, insertCadastroPocoSchema,
-  insertPlacaOrificioSchema, insertPlanoColetaSchema
+  insertTestePocoSchema, insertPlacaOrificioSchema, insertPlanoColetaSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -201,6 +201,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: error.errors });
       }
       console.error("Error creating poco:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Testes de Poços routes
+  app.get("/api/pocos/:id/testes", async (req, res) => {
+    try {
+      const pocoId = parseInt(req.params.id);
+      const testes = await storage.getTestesPocos(pocoId);
+      res.json(testes);
+    } catch (error) {
+      console.error("Error fetching well tests:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/pocos/:id/testes", async (req, res) => {
+    try {
+      const pocoId = parseInt(req.params.id);
+      const data = insertTestePocoSchema.parse({ ...req.body, pocoId });
+      const teste = await storage.createTestePoco(data);
+      res.status(201).json(teste);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error creating well test:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

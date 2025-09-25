@@ -50,6 +50,10 @@ export const api = {
   },
   createPoco: (data: any) => apiRequest("POST", "/api/pocos", data),
   
+  // Testes de Poços
+  getWellTests: (wellId: number) => fetch(`/api/pocos/${wellId}/testes`).then(res => res.json()),
+  createWellTest: (wellId: number, data: any) => apiRequest("POST", `/api/pocos/${wellId}/testes`, data),
+  
   // Placas de Orifício
   getPlacasOrificio: (equipamentoId?: number) => {
     const url = equipamentoId ? `/api/placas-orificio?equipamentoId=${equipamentoId}` : "/api/placas-orificio";

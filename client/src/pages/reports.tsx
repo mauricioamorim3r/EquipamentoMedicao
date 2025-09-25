@@ -19,7 +19,8 @@ import {
   File,
   Printer,
   Send,
-  Eye
+  Eye,
+  Plus
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { format } from "date-fns";
