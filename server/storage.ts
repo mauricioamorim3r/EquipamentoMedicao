@@ -2,12 +2,13 @@ import { eq, desc, asc, and, gte, lte, gt, sql, count } from "drizzle-orm";
 import { db } from "./db";
 import {
   users, polos, instalacoes, equipamentos, pontosMedicao, planoCalibracoes,
-  historicoCalibracoes, cadastroPocos, testesPocos, placasOrificio, planoColetas,
+  historicoCalibracoes, cadastroPocos, testesPocos, placasOrificio, planoColetas, analisesQuimicas,
   type User, type InsertUser, type Polo, type InsertPolo, type Instalacao, 
   type InsertInstalacao, type Equipamento, type InsertEquipamento,
   type PontoMedicao, type InsertPontoMedicao, type PlanoCalibracão, 
   type InsertPlanoCalibracão, type CadastroPoço, type InsertCadastroPoço,
-  type PlacaOrificio, type InsertPlacaOrificio, type PlanoColeta, type InsertPlanoColeta
+  type PlacaOrificio, type InsertPlacaOrificio, type PlanoColeta, type InsertPlanoColeta,
+  type AnaliseQuimica, type InsertAnaliseQuimica
 } from "@shared/schema";
 
 export interface IStorage {
@@ -69,6 +70,13 @@ export interface IStorage {
   // Análises Químicas
   getPlanosColetas(pontoMedicaoId?: number): Promise<PlanoColeta[]>;
   createPlanoColeta(plano: InsertPlanoColeta): Promise<PlanoColeta>;
+  updatePlanoColeta(id: number, data: Partial<InsertPlanoColeta>): Promise<PlanoColeta>;
+  deletePlanoColeta(id: number): Promise<void>;
+  
+  getAnalisesQuimicas(planoColetaId?: number): Promise<AnaliseQuimica[]>;
+  createAnaliseQuimica(analise: InsertAnaliseQuimica): Promise<AnaliseQuimica>;
+  updateAnaliseQuimica(id: number, data: Partial<InsertAnaliseQuimica>): Promise<AnaliseQuimica>;
+  deleteAnaliseQuimica(id: number): Promise<void>;
 
   // Dashboard Stats
   getDashboardStats(): Promise<{
@@ -332,6 +340,43 @@ export class DatabaseStorage implements IStorage {
   async createPlanoColeta(plano: InsertPlanoColeta): Promise<PlanoColeta> {
     const [newPlano] = await db.insert(planoColetas).values(plano).returning();
     return newPlano;
+  }
+
+  async updatePlanoColeta(id: number, data: Partial<InsertPlanoColeta>): Promise<PlanoColeta> {
+    const [updatedPlano] = await db.update(planoColetas)
+      .set(data)
+      .where(eq(planoColetas.id, id))
+      .returning();
+    return updatedPlano;
+  }
+
+  async deletePlanoColeta(id: number): Promise<void> {
+    await db.delete(planoColetas).where(eq(planoColetas.id, id));
+  }
+
+  async getAnalisesQuimicas(planoColetaId?: number): Promise<AnaliseQuimica[]> {
+    const query = db.select().from(analisesQuimicas);
+    if (planoColetaId) {
+      return await query.where(eq(analisesQuimicas.planoColetaId, planoColetaId));
+    }
+    return await query.orderBy(desc(analisesQuimicas.dataColeta));
+  }
+
+  async createAnaliseQuimica(analise: InsertAnaliseQuimica): Promise<AnaliseQuimica> {
+    const [newAnalise] = await db.insert(analisesQuimicas).values(analise).returning();
+    return newAnalise;
+  }
+
+  async updateAnaliseQuimica(id: number, data: Partial<InsertAnaliseQuimica>): Promise<AnaliseQuimica> {
+    const [updatedAnalise] = await db.update(analisesQuimicas)
+      .set(data)
+      .where(eq(analisesQuimicas.id, id))
+      .returning();
+    return updatedAnalise;
+  }
+
+  async deleteAnaliseQuimica(id: number): Promise<void> {
+    await db.delete(analisesQuimicas).where(eq(analisesQuimicas.id, id));
   }
 
   async getDashboardStats(): Promise<{

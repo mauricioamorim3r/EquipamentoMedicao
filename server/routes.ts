@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { 
   insertPoloSchema, insertInstalacaoSchema, insertEquipamentoSchema,
   insertPontoMedicaoSchema, insertPlanoCalibracaoSchema, insertCadastroPocoSchema,
-  insertTestePocoSchema, insertPlacaOrificioSchema, insertPlanoColetaSchema
+  insertTestePocoSchema, insertPlacaOrificioSchema, insertPlanoColetaSchema, insertAnaliseQuimicaSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -332,6 +332,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: error.errors });
       }
       console.error("Error creating plano coleta:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/planos-coleta/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertPlanoColetaSchema.partial().parse(req.body);
+      const plano = await storage.updatePlanoColeta(id, data);
+      res.json(plano);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error updating plano coleta:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/planos-coleta/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deletePlanoColeta(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting plano coleta:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Análises Químicas routes
+  app.get("/api/analises-quimicas", async (req, res) => {
+    try {
+      const planoColetaId = req.query.planoColetaId ? parseInt(req.query.planoColetaId as string) : undefined;
+      const analises = await storage.getAnalisesQuimicas(planoColetaId);
+      res.json(analises);
+    } catch (error) {
+      console.error("Error fetching analises quimicas:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/analises-quimicas", async (req, res) => {
+    try {
+      const data = insertAnaliseQuimicaSchema.parse(req.body);
+      const analise = await storage.createAnaliseQuimica(data);
+      res.status(201).json(analise);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error creating analise quimica:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/analises-quimicas/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertAnaliseQuimicaSchema.partial().parse(req.body);
+      const analise = await storage.updateAnaliseQuimica(id, data);
+      res.json(analise);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error updating analise quimica:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/analises-quimicas/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteAnaliseQuimica(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting analise quimica:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

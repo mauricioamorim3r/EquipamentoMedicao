@@ -1,5 +1,5 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, boolean, date, timestamp, real } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, boolean, date, timestamp, real, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -192,6 +192,31 @@ export const planoColetas = pgTable("plano_coleta", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const analisesQuimicas = pgTable("analise_quimica", {
+  id: integer("analise_id").primaryKey().generatedByDefaultAsIdentity(),
+  planoColetaId: integer("plano_coleta_id").references(() => planoColetas.id).notNull(),
+  pontoMedicaoId: integer("ponto_medicao_id").references(() => pontosMedicao.id).notNull(),
+  dataColeta: date("data_coleta").notNull(),
+  tipoFluido: text("tipo_fluido").notNull(),
+  numeroCilindro: text("numero_cilindro"),
+  volumeColetado: real("volume_coletado"),
+  pressaoColeta: real("pressao_coleta"),
+  temperaturaColeta: real("temperatura_coleta"),
+  laboratorio: text("laboratorio").notNull(),
+  numeroProtocolo: text("numero_protocolo"),
+  dataAnalise: date("data_analise"),
+  parametrosAnalisados: json("parametros_analisados"),
+  resultadoAnalise: json("resultado_analise"),
+  certificadoAnalise: text("certificado_analise"),
+  validadoLaboratorio: boolean("validado_laboratorio").default(false),
+  validadoOperacao: boolean("validado_operacao").default(false),
+  aprovadoIso17025: boolean("aprovado_iso17025").default(false),
+  statusAnalise: text("status_analise").notNull().default("pendente"),
+  observacoes: text("observacoes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const polosRelations = relations(polos, ({ many }) => ({
   instalacoes: many(instalacoes),
@@ -229,6 +254,26 @@ export const pontosMedicaoRelations = relations(pontosMedicao, ({ one, many }) =
     references: [equipamentos.id],
   }),
   planoColetas: many(planoColetas),
+  analisesQuimicas: many(analisesQuimicas),
+}));
+
+export const planoColetasRelations = relations(planoColetas, ({ one, many }) => ({
+  pontoMedicao: one(pontosMedicao, {
+    fields: [planoColetas.pontoMedicaoId],
+    references: [pontosMedicao.id],
+  }),
+  analisesQuimicas: many(analisesQuimicas),
+}));
+
+export const analisesQuimicasRelations = relations(analisesQuimicas, ({ one }) => ({
+  planoColeta: one(planoColetas, {
+    fields: [analisesQuimicas.planoColetaId],
+    references: [planoColetas.id],
+  }),
+  pontoMedicao: one(pontosMedicao, {
+    fields: [analisesQuimicas.pontoMedicaoId],
+    references: [pontosMedicao.id],
+  }),
 }));
 
 export const planoCalibracaoRelations = relations(planoCalibracoes, ({ one }) => ({
@@ -311,6 +356,12 @@ export const insertPlanoColetaSchema = createInsertSchema(planoColetas).omit({
   updatedAt: true,
 });
 
+export const insertAnaliseQuimicaSchema = createInsertSchema(analisesQuimicas).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -332,3 +383,5 @@ export type TestePoco = typeof testesPocos.$inferSelect;
 export type InsertTestePoco = z.infer<typeof insertTestePocoSchema>;
 export type PlanoColeta = typeof planoColetas.$inferSelect;
 export type InsertPlanoColeta = z.infer<typeof insertPlanoColetaSchema>;
+export type AnaliseQuimica = typeof analisesQuimicas.$inferSelect;
+export type InsertAnaliseQuimica = z.infer<typeof insertAnaliseQuimicaSchema>;

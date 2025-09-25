@@ -76,4 +76,14 @@ export const api = {
     return fetch(url).then(res => res.json());
   },
   createPlanoColeta: (data: any) => apiRequest("POST", "/api/planos-coleta", data),
+  updatePlanoColeta: (id: number, data: any) => apiRequest("PUT", `/api/planos-coleta/${id}`, data),
+  deletePlanoColeta: (id: number) => apiRequest("DELETE", `/api/planos-coleta/${id}`),
+
+  getAnalisesQuimicas: (planoColetaId?: number) => {
+    const url = planoColetaId ? `/api/analises-quimicas?planoColetaId=${planoColetaId}` : "/api/analises-quimicas";
+    return fetch(url).then(res => res.json());
+  },
+  createAnaliseQuimica: (data: any) => apiRequest("POST", "/api/analises-quimicas", data),
+  updateAnaliseQuimica: (id: number, data: any) => apiRequest("PUT", `/api/analises-quimicas/${id}`, data),
+  deleteAnaliseQuimica: (id: number) => apiRequest("DELETE", `/api/analises-quimicas/${id}`),
 };

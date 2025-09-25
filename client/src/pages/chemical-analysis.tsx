@@ -12,7 +12,7 @@ import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import CollectionPlanForm from "@/components/collection-plan-form";
-import type { PlanoColeta } from "@shared/schema";
+import type { PlanoColeta, AnaliseQuimica } from "@shared/schema";
 
 export default function ChemicalAnalysis() {
   const [activeTab, setActiveTab] = useState("collection-plans");
@@ -20,6 +20,7 @@ export default function ChemicalAnalysis() {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<PlanoColeta | null>(null);
+  const [editingAnalise, setEditingAnalise] = useState<AnaliseQuimica | null>(null);
   
   const { toast } = useToast();
 
@@ -27,6 +28,11 @@ export default function ChemicalAnalysis() {
   const { data: planosColeta, isLoading: plansLoading } = useQuery({
     queryKey: ["/api/planos-coleta"],
     queryFn: () => api.getPlanosColeta(),
+  });
+
+  const { data: analisesQuimicas, isLoading: analisesLoading } = useQuery({
+    queryKey: ["/api/analises-quimicas"],
+    queryFn: () => api.getAnalisesQuimicas(),
   });
 
   const { data: pontosMedicao } = useQuery({
@@ -89,6 +95,30 @@ export default function ChemicalAnalysis() {
   const closeForm = () => {
     setIsFormOpen(false);
     setEditingPlan(null);
+  };
+
+  const deletePlanMutation = useMutation({
+    mutationFn: api.deletePlanoColeta,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/planos-coleta"] });
+      toast({
+        title: "Sucesso",
+        description: "Plano de coleta excluído com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao excluir plano de coleta",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeletePlan = (plan: PlanoColeta) => {
+    if (window.confirm(`Tem certeza que deseja excluir o plano de coleta do ponto ${plan.pontoMedicaoId}?`)) {
+      deletePlanMutation.mutate(plan.id);
+    }
   };
 
   // Calculate summary statistics
@@ -215,10 +245,14 @@ export default function ChemicalAnalysis() {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="collection-plans" data-testid="tab-collection-plans">
             <FlaskConical className="w-4 h-4 mr-2" />
             Planos de Coleta
+          </TabsTrigger>
+          <TabsTrigger value="analyses" data-testid="tab-analyses">
+            <FlaskConical className="w-4 h-4 mr-2" />
+            Análises Químicas
           </TabsTrigger>
           <TabsTrigger value="cylinders" data-testid="tab-cylinders">
             <Beaker className="w-4 h-4 mr-2" />
@@ -395,6 +429,8 @@ export default function ChemicalAnalysis() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => handleDeletePlan(plan)}
+                              disabled={deletePlanMutation.isPending}
                               data-testid={`button-delete-${plan.id}`}
                             >
                               <Trash2 className="w-4 h-4 text-red-500" />
@@ -404,6 +440,101 @@ export default function ChemicalAnalysis() {
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analyses" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                Análises Químicas ({analisesQuimicas?.length || 0})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {analisesLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-24 bg-muted rounded-lg animate-pulse"></div>
+                  ))}
+                </div>
+              ) : !analisesQuimicas?.length ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <FlaskConical className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium mb-2">Nenhuma análise química encontrada</p>
+                  <p className="text-sm mb-4">
+                    As análises químicas serão criadas automaticamente quando os planos de coleta forem executados.
+                  </p>
+                  <Button variant="outline" onClick={() => setActiveTab("collection-plans")}>
+                    <FlaskConical className="w-4 h-4 mr-2" />
+                    Ver Planos de Coleta
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {analisesQuimicas.map((analise: AnaliseQuimica) => (
+                    <div
+                      key={analise.id}
+                      className="border border-border rounded-lg p-4 hover:bg-accent/50 transition-colors"
+                      data-testid={`analise-${analise.id}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-4 mb-2">
+                            <h3 className="font-semibold text-lg">
+                              {analise.tipoFluido || 'Análise Química'}
+                            </h3>
+                            <Badge className={
+                              analise.aprovadoIso17025 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }>
+                              {analise.aprovadoIso17025 ? 'ISO 17025' : 'Pendente'}
+                            </Badge>
+                            <Badge className={
+                              analise.statusAnalise === 'concluida' 
+                                ? 'bg-green-100 text-green-800' 
+                                : analise.statusAnalise === 'em_andamento'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }>
+                              {analise.statusAnalise === 'concluida' ? 'Concluída' : 
+                               analise.statusAnalise === 'em_andamento' ? 'Em Andamento' : 'Pendente'}
+                            </Badge>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
+                            <div>
+                              <p>Data Coleta: {analise.dataColeta ? new Date(analise.dataColeta).toLocaleDateString('pt-BR') : 'N/A'}</p>
+                              <p>Laboratório: {analise.laboratorio || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p>Protocolo: {analise.numeroProtocolo || 'N/A'}</p>
+                              <p>Cilindro: {analise.numeroCilindro || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p>Pressão: {analise.pressaoColeta ? `${analise.pressaoColeta} bar` : 'N/A'}</p>
+                              <p>Temperatura: {analise.temperaturaColeta ? `${analise.temperaturaColeta}°C` : 'N/A'}</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 ml-4">
+                          <Button variant="ghost" size="sm" data-testid={`button-view-analise-${analise.id}`}>
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" data-testid={`button-edit-analise-${analise.id}`}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" data-testid={`button-delete-analise-${analise.id}`}>
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>
