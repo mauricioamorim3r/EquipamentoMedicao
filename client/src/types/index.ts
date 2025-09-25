@@ -18,6 +18,7 @@ export interface CalibrationStats {
   expired: number;
   critical: number;
   alert: number;
+  proximo: number;
   ok: number;
 }
 

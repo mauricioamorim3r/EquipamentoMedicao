@@ -1,4 +1,4 @@
-import { eq, desc, asc, and, gte, lte, sql, count } from "drizzle-orm";
+import { eq, desc, asc, and, gte, lte, gt, sql, count } from "drizzle-orm";
 import { db } from "./db";
 import {
   users, polos, instalacoes, equipamentos, pontosMedicao, planoCalibracoes,
@@ -239,6 +239,7 @@ export class DatabaseStorage implements IStorage {
     expired: number;
     critical: number;
     alert: number;
+    proximo: number;
     ok: number;
   }> {
     const today = new Date();
@@ -246,13 +247,15 @@ export class DatabaseStorage implements IStorage {
     const [expiredResult] = await db.select({ count: count() }).from(planoCalibracoes).where(lte(planoCalibracoes.diasParaVencer, 0));
     const [criticalResult] = await db.select({ count: count() }).from(planoCalibracoes).where(and(gte(planoCalibracoes.diasParaVencer, 1), lte(planoCalibracoes.diasParaVencer, 7)));
     const [alertResult] = await db.select({ count: count() }).from(planoCalibracoes).where(and(gte(planoCalibracoes.diasParaVencer, 8), lte(planoCalibracoes.diasParaVencer, 30)));
-    const [okResult] = await db.select({ count: count() }).from(planoCalibracoes).where(gte(planoCalibracoes.diasParaVencer, 90));
+    const [proximoResult] = await db.select({ count: count() }).from(planoCalibracoes).where(and(gte(planoCalibracoes.diasParaVencer, 31), lte(planoCalibracoes.diasParaVencer, 90)));
+    const [okResult] = await db.select({ count: count() }).from(planoCalibracoes).where(gt(planoCalibracoes.diasParaVencer, 90));
 
     return {
       total: totalResult.count,
       expired: expiredResult.count,
       critical: criticalResult.count,
       alert: alertResult.count,
+      proximo: proximoResult.count,
       ok: okResult.count,
     };
   }

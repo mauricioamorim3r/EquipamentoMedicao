@@ -2,16 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Plus, Calendar, Upload, FileText, Flame, ExternalLink, Download } from "lucide-react";
+import { ArrowRight, Plus, Calendar, Upload, FileText, Flame, ExternalLink, Download, BarChart3 } from "lucide-react";
 import { api } from "@/lib/api";
 import KpiCards from "@/components/kpi-cards";
 import EquipmentModal from "@/components/equipment-modal";
 import { useState } from "react";
+import { useLocation } from "wouter";
 import type { DashboardStats, CalibrationStats, EquipmentWithCalibration } from "@/types";
 
 export default function Dashboard() {
   const [selectedEquipment, setSelectedEquipment] = useState<EquipmentWithCalibration | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [, setLocation] = useLocation();
 
   const { data: dashboardStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
@@ -62,8 +64,8 @@ export default function Dashboard() {
       },
       {
         status: 'Próximo (31-90 dias)',
-        count: stats.alert,
-        percentage: ((stats.alert / total) * 100).toFixed(1),
+        count: stats.proximo,
+        percentage: ((stats.proximo / total) * 100).toFixed(1),
         bgColor: 'bg-blue-50',
         borderColor: 'border-blue-500',
         textColor: 'text-blue-800',
@@ -297,6 +299,7 @@ export default function Dashboard() {
               <Button 
                 variant="outline"
                 className="w-full justify-start p-3 h-auto"
+                onClick={() => setLocation('/equipamentos')}
                 data-testid="quick-action-new-equipment"
               >
                 <div className="flex items-center">
@@ -313,6 +316,7 @@ export default function Dashboard() {
               <Button 
                 variant="outline"
                 className="w-full justify-start p-3 h-auto"
+                onClick={() => setLocation('/calibracoes')}
                 data-testid="quick-action-schedule-calibration"
               >
                 <div className="flex items-center">
@@ -329,6 +333,7 @@ export default function Dashboard() {
               <Button 
                 variant="outline"
                 className="w-full justify-start p-3 h-auto"
+                onClick={() => alert('Funcionalidade de upload em desenvolvimento')}
                 data-testid="quick-action-upload-certificate"
               >
                 <div className="flex items-center">

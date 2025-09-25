@@ -70,9 +70,9 @@ export default function Equipment() {
       eq.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       eq.fabricante?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesPolo = !selectedPolo || eq.poloId.toString() === selectedPolo;
-    const matchesInstalacao = !selectedInstalacao || eq.instalacaoId.toString() === selectedInstalacao;
-    const matchesStatus = !selectedStatus || eq.status === selectedStatus;
+    const matchesPolo = !selectedPolo || selectedPolo === "all" || eq.poloId.toString() === selectedPolo;
+    const matchesInstalacao = !selectedInstalacao || selectedInstalacao === "all" || eq.instalacaoId.toString() === selectedInstalacao;
+    const matchesStatus = !selectedStatus || selectedStatus === "all" || eq.status === selectedStatus;
 
     return matchesSearch && matchesPolo && matchesInstalacao && matchesStatus;
   }) || [];
@@ -194,7 +194,7 @@ export default function Equipment() {
                 <SelectValue placeholder="Todos os Polos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os Polos</SelectItem>
+                <SelectItem value="all">Todos os Polos</SelectItem>
                 {polos?.map((polo: Polo) => (
                   <SelectItem key={polo.id} value={polo.id.toString()}>
                     {polo.sigla} - {polo.nome}
@@ -208,7 +208,7 @@ export default function Equipment() {
                 <SelectValue placeholder="Todas as Instalações" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as Instalações</SelectItem>
+                <SelectItem value="all">Todas as Instalações</SelectItem>
                 {instalacoes?.map((instalacao: Instalacao) => (
                   <SelectItem key={instalacao.id} value={instalacao.id.toString()}>
                     {instalacao.sigla} - {instalacao.nome}
@@ -222,7 +222,7 @@ export default function Equipment() {
                 <SelectValue placeholder="Todos os Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os Status</SelectItem>
+                <SelectItem value="all">Todos os Status</SelectItem>
                 <SelectItem value="ativo">Ativo</SelectItem>
                 <SelectItem value="inativo">Inativo</SelectItem>
                 <SelectItem value="manutencao">Manutenção</SelectItem>
