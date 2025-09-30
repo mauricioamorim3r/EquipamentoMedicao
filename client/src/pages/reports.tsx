@@ -319,7 +319,7 @@ export default function Reports() {
                   Análise detalhada de conformidade por polo de produção
                 </p>
                 <div className="space-y-3">
-                  {dashboardStats?.polosDistribution?.slice(0, 3).map((polo, index) => (
+                  {dashboardStats?.polosDistribution?.slice(0, 3).map((polo: any, index: number) => (
                     <div key={polo.id} className="flex items-center justify-between p-3 bg-muted/50 rounded">
                       <div>
                         <p className="font-medium">{polo.sigla}</p>

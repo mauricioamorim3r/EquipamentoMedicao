@@ -2,10 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Plus, Calendar, Upload, FileText, Flame, ExternalLink, Download, BarChart3 } from "lucide-react";
+import { ArrowRight, Plus, Calendar, Upload, FileText, Flame, ExternalLink, Download, BarChart3, TrendingUp } from "lucide-react";
 import { api } from "@/lib/api";
 import KpiCards from "@/components/kpi-cards";
+import OperationalCards from "@/components/operational-cards";
 import EquipmentModal from "@/components/equipment-modal";
+import AdvancedMetricsModal from "@/components/advanced-metrics-modal";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import type { DashboardStats, CalibrationStats, EquipmentWithCalibration } from "@/types";
@@ -108,6 +110,9 @@ export default function Dashboard() {
       {/* KPI Cards */}
       <KpiCards stats={dashboardStats || {} as DashboardStats} isLoading={statsLoading} />
 
+      {/* Operational Cards - New colorful cards for operational metrics */}
+      <OperationalCards isLoading={statsLoading} />
+
       {/* Status de Calibrações e Distribuição por Polos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Status de Calibrações */}
@@ -169,7 +174,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {dashboardStats?.polosDistribution?.slice(0, 4).map((polo, index) => {
+                {dashboardStats?.polosDistribution?.slice(0, 4).map((polo: any, index: number) => {
                   const total = dashboardStats.totalEquipamentos || 1;
                   const percentage = ((polo.equipCount / total) * 100).toFixed(1);
                   const colors = ['bg-chart-1', 'bg-chart-2', 'bg-chart-3', 'bg-chart-4'];
@@ -205,7 +210,11 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <CardTitle>Equipamentos Críticos</CardTitle>
                 <div className="flex space-x-2">
-                  <select className="text-sm border border-border rounded px-2 py-1 bg-background">
+                  <select 
+                    className="text-sm border border-border rounded px-2 py-1 bg-background"
+                    title="Filtrar período"
+                    aria-label="Filtrar período"
+                  >
                     <option>Todos os Polos</option>
                     <option>POL-RJ</option>
                     <option>POL-ES</option>
@@ -237,7 +246,7 @@ export default function Dashboard() {
                       </tr>
                     </thead>
                     <tbody className="text-foreground">
-                      {criticalList.map((equip) => {
+                      {criticalList.map((equip: any) => {
                         const statusBadge = getStatusBadge(equip.diasParaVencer);
                         return (
                           <tr 
@@ -380,14 +389,28 @@ export default function Dashboard() {
               </Button>
             </div>
             
-            <div className="mt-6 pt-4 border-t border-border">
+            <div className="mt-6 pt-4 border-t border-border space-y-3">
               <Button 
                 className="w-full"
                 data-testid="dashboard-complete-button"
+                onClick={() => setLocation("/dashboard-completo")}
               >
                 <BarChart3 className="mr-2 w-4 h-4" />
                 Dashboard Completo
               </Button>
+              
+              <AdvancedMetricsModal
+                trigger={
+                  <Button 
+                    variant="outline"
+                    className="w-full"
+                    data-testid="advanced-metrics-button"
+                  >
+                    <TrendingUp className="mr-2 w-4 h-4" />
+                    Métricas Avançadas
+                  </Button>
+                }
+              />
             </div>
           </CardContent>
         </Card>

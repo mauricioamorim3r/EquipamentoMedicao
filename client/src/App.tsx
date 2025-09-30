@@ -1,18 +1,41 @@
 import { Switch, Route } from "wouter";
+import { lazy, Suspense } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Dashboard from "@/pages/dashboard";
-import Equipment from "@/pages/equipment";
-import Calibrations from "@/pages/calibrations";
-import Wells from "@/pages/wells";
-import OrificePlates from "@/pages/orifice-plates";
-import ChemicalAnalysis from "@/pages/chemical-analysis";
-import Reports from "@/pages/reports";
-import NotFound from "@/pages/not-found";
 import Sidebar from "@/components/sidebar";
 import Header from "@/components/header";
+
+// Lazy load pages for code splitting
+const Dashboard = lazy(() => import("@/pages/dashboard"));
+const Equipment = lazy(() => import("@/pages/equipment"));
+const Calibrations = lazy(() => import("@/pages/calibrations"));
+const Wells = lazy(() => import("@/pages/wells"));
+const OrificePlates = lazy(() => import("@/pages/orifice-plates"));
+const ChemicalAnalysis = lazy(() => import("@/pages/chemical-analysis"));
+const Reports = lazy(() => import("@/pages/reports"));
+const Valves = lazy(() => import("@/pages/valves"));
+const UncertaintyControl = lazy(() => import("@/pages/uncertainty-control"));
+const Campos = lazy(() => import("@/pages/campos"));
+const CalibrationCalendar = lazy(() => import("@/pages/calibration-calendar"));
+const ExecutionCalibrations = lazy(() => import("@/pages/execution-calibrations"));
+const CalibrationHistory = lazy(() => import("@/pages/calibration-history"));
+const TrechosRetos = lazy(() => import("@/pages/trechos-retos"));
+const GestaoCilindros = lazy(() => import("@/pages/gestao-cilindros"));
+const Installations = lazy(() => import("@/pages/installations"));
+const MeasurementPoints = lazy(() => import("@/pages/measurement-points"));
+const MedidoresPrimarios = lazy(() => import("@/pages/medidores-primarios"));
+const NotificationSettings = lazy(() => import("@/pages/notification-settings"));
+const DashboardCompleto = lazy(() => import("@/pages/dashboard-completo"));
+const NotFound = lazy(() => import("@/pages/not-found"));
+
+// Loading component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-full">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
+);
 
 function Router() {
   return (
@@ -21,16 +44,31 @@ function Router() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-y-auto bg-background">
-          <Switch>
-            <Route path="/" component={Dashboard} />
-            <Route path="/equipamentos" component={Equipment} />
-            <Route path="/calibracoes" component={Calibrations} />
-            <Route path="/pocos" component={Wells} />
-            <Route path="/placas-orificio" component={OrificePlates} />
-            <Route path="/analises-quimicas" component={ChemicalAnalysis} />
-            <Route path="/relatorios" component={Reports} />
-            <Route component={NotFound} />
-          </Switch>
+          <Suspense fallback={<LoadingFallback />}>
+            <Switch>
+              <Route path="/" component={Dashboard} />
+              <Route path="/dashboard-completo" component={DashboardCompleto} />
+              <Route path="/equipamentos" component={Equipment} />
+              <Route path="/calibracoes" component={Calibrations} />
+              <Route path="/calendario-calibracoes" component={CalibrationCalendar} />
+              <Route path="/execucao-calibracoes" component={ExecutionCalibrations} />
+              <Route path="/historico-calibracoes" component={CalibrationHistory} />
+              <Route path="/campos" component={Campos} />
+              <Route path="/pocos" component={Wells} />
+              <Route path="/placas-orificio" component={OrificePlates} />
+              <Route path="/trechos-retos" component={TrechosRetos} />
+              <Route path="/medidores-primarios" component={MedidoresPrimarios} />
+              <Route path="/valvulas" component={Valves} />
+              <Route path="/gestao-cilindros" component={GestaoCilindros} />
+              <Route path="/instalacoes" component={Installations} />
+              <Route path="/pontos-medicao" component={MeasurementPoints} />
+              <Route path="/notificacoes" component={NotificationSettings} />
+              <Route path="/analises-quimicas" component={ChemicalAnalysis} />
+              <Route path="/controle-incertezas" component={UncertaintyControl} />
+              <Route path="/relatorios" component={Reports} />
+              <Route component={NotFound} />
+            </Switch>
+          </Suspense>
         </main>
       </div>
     </div>

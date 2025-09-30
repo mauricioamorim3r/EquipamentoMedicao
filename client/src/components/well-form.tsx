@@ -8,8 +8,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { insertCadastroPocoSchema, type InsertCadastroPoço, type CadastroPoço, type Polo, type Instalacao } from "@shared/schema";
+import { useAutoFill } from "@/hooks/use-auto-fill";
+import { insertCadastroPocoSchema, type InsertCadastroPoço, type CadastroPoço, type Polo, type Instalacao, type Campo } from "@shared/schema";
 import { z } from "zod";
+import { useEffect } from "react";
 
 const formSchema = insertCadastroPocoSchema.extend({
   frequenciaTesteDias: z.coerce.number().min(1, "Frequência deve ser maior que 0"),
@@ -26,6 +28,9 @@ interface WellFormProps {
 export default function WellForm({ well, onClose, onSuccess }: WellFormProps) {
   const { toast } = useToast();
   const isEditing = !!well;
+  
+  // Use auto-fill hook for data management
+  const { data: autoFillData, getFilteredCampos, getFilteredInstalacoes, getCampoByInstalacao } = useAutoFill();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -41,17 +46,48 @@ export default function WellForm({ well, onClose, onSuccess }: WellFormProps) {
     },
   });
 
-  const { data: polos } = useQuery({
-    queryKey: ["/api/polos"],
-    queryFn: api.getPolos,
-  });
-
+  // Watch form values for auto-fill functionality
   const selectedPoloId = form.watch("poloId");
-  const { data: instalacoes } = useQuery({
-    queryKey: ["/api/instalacoes", selectedPoloId],
-    queryFn: () => selectedPoloId ? api.getInstalacoes(selectedPoloId) : Promise.resolve([]),
-    enabled: !!selectedPoloId,
-  });
+  const selectedInstalacaoId = form.watch("instalacaoId");
+  
+  // Auto-fill when polo changes
+  useEffect(() => {
+    if (selectedPoloId && !isEditing) {
+      const selectedPolo = autoFillData.polos.find((p: Polo) => p.id === selectedPoloId);
+      if (selectedPolo) {
+        // Auto-fill polo-related fields if needed
+        const fieldsFromPolo = getFilteredInstalacoes(selectedPoloId);
+        if (fieldsFromPolo.length === 1) {
+          // If only one installation, auto-select it
+          form.setValue("instalacaoId", fieldsFromPolo[0].id);
+        }
+      }
+    }
+  }, [selectedPoloId, autoFillData.polos, getFilteredInstalacoes, form, isEditing]);
+
+  // Auto-fill when installation changes
+  useEffect(() => {
+    if (selectedInstalacaoId && !isEditing) {
+      const selectedInstalacao = autoFillData.instalacoes.find((i: Instalacao) => i.id === selectedInstalacaoId);
+      if (selectedInstalacao) {
+        // Auto-fill installation-related data
+        const campo = getCampoByInstalacao(selectedInstalacaoId);
+        
+        // Auto-generate well name if empty
+        const currentNome = form.getValues("nome");
+        if (!currentNome) {
+          const codigo = form.getValues("codigo");
+          if (codigo && selectedInstalacao.sigla) {
+            form.setValue("nome", `Poço ${selectedInstalacao.sigla}-${codigo}`);
+          }
+        }
+      }
+    }
+  }, [selectedInstalacaoId, autoFillData.instalacoes, getCampoByInstalacao, form, isEditing]);
+
+  // Get filtered data based on selections
+  const availableCampos = selectedPoloId ? getFilteredCampos(selectedPoloId) : [];
+  const availableInstalacoes = selectedPoloId ? getFilteredInstalacoes(selectedPoloId) : [];
 
   const createMutation = useMutation({
     mutationFn: (data: InsertCadastroPoço) => api.createPoco(data),
@@ -168,7 +204,7 @@ export default function WellForm({ well, onClose, onSuccess }: WellFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {polos?.map((polo: Polo) => (
+                      {autoFillData.polos?.map((polo: Polo) => (
                         <SelectItem key={polo.id} value={polo.id.toString()}>
                           {polo.sigla} - {polo.nome}
                         </SelectItem>
@@ -193,7 +229,7 @@ export default function WellForm({ well, onClose, onSuccess }: WellFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {instalacoes?.map((instalacao: Instalacao) => (
+                      {availableInstalacoes?.map((instalacao: Instalacao) => (
                         <SelectItem key={instalacao.id} value={instalacao.id.toString()}>
                           {instalacao.sigla} - {instalacao.nome}
                         </SelectItem>

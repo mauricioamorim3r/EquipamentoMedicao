@@ -6,15 +6,31 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, CalendarDays, Clock, AlertCircle, CheckCircle, XCircle, Plus, Filter, Download, Upload } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Calendar, CalendarDays, Clock, AlertCircle, CheckCircle, XCircle, Plus, Filter, Download, Upload, Edit } from "lucide-react";
 import { api } from "@/lib/api";
 import CalibrationCalendar from "@/components/calibration-calendar";
+import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertCalendarioCalibracaoSchema, type InsertCalendarioCalibracao, type CalendarioCalibracao } from "@shared/schema";
+import { queryClient } from "@/lib/queryClient";
+import { z } from "zod";
+import { Textarea } from "@/components/ui/textarea";
 import type { CalibrationStats } from "@/types";
+
+const formSchema = insertCalendarioCalibracaoSchema;
+type FormValues = z.infer<typeof formSchema>;
 
 export default function Calibrations() {
   const [activeTab, setActiveTab] = useState("calendar");
   const [selectedPolo, setSelectedPolo] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  const [selectedCalibration, setSelectedCalibration] = useState<CalendarioCalibracao | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const { toast } = useToast();
 
   const { data: calibrationStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/calibracoes/stats"],
@@ -34,6 +50,16 @@ export default function Calibrations() {
   const { data: polos } = useQuery({
     queryKey: ["/api/polos"],
     queryFn: api.getPolos,
+  });
+
+  const { data: instalacoes } = useQuery({
+    queryKey: ["/api/instalacoes"],
+    queryFn: () => api.getInstalacoes(),
+  });
+
+  const { data: equipamentosCompletos } = useQuery({
+    queryKey: ["/api/equipamentos"],
+    queryFn: () => api.getEquipamentos(),
   });
 
   const getStatusData = (stats: CalibrationStats) => [
@@ -91,6 +117,31 @@ export default function Calibrations() {
     return matchesPolo && matchesStatus;
   }) || [];
 
+  const handleScheduleCalibration = () => {
+    setIsScheduleDialogOpen(true);
+  };
+
+  const handleUploadCertificate = () => {
+    // TODO: Implement certificate upload functionality
+    console.log("Upload certificate clicked");
+  };
+
+  const handleEquipmentSchedule = (equipment: any) => {
+    setSelectedCalibration(null);
+    setSelectedDate(null);
+    setIsScheduleDialogOpen(true);
+  };
+
+  const handleDateClick = (date: Date, calibrations?: CalendarioCalibracao[]) => {
+    setSelectedDate(date);
+    if (calibrations && calibrations.length > 0) {
+      setSelectedCalibration(calibrations[0]); // Editar primeira calibração da data
+    } else {
+      setSelectedCalibration(null); // Nova calibração
+    }
+    setIsScheduleDialogOpen(true);
+  };
+
   const getEquipmentStatusBadge = (diasParaVencer?: number) => {
     if (!diasParaVencer && diasParaVencer !== 0) {
       return { text: 'Sem dados', className: 'bg-gray-100 text-gray-800' };
@@ -123,11 +174,11 @@ export default function Calibrations() {
           </p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" data-testid="button-upload-certificate">
+          <Button variant="outline" data-testid="button-upload-certificate" onClick={handleUploadCertificate}>
             <Upload className="w-4 h-4 mr-2" />
             Upload Certificado
           </Button>
-          <Button data-testid="button-schedule-calibration">
+          <Button data-testid="button-schedule-calibration" onClick={handleScheduleCalibration}>
             <Plus className="w-4 h-4 mr-2" />
             Agendar Calibração
           </Button>
@@ -189,7 +240,10 @@ export default function Calibrations() {
               <CardTitle>Calendário de Calibrações</CardTitle>
             </CardHeader>
             <CardContent>
-              <CalibrationCalendar equipamentos={equipamentos || []} />
+                      <CalibrationCalendar 
+          equipamentos={equipamentos?.data || []} 
+          onDateClick={handleDateClick}
+        />
             </CardContent>
           </Card>
         </TabsContent>
@@ -399,6 +453,341 @@ export default function Calibrations() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Schedule/Edit Calibration Dialog */}
+      <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedCalibration 
+                ? `Editar Calibração - ${selectedCalibration.tagEquipamento}`
+                : 'Agendar Nova Calibração'
+              }
+            </DialogTitle>
+          </DialogHeader>
+          
+          <CalibrationForm 
+            calibration={selectedCalibration}
+            selectedDate={selectedDate}
+            polos={polos || []}
+            instalacoes={instalacoes || []}
+            equipamentos={equipamentosCompletos || []}
+            onClose={() => setIsScheduleDialogOpen(false)}
+            onSuccess={() => {
+              setIsScheduleDialogOpen(false);
+              // Refresh calendar data
+              queryClient.invalidateQueries({ queryKey: ["/api/calendario-calibracoes"] });
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+// Componente do formulário de calibração
+interface CalibrationFormProps {
+  calibration?: CalendarioCalibracao | null;
+  selectedDate?: Date | null;
+  polos: any[];
+  instalacoes: any[];
+  equipamentos: any[];
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function CalibrationForm({ 
+  calibration, 
+  selectedDate, 
+  polos, 
+  instalacoes, 
+  equipamentos, 
+  onClose, 
+  onSuccess 
+}: CalibrationFormProps) {
+  const { toast } = useToast();
+  const isEditing = !!calibration;
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      equipamentoId: calibration?.equipamentoId || 0,
+      poloId: calibration?.poloId || 0,
+      instalacaoId: calibration?.instalacaoId || 0,
+      tagPontoMedicao: calibration?.tagPontoMedicao || "",
+      nomePontoMedicao: calibration?.nomePontoMedicao || "",
+      classificacao: calibration?.classificacao || "",
+      tagEquipamento: calibration?.tagEquipamento || "",
+      nomeEquipamento: calibration?.nomeEquipamento || "",
+      numeroSerie: calibration?.numeroSerie || "",
+      tipoCalibracao: calibration?.tipoCalibracao || "",
+      motivo: calibration?.motivo || "",
+      laboratorio: calibration?.laboratorio || "",
+      previsaoCalibracao: calibration?.previsaoCalibracao || (selectedDate ? selectedDate.toISOString().split('T')[0] : ""),
+      vencimentoCalibracao: calibration?.vencimentoCalibracao || "",
+      status: calibration?.status || "pendente",
+      observacao: calibration?.observacao || "",
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: FormValues) => api.createCalendarioCalibracao(data),
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Calibração agendada com sucesso",
+      });
+      onSuccess();
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao agendar calibração",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: FormValues) => api.updateCalendarioCalibracao(calibration!.id, data),
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Calibração atualizada com sucesso",
+      });
+      onSuccess();
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar calibração",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: FormValues) => {
+    if (isEditing) {
+      updateMutation.mutate(data);
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  // Auto-fill equipment data when equipment is selected
+  const selectedEquipment = form.watch("equipamentoId");
+  const equipment = equipamentos.find(eq => eq.id === selectedEquipment);
+  
+  if (equipment && selectedEquipment !== calibration?.equipamentoId) {
+    form.setValue("tagEquipamento", equipment.tag);
+    form.setValue("nomeEquipamento", equipment.nome);
+    form.setValue("numeroSerie", equipment.numeroSerie);
+    form.setValue("poloId", equipment.poloId);
+    form.setValue("instalacaoId", equipment.instalacaoId);
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="equipamentoId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Equipamento</FormLabel>
+                <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value.toString()}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o equipamento" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {equipamentos.map((eq) => (
+                      <SelectItem key={eq.id} value={eq.id.toString()}>
+                        {eq.tag} - {eq.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="poloId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Polo</FormLabel>
+                <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value.toString()}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o polo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {polos.map((polo) => (
+                      <SelectItem key={polo.id} value={polo.id.toString()}>
+                        {polo.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="instalacaoId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Instalação</FormLabel>
+                <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value.toString()}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a instalação" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {instalacoes.map((inst) => (
+                      <SelectItem key={inst.id} value={inst.id.toString()}>
+                        {inst.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="tipoCalibracao"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de Calibração</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="preventiva">Preventiva</SelectItem>
+                    <SelectItem value="corretiva">Corretiva</SelectItem>
+                    <SelectItem value="certificacao">Certificação</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="previsaoCalibracao"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Data Prevista</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} value={field.value || ""} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="vencimentoCalibracao"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Data de Vencimento</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} value={field.value || ""} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="laboratorio"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Laboratório</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nome do laboratório" {...field} value={field.value || ""} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="pendente">Pendente</SelectItem>
+                    <SelectItem value="agendado">Agendado</SelectItem>
+                    <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                    <SelectItem value="concluido">Concluído</SelectItem>
+                    <SelectItem value="cancelado">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="observacao"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Observações</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Observações sobre a calibração..."
+                  className="min-h-[100px]"
+                  {...field}
+                  value={field.value || ""}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={createMutation.isPending || updateMutation.isPending}
+          >
+            {createMutation.isPending || updateMutation.isPending ? "Salvando..." : 
+             isEditing ? "Atualizar" : "Agendar"}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }

@@ -1,10 +1,19 @@
 import { useState, useEffect } from "react";
-import { Bell, Settings } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
+import NotificationPanel from "@/components/notification-panel";
 
 export default function Header() {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [notificationCount] = useState(12);
+  
+  // Query para buscar o número de notificações não lidas
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["/api/notificacoes/unread-count"],
+    queryFn: () => api.getUnreadNotificationsCount(),
+    refetchInterval: 30000, // Atualiza a cada 30 segundos
+  });
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -42,23 +51,8 @@ export default function Header() {
           </div>
         </div>
         <div className="flex items-center space-x-3">
-          {/* Notification Bell */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="relative p-2"
-            data-testid="notifications-button"
-          >
-            <Bell className="h-5 w-5" />
-            {notificationCount > 0 && (
-              <span 
-                className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center"
-                data-testid="notification-count"
-              >
-                {notificationCount}
-              </span>
-            )}
-          </Button>
+          {/* Notification Panel */}
+          <NotificationPanel unreadCount={unreadCount} />
           {/* Settings */}
           <Button 
             variant="ghost" 

@@ -6,12 +6,54 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useInstallationAutoFill } from "@/hooks/use-auto-fill";
 import { insertEquipamentoSchema, type InsertEquipamento, type Equipamento, type Polo, type Instalacao } from "@shared/schema";
 import { z } from "zod";
+import { useEffect } from "react";
+
+const EQUIPMENT_TYPES = [
+  "Amostrador Automático",
+  "Amostrador Manual",
+  "Analisador de BSW Online",
+  "Analisador de Densidade",
+  "Centrífuga",
+  "Computador de Vazão",
+  "Cromatógrafo",
+  "Densímetro de Vidro",
+  "Densímetro Digital",
+  "Medidor de Nível",
+  "Medidor de Vazão Deslocamento Positivo",
+  "Medidor de Vazão Magnético",
+  "Medidor de Vazão Coriolis",
+  "Medidor de Vazão Turbina",
+  "Medidor de Vazão Ultrassônico",
+  "Medidor Multifásico",
+  "Placa de Orifício",
+  "Porta-placas",
+  "Provador Compacto",
+  "Provador de Líquidos (Ball Prover)",
+  "Retificador de Fluxo",
+  "Sensor Termoressistivo PT100 (2 Fios)",
+  "Sensor Termoressistivo PT100 (3 Fios)",
+  "Sensor Termoressistivo PT100 (4 Fios)",
+  "Termômetro Bimetálico",
+  "Termômetro Vidro",
+  "Termopar",
+  "Titulador Karl Fisher",
+  "Transmissor de Pressão Absoluta",
+  "Transmissor de Pressão Diferencial",
+  "Transmissor de Pressão Estática",
+  "Transmissor de Pressão Manométrico",
+  "Transmissor de Pulsos DP",
+  "Transmissor de Temperatura",
+  "Transmissor Multivariável",
+  "Trecho-reto",
+  "Trena",
+  "Válvula"
+];
 
 const formSchema = insertEquipamentoSchema.extend({
   faixaMinEquipamento: z.coerce.number().optional(),
@@ -55,13 +97,17 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
       poloId: equipment?.poloId || 0,
       classificacao: equipment?.classificacao || "",
       frequenciaCalibracao: equipment?.frequenciaCalibracao || undefined,
-      ativoMxm: equipment?.ativoMxm || false,
+      ativoMxm: equipment?.ativoMxm || "",
       planoManutencao: equipment?.planoManutencao || "",
       criterioAceitacao: equipment?.criterioAceitacao || "",
       erroMaximoAdmissivel: equipment?.erroMaximoAdmissivel || undefined,
       status: equipment?.status || "ativo",
     },
   });
+
+  // Auto-fill hook para dados da instalação
+  const selectedInstalacaoId = form.watch("instalacaoId");
+  const { data: installationData } = useInstallationAutoFill(selectedInstalacaoId);
 
   const { data: polos } = useQuery({
     queryKey: ["/api/polos"],
@@ -74,6 +120,34 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
     queryFn: () => selectedPoloId ? api.getInstalacoes(selectedPoloId) : Promise.resolve([]),
     enabled: !!selectedPoloId,
   });
+
+  // Auto-fill efeito para aplicar dados da instalação
+  useEffect(() => {
+    if (installationData && selectedInstalacaoId && !isEditing) {
+      const { instalacao, polo } = installationData;
+      
+      // Auto-preencher polo se não estiver selecionado
+      if (polo && !form.getValues("poloId")) {
+        form.setValue("poloId", polo.id);
+      }
+
+      // Gerar TAG baseada na instalação se não existir
+      if (instalacao && !form.getValues("tag")) {
+        const equipmentName = form.getValues("nome");
+        if (equipmentName) {
+          const equipmentCode = equipmentName.split(" ")[0].substring(0, 3).toUpperCase();
+          const randomNum = Math.floor(Math.random() * 999) + 1;
+          const newTag = `${instalacao.sigla}-${equipmentCode}-${randomNum.toString().padStart(3, '0')}`;
+          form.setValue("tag", newTag);
+        }
+      }
+
+      toast({
+        title: "Auto preenchimento",
+        description: `Dados preenchidos automaticamente baseados na instalação ${instalacao?.nome}`,
+      });
+    }
+  }, [installationData, selectedInstalacaoId, isEditing, form, toast]);
 
   const createMutation = useMutation({
     mutationFn: (data: InsertEquipamento) => api.createEquipamento(data),
@@ -166,9 +240,20 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nome do Equipamento *</FormLabel>
-                  <FormControl>
-                    <Input {...field} data-testid="input-name" />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger data-testid="select-equipment-name">
+                        <SelectValue placeholder="Selecione o tipo de equipamento" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="max-h-[200px] overflow-y-auto">
+                      {EQUIPMENT_TYPES.map((equipmentType) => (
+                        <SelectItem key={equipmentType} value={equipmentType}>
+                          {equipmentType}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -347,17 +432,17 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
               control={form.control}
               name="ativoMxm"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormItem>
+                  <FormLabel>Número Ativo MAXIMO</FormLabel>
                   <FormControl>
-                    <Checkbox
-                      checked={field.value || false}
-                      onCheckedChange={field.onChange}
-                      data-testid="checkbox-mxm"
+                    <Input
+                      {...field}
+                      value={typeof field.value === 'boolean' ? '' : (field.value || "")}
+                      placeholder="Ex: 123456"
+                      data-testid="input-maximo-number"
                     />
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Ativo no MXM</FormLabel>
-                  </div>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -553,7 +638,7 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
                 name="planoManutencao"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Plano de Manutenção MXM</FormLabel>
+                    <FormLabel>Plano de manutenção no MAXIMO</FormLabel>
                     <FormControl>
                       <Input {...field} value={field.value || ""} data-testid="input-maintenance-plan" />
                     </FormControl>

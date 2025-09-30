@@ -1,24 +1,43 @@
 import { Link, useLocation } from "wouter";
-import { 
-  BarChart3, 
-  Settings, 
-  Wrench, 
-  Calendar, 
-  Tag, 
-  Flame, 
-  Circle, 
-  FlaskConical, 
-  FileText 
+import {
+  BarChart3,
+  Settings,
+  Wrench,
+  Calendar,
+  Tag,
+  Flame,
+  Circle,
+  FlaskConical,
+  FileText,
+  Gauge,
+  AlertCircle,
+  MapPin,
+  Ruler,
+  Package,
+  Building,
+  Activity,
+  Bell
 } from "lucide-react";
 
 const menuItems = [
   { path: "/", label: "Dashboard", icon: BarChart3 },
   { path: "/equipamentos", label: "Equipamentos", icon: Wrench },
-  { path: "/calibracoes", label: "Calibrações", icon: Calendar },
-  { path: "/certificados", label: "Certificados", icon: Tag },
+  { path: "/calibracoes", label: "Plano de Calibrações", icon: Calendar },
+  { path: "/execucao-calibracoes", label: "Execução de Calibrações", icon: Settings },
+  { path: "/historico-calibracoes", label: "Histórico de Calibrações", icon: FileText },
+  { path: "/calendario-calibracoes", label: "Calendário (Antigo)", icon: Calendar },
+  { path: "/campos", label: "Campos", icon: MapPin },
   { path: "/pocos", label: "Poços", icon: Flame },
+  { path: "/instalacoes", label: "Instalações", icon: Building },
+  { path: "/pontos-medicao", label: "Pontos de Medição", icon: Activity },
+  { path: "/notificacoes", label: "Notificações", icon: Bell },
   { path: "/placas-orificio", label: "Placas de Orifício", icon: Circle },
+  { path: "/trechos-retos", label: "Trechos Retos", icon: Ruler },
+  { path: "/medidores-primarios", label: "Medidores Primários", icon: Gauge },
+  { path: "/valvulas", label: "Válvulas", icon: Gauge },
+  { path: "/gestao-cilindros", label: "Gestão de Cilindros", icon: Package },
   { path: "/analises-quimicas", label: "Análises Químicas", icon: FlaskConical },
+  { path: "/controle-incertezas", label: "Controle de Incertezas", icon: AlertCircle },
   { path: "/relatorios", label: "Relatórios", icon: FileText },
 ];
 
@@ -70,7 +89,12 @@ export default function Sidebar() {
             <p className="text-sm font-medium">João Silva</p>
             <p className="text-xs text-muted-foreground">Metrologia</p>
           </div>
-          <button className="text-muted-foreground hover:text-foreground" data-testid="user-logout">
+          <button 
+            className="text-muted-foreground hover:text-foreground" 
+            data-testid="user-logout"
+            title="Configurações"
+            aria-label="Configurações"
+          >
             <Settings className="w-4 h-4" />
           </button>
         </div>

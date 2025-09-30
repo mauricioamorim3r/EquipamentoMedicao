@@ -7,12 +7,23 @@ export const api = {
   // Polos
   getPolos: () => fetch("/api/polos").then(res => res.json()),
   createPolo: (data: any) => apiRequest("POST", "/api/polos", data),
-  
+
+  // Campos
+  getCampos: (poloId?: number) => {
+    const url = poloId ? `/api/campos?poloId=${poloId}` : "/api/campos";
+    return fetch(url).then(res => res.json());
+  },
+  getCampo: (id: string) => fetch(`/api/campos/${id}`).then(res => res.json()),
+  createCampo: (data: any) => apiRequest("POST", "/api/campos", data),
+  updateCampo: (id: number, data: any) => apiRequest("PUT", `/api/campos/${id}`, data),
+  deleteCampo: (id: number) => apiRequest("DELETE", `/api/campos/${id}`),
+
   // Instalações
   getInstalacoes: (poloId?: number) => {
     const url = poloId ? `/api/instalacoes?poloId=${poloId}` : "/api/instalacoes";
     return fetch(url).then(res => res.json());
   },
+  getInstalacao: (id: string) => fetch(`/api/instalacoes/${id}`).then(res => res.json()),
   createInstalacao: (data: any) => apiRequest("POST", "/api/instalacoes", data),
   
   // Equipamentos
@@ -86,4 +97,99 @@ export const api = {
   createAnaliseQuimica: (data: any) => apiRequest("POST", "/api/analises-quimicas", data),
   updateAnaliseQuimica: (id: number, data: any) => apiRequest("PUT", `/api/analises-quimicas/${id}`, data),
   deleteAnaliseQuimica: (id: number) => apiRequest("DELETE", `/api/analises-quimicas/${id}`),
+
+  // Válvulas
+  getValvulas: (equipamentoId?: number) => {
+    const url = equipamentoId ? `/api/valvulas?equipamentoId=${equipamentoId}` : "/api/valvulas";
+    return fetch(url).then(res => res.json());
+  },
+  createValvula: (data: any) => apiRequest("POST", "/api/valvulas", data),
+  updateValvula: (id: number, data: any) => apiRequest("PUT", `/api/valvulas/${id}`, data),
+  deleteValvula: (id: number) => apiRequest("DELETE", `/api/valvulas/${id}`),
+
+  // Calendário de Calibrações
+  getCalendarioCalibracoes: (filters?: { poloId?: number; instalacaoId?: number; mes?: number; ano?: number }) => {
+    const params = new URLSearchParams();
+    if (filters?.poloId) params.append("poloId", filters.poloId.toString());
+    if (filters?.instalacaoId) params.append("instalacaoId", filters.instalacaoId.toString());
+    if (filters?.mes) params.append("mes", filters.mes.toString());
+    if (filters?.ano) params.append("ano", filters.ano.toString());
+    const url = params.toString() ? `/api/calendario-calibracoes?${params}` : "/api/calendario-calibracoes";
+    return fetch(url).then(res => res.json());
+  },
+  createCalendarioCalibracao: (data: any) => apiRequest("POST", "/api/calendario-calibracoes", data),
+  updateCalendarioCalibracao: (id: number, data: any) => apiRequest("PUT", `/api/calendario-calibracoes/${id}`, data),
+  deleteCalendarioCalibracao: (id: number) => apiRequest("DELETE", `/api/calendario-calibracoes/${id}`),
+
+  // Trechos Retos
+  getTrechosRetos: () => fetch("/api/trechos-retos").then(res => res.json()),
+  createTrechoReto: (data: any) => apiRequest("POST", "/api/trechos-retos", data),
+  updateTrechoReto: (id: number, data: any) => apiRequest("PUT", `/api/trechos-retos/${id}`, data),
+  deleteTrechoReto: (id: number) => apiRequest("DELETE", `/api/trechos-retos/${id}`),
+
+  // Medidores Primários
+  getMedidoresPrimarios: (filters?: { campoId?: number; instalacaoId?: number; tipoMedidor?: string }) => {
+    const params = new URLSearchParams();
+    if (filters?.campoId) params.append("campoId", filters.campoId.toString());
+    if (filters?.instalacaoId) params.append("instalacaoId", filters.instalacaoId.toString());
+    if (filters?.tipoMedidor) params.append("tipoMedidor", filters.tipoMedidor);
+    
+    const url = params.toString() ? `/api/medidores-primarios?${params}` : "/api/medidores-primarios";
+    return fetch(url).then(res => res.json());
+  },
+  getMedidorPrimario: (id: number) => fetch(`/api/medidores-primarios/${id}`).then(res => res.json()),
+  createMedidorPrimario: (data: any) => apiRequest("POST", "/api/medidores-primarios", data),
+  updateMedidorPrimario: (id: number, data: any) => apiRequest("PUT", `/api/medidores-primarios/${id}`, data),
+  deleteMedidorPrimario: (id: number) => apiRequest("DELETE", `/api/medidores-primarios/${id}`),
+
+  // Gestão de Cilindros
+  getGestaoCilindros: () => fetch("/api/gestao-cilindros").then(res => res.json()),
+  createGestaoCilindro: (data: any) => apiRequest("POST", "/api/gestao-cilindros", data),
+  updateGestaoCilindro: (id: number, data: any) => apiRequest("PUT", `/api/gestao-cilindros/${id}`, data),
+  deleteGestaoCilindro: (id: number) => apiRequest("DELETE", `/api/gestao-cilindros/${id}`),
+
+  // Controle de Incertezas
+  getControleIncertezas: (equipamentoId?: number) => {
+    const url = equipamentoId ? `/api/controle-incertezas?equipamentoId=${equipamentoId}` : "/api/controle-incertezas";
+    return fetch(url).then(res => res.json());
+  },
+  createControleIncerteza: (data: any) => apiRequest("POST", "/api/controle-incertezas", data),
+  updateControleIncerteza: (id: number, data: any) => apiRequest("PUT", `/api/controle-incertezas/${id}`, data),
+  deleteControleIncerteza: (id: number) => apiRequest("DELETE", `/api/controle-incertezas/${id}`),
+
+  // Limites de Incerteza
+  getIncertezaLimites: () => fetch("/api/incerteza-limites").then(res => res.json()),
+  createIncertezaLimite: (data: any) => apiRequest("POST", "/api/incerteza-limites", data),
+
+  // Sistema de Notificações
+  getNotificacoes: (filters?: { status?: string; categoria?: string; limit?: number }) => {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append("status", filters.status);
+    if (filters?.categoria) params.append("categoria", filters.categoria);
+    if (filters?.limit) params.append("limit", filters.limit.toString());
+    
+    const url = params.toString() ? `/api/notificacoes?${params}` : "/api/notificacoes";
+    return fetch(url).then(res => res.json());
+  },
+  createNotificacao: (data: any) => apiRequest("POST", "/api/notificacoes", data),
+  markNotificationAsRead: (id: number) => apiRequest("PUT", `/api/notificacoes/${id}/read`),
+  getUnreadNotificationsCount: () => fetch("/api/notificacoes/unread-count").then(res => res.json()),
+
+  // Certificados de Calibração
+  getCertificadosCalibração: () => fetch("/api/certificados-calibracao").then(res => res.json()),
+  createCertificadoCalibracao: (data: any) => apiRequest("POST", "/api/certificados-calibracao", data),
+  updateCertificadoCalibracao: (id: number, data: any) => apiRequest("PUT", `/api/certificados-calibracao/${id}`, data),
+
+  // Execução de Calibrações
+  getExecucaoCalibracoes: () => fetch("/api/execucao-calibracoes").then(res => res.json()),
+  createExecucaoCalibracao: (data: any) => apiRequest("POST", "/api/execucao-calibracoes", data),
+  updateExecucaoCalibracao: (id: number, data: any) => apiRequest("PUT", `/api/execucao-calibracoes/${id}`, data),
+
+  // Métodos ausentes para Instalações
+  updateInstalacao: (id: number, data: any) => apiRequest("PUT", `/api/instalacoes/${id}`, data),
+  deleteInstalacao: (id: number) => apiRequest("DELETE", `/api/instalacoes/${id}`),
+  
+  // Métodos ausentes para Pontos de Medição  
+  updatePontoMedicao: (id: number, data: any) => apiRequest("PUT", `/api/pontos-medicao/${id}`, data),
+  deletePontoMedicao: (id: number) => apiRequest("DELETE", `/api/pontos-medicao/${id}`),
 };

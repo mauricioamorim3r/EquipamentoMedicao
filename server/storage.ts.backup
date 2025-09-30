@@ -1,0 +1,610 @@
+import { eq, desc, asc, and, gte, lte, gt, sql, count } from "drizzle-orm";
+import { db } from "./db";
+import {
+  users, polos, instalacoes, equipamentos, pontosMedicao, planoCalibracoes,
+  historicoCalibracoes, cadastroPocos, testesPocos, placasOrificio, planoColetas, analisesQuimicas,
+  valvulas, controleIncertezas, incertezaLimites, sistemaNotificacoes,
+  type User, type InsertUser, type Polo, type InsertPolo, type Instalacao, 
+  type InsertInstalacao, type Equipamento, typ  async getControleIncertezas(equipamentoId?: number): Promise<ControleIncerteza[]> {
+    let query = db.select().from(controleIncertezas);
+    if (equipamentoId) {
+      query = query.where(eq(controleIncertezas.equipamentoId, equipamentoId)) as any;
+    }
+    return await query.orderBy(desc(controleIncertezas.createdAt));
+  }tEquipamento,
+  type PontoMedicao, type InsertPontoMedicao, type PlanoCalibracão, 
+  type InsertPlanoCalibracão, type CadastroPoço, type InsertCadastroPoço,
+  type PlacaOrificio, type InsertPlacaOrificio, type PlanoColeta, type InsertPlanoColeta,
+  type AnaliseQuimica, type InsertAnaliseQuimica, type Valvula, type InsertValvula,
+  type ControleIncerteza, type InsertControleIncerteza, type IncertezaLimite, 
+  type InsertIncertezaLimite, type SistemaNotificacao, type InsertSistemaNotificacao
+} from "@shared/schema";
+
+export interface IStorage {
+  // Users
+  getUser(id: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+
+  // Polos
+  getPolos(): Promise<Polo[]>;
+  getPolo(id: number): Promise<Polo | undefined>;
+  createPolo(polo: InsertPolo): Promise<Polo>;
+  updatePolo(id: number, polo: Partial<InsertPolo>): Promise<Polo>;
+  deletePolo(id: number): Promise<void>;
+
+  // Instalações
+  getInstalacoes(poloId?: number): Promise<Instalacao[]>;
+  getInstalacao(id: number): Promise<Instalacao | undefined>;
+  createInstalacao(instalacao: InsertInstalacao): Promise<Instalacao>;
+  updateInstalacao(id: number, instalacao: Partial<InsertInstalacao>): Promise<Instalacao>;
+  deleteInstalacao(id: number): Promise<void>;
+
+  // Equipamentos
+  getEquipamentos(filters?: { poloId?: number; instalacaoId?: number; status?: string }): Promise<Equipamento[]>;
+  getEquipamento(id: number): Promise<Equipamento | undefined>;
+  createEquipamento(equipamento: InsertEquipamento): Promise<Equipamento>;
+  updateEquipamento(id: number, equipamento: Partial<InsertEquipamento>): Promise<Equipamento>;
+  deleteEquipamento(id: number): Promise<void>;
+  getEquipamentosWithCalibrationStatus(): Promise<any[]>;
+
+  // Pontos de Medição
+  getPontosMedicao(equipamentoId?: number): Promise<PontoMedicao[]>;
+  createPontoMedicao(ponto: InsertPontoMedicao): Promise<PontoMedicao>;
+
+  // Calibrações
+  getPlanosCalibracoes(equipamentoId?: number): Promise<PlanoCalibracão[]>;
+  getPlanoCalibracão(id: number): Promise<PlanoCalibracão | undefined>;
+  createPlanoCalibracão(plano: InsertPlanoCalibracão): Promise<PlanoCalibracão>;
+  updatePlanoCalibracão(id: number, plano: Partial<InsertPlanoCalibracão>): Promise<PlanoCalibracão>;
+  getCalibrationStats(): Promise<{
+    total: number;
+    expired: number;
+    critical: number;
+    alert: number;
+    ok: number;
+  }>;
+
+  // Poços
+  getPocos(filters?: { poloId?: number; instalacaoId?: number }): Promise<CadastroPoço[]>;
+  createPoço(poço: InsertCadastroPoço): Promise<CadastroPoço>;
+  getTestesPocos(pocoId?: number): Promise<any[]>;
+
+  // Placas de Orifício
+  getPlacasOrificio(equipamentoId?: number): Promise<PlacaOrificio[]>;
+  createPlacaOrificio(placa: InsertPlacaOrificio): Promise<PlacaOrificio>;
+  updatePlacaOrificio(id: number, placa: InsertPlacaOrificio): Promise<PlacaOrificio>;
+  deletePlacaOrificio(id: number): Promise<void>;
+
+  // Análises Químicas
+  getPlanosColetas(pontoMedicaoId?: number): Promise<PlanoColeta[]>;
+  createPlanoColeta(plano: InsertPlanoColeta): Promise<PlanoColeta>;
+  updatePlanoColeta(id: number, data: Partial<InsertPlanoColeta>): Promise<PlanoColeta>;
+  deletePlanoColeta(id: number): Promise<void>;
+  
+  getAnalisesQuimicas(planoColetaId?: number): Promise<AnaliseQuimica[]>;
+  createAnaliseQuimica(analise: InsertAnaliseQuimica): Promise<AnaliseQuimica>;
+  updateAnaliseQuimica(id: number, data: Partial<InsertAnaliseQuimica>): Promise<AnaliseQuimica>;
+  deleteAnaliseQuimica(id: number): Promise<void>;
+
+  // Válvulas
+  getValvulas(equipamentoId?: number): Promise<Valvula[]>;
+  getValvula(id: number): Promise<Valvula | undefined>;
+  createValvula(valvula: InsertValvula): Promise<Valvula>;
+  updateValvula(id: number, valvula: Partial<InsertValvula>): Promise<Valvula>;
+  deleteValvula(id: number): Promise<void>;
+
+  // Controle de Incertezas
+  getControleIncertezas(equipamentoId?: number): Promise<ControleIncerteza[]>;
+  getControleIncerteza(id: number): Promise<ControleIncerteza | undefined>;
+  createControleIncerteza(incerteza: InsertControleIncerteza): Promise<ControleIncerteza>;
+  updateControleIncerteza(id: number, incerteza: Partial<InsertControleIncerteza>): Promise<ControleIncerteza>;
+  deleteControleIncerteza(id: number): Promise<void>;
+  
+  // Limites de Incerteza
+  getIncertezaLimites(): Promise<IncertezaLimite[]>;
+  getIncertezaLimite(id: number): Promise<IncertezaLimite | undefined>;
+  createIncertezaLimite(limite: InsertIncertezaLimite): Promise<IncertezaLimite>;
+  updateIncertezaLimite(id: number, limite: Partial<InsertIncertezaLimite>): Promise<IncertezaLimite>;
+  deleteIncertezaLimite(id: number): Promise<void>;
+
+  // Sistema de Notificações
+  getSistemaNotificacoes(filters?: { status?: string; categoria?: string; limit?: number }): Promise<SistemaNotificacao[]>;
+  getSistemaNotificacao(id: number): Promise<SistemaNotificacao | undefined>;
+  createSistemaNotificacao(notificacao: InsertSistemaNotificacao): Promise<SistemaNotificacao>;
+  updateSistemaNotificacao(id: number, notificacao: Partial<InsertSistemaNotificacao>): Promise<SistemaNotificacao>;
+  deleteSistemaNotificacao(id: number): Promise<void>;
+  markNotificationAsRead(id: number): Promise<void>;
+  getUnreadNotificationsCount(): Promise<number>;
+
+  // Dashboard Stats
+  getDashboardStats(): Promise<{
+    totalEquipamentos: number;
+    calibracoesVencidas: number;
+    criticos: number;
+    conformidade: number;
+    polosDistribution: any[];
+  }>;
+}
+
+export class DatabaseStorage implements IStorage {
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async getPolos(): Promise<Polo[]> {
+    return await db.select().from(polos).orderBy(asc(polos.nome));
+  }
+
+  async getPolo(id: number): Promise<Polo | undefined> {
+    const [polo] = await db.select().from(polos).where(eq(polos.id, id));
+    return polo || undefined;
+  }
+
+  async createPolo(polo: InsertPolo): Promise<Polo> {
+    const [newPolo] = await db.insert(polos).values(polo).returning();
+    return newPolo;
+  }
+
+  async updatePolo(id: number, polo: Partial<InsertPolo>): Promise<Polo> {
+    const [updatedPolo] = await db.update(polos).set(polo).where(eq(polos.id, id)).returning();
+    return updatedPolo;
+  }
+
+  async deletePolo(id: number): Promise<void> {
+    await db.delete(polos).where(eq(polos.id, id));
+  }
+
+  async getInstalacoes(poloId?: number): Promise<Instalacao[]> {
+    const query = db.select().from(instalacoes);
+    if (poloId) {
+      return await query.where(eq(instalacoes.poloId, poloId)).orderBy(asc(instalacoes.nome));
+    }
+    return await query.orderBy(asc(instalacoes.nome));
+  }
+
+  async getInstalacao(id: number): Promise<Instalacao | undefined> {
+    const [instalacao] = await db.select().from(instalacoes).where(eq(instalacoes.id, id));
+    return instalacao || undefined;
+  }
+
+  async createInstalacao(instalacao: InsertInstalacao): Promise<Instalacao> {
+    const [newInstalacao] = await db.insert(instalacoes).values(instalacao).returning();
+    return newInstalacao;
+  }
+
+  async updateInstalacao(id: number, instalacao: Partial<InsertInstalacao>): Promise<Instalacao> {
+    const [updatedInstalacao] = await db.update(instalacoes).set(instalacao).where(eq(instalacoes.id, id)).returning();
+    return updatedInstalacao;
+  }
+
+  async deleteInstalacao(id: number): Promise<void> {
+    await db.delete(instalacoes).where(eq(instalacoes.id, id));
+  }
+
+  async getEquipamentos(filters?: { poloId?: number; instalacaoId?: number; status?: string }): Promise<Equipamento[]> {
+    let query = db.select().from(equipamentos);
+    
+    const conditions = [];
+    if (filters?.poloId) conditions.push(eq(equipamentos.poloId, filters.poloId));
+    if (filters?.instalacaoId) conditions.push(eq(equipamentos.instalacaoId, filters.instalacaoId));
+    if (filters?.status) conditions.push(eq(equipamentos.status, filters.status));
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)) as any;
+    }
+    
+    return await query.orderBy(asc(equipamentos.tag));
+  }
+
+  async getEquipamento(id: number): Promise<Equipamento | undefined> {
+    const [equipamento] = await db.select().from(equipamentos).where(eq(equipamentos.id, id));
+    return equipamento || undefined;
+  }
+
+  async createEquipamento(equipamento: InsertEquipamento): Promise<Equipamento> {
+    const [newEquipamento] = await db.insert(equipamentos).values(equipamento).returning();
+    return newEquipamento;
+  }
+
+  async updateEquipamento(id: number, equipamento: Partial<InsertEquipamento>): Promise<Equipamento> {
+    const [updatedEquipamento] = await db.update(equipamentos).set(equipamento).where(eq(equipamentos.id, id)).returning();
+    return updatedEquipamento;
+  }
+
+  async deleteEquipamento(id: number): Promise<void> {
+    await db.delete(equipamentos).where(eq(equipamentos.id, id));
+  }
+
+  async getEquipamentosWithCalibrationStatus(): Promise<any[]> {
+    return await db.select({
+      id: equipamentos.id,
+      numeroSerie: equipamentos.numeroSerie,
+      tag: equipamentos.tag,
+      nome: equipamentos.nome,
+      fabricante: equipamentos.fabricante,
+      modelo: equipamentos.modelo,
+      status: equipamentos.status,
+      poloId: equipamentos.poloId,
+      instalacaoId: equipamentos.instalacaoId,
+      dataProximaCalibracão: planoCalibracoes.dataProximaCalibracão,
+      diasParaVencer: planoCalibracoes.diasParaVencer,
+      statusCalibracao: planoCalibracoes.statusCalibracao,
+      certificado: planoCalibracoes.certificadoCalibracão,
+    })
+    .from(equipamentos)
+    .leftJoin(planoCalibracoes, eq(equipamentos.id, planoCalibracoes.equipamentoId))
+    .orderBy(asc(equipamentos.tag));
+  }
+
+  async getPontosMedicao(equipamentoId?: number): Promise<PontoMedicao[]> {
+    const query = db.select().from(pontosMedicao);
+    if (equipamentoId) {
+      return await query.where(eq(pontosMedicao.equipamentoId, equipamentoId));
+    }
+    return await query.orderBy(asc(pontosMedicao.tag));
+  }
+
+  async createPontoMedicao(ponto: InsertPontoMedicao): Promise<PontoMedicao> {
+    const [newPonto] = await db.insert(pontosMedicao).values(ponto).returning();
+    return newPonto;
+  }
+
+  async getPlanosCalibracoes(equipamentoId?: number): Promise<PlanoCalibracão[]> {
+    const query = db.select().from(planoCalibracoes);
+    if (equipamentoId) {
+      return await query.where(eq(planoCalibracoes.equipamentoId, equipamentoId));
+    }
+    return await query.orderBy(desc(planoCalibracoes.dataProximaCalibracão));
+  }
+
+  async getPlanoCalibracão(id: number): Promise<PlanoCalibracão | undefined> {
+    const [plano] = await db.select().from(planoCalibracoes).where(eq(planoCalibracoes.id, id));
+    return plano || undefined;
+  }
+
+  async createPlanoCalibracão(plano: InsertPlanoCalibracão): Promise<PlanoCalibracão> {
+    const [newPlano] = await db.insert(planoCalibracoes).values(plano).returning();
+    return newPlano;
+  }
+
+  async updatePlanoCalibracão(id: number, plano: Partial<InsertPlanoCalibracão>): Promise<PlanoCalibracão> {
+    const [updatedPlano] = await db.update(planoCalibracoes).set(plano).where(eq(planoCalibracoes.id, id)).returning();
+    return updatedPlano;
+  }
+
+  async getCalibrationStats(): Promise<{
+    total: number;
+    expired: number;
+    critical: number;
+    alert: number;
+    proximo: number;
+    ok: number;
+  }> {
+    const today = new Date();
+    const [totalResult] = await db.select({ count: count() }).from(equipamentos);
+    const [expiredResult] = await db.select({ count: count() }).from(planoCalibracoes).where(lte(planoCalibracoes.diasParaVencer, 0));
+    const [criticalResult] = await db.select({ count: count() }).from(planoCalibracoes).where(and(gte(planoCalibracoes.diasParaVencer, 1), lte(planoCalibracoes.diasParaVencer, 7)));
+    const [alertResult] = await db.select({ count: count() }).from(planoCalibracoes).where(and(gte(planoCalibracoes.diasParaVencer, 8), lte(planoCalibracoes.diasParaVencer, 30)));
+    const [proximoResult] = await db.select({ count: count() }).from(planoCalibracoes).where(and(gte(planoCalibracoes.diasParaVencer, 31), lte(planoCalibracoes.diasParaVencer, 90)));
+    const [okResult] = await db.select({ count: count() }).from(planoCalibracoes).where(gt(planoCalibracoes.diasParaVencer, 90));
+
+    return {
+      total: totalResult.count,
+      expired: expiredResult.count,
+      critical: criticalResult.count,
+      alert: alertResult.count,
+      proximo: proximoResult.count,
+      ok: okResult.count,
+    };
+  }
+
+  async getPocos(filters?: { poloId?: number; instalacaoId?: number }): Promise<CadastroPoço[]> {
+    let query = db.select().from(cadastroPocos);
+    
+    const conditions = [];
+    if (filters?.poloId) conditions.push(eq(cadastroPocos.poloId, filters.poloId));
+    if (filters?.instalacaoId) conditions.push(eq(cadastroPocos.instalacaoId, filters.instalacaoId));
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)) as any;
+    }
+    
+    return await query.orderBy(asc(cadastroPocos.codigo));
+  }
+
+  async createPoço(poço: InsertCadastroPoço): Promise<CadastroPoço> {
+    const [newPoço] = await db.insert(cadastroPocos).values(poço).returning();
+    return newPoço;
+  }
+
+  async getTestesPocos(pocoId?: number): Promise<any[]> {
+    const query = db.select().from(testesPocos);
+    if (pocoId) {
+      return await query.where(eq(testesPocos.pocoId, pocoId));
+    }
+    return await query.orderBy(desc(testesPocos.dataTeste));
+  }
+
+  async createTestePoco(teste: any): Promise<any> {
+    const [newTeste] = await db.insert(testesPocos).values(teste).returning();
+    return newTeste;
+  }
+
+  async getPlacasOrificio(equipamentoId?: number): Promise<PlacaOrificio[]> {
+    const query = db.select().from(placasOrificio);
+    if (equipamentoId) {
+      return await query.where(eq(placasOrificio.equipamentoId, equipamentoId));
+    }
+    return await query.orderBy(desc(placasOrificio.dataInstalacao));
+  }
+
+  async createPlacaOrificio(placa: InsertPlacaOrificio): Promise<PlacaOrificio> {
+    const [newPlaca] = await db.insert(placasOrificio).values(placa).returning();
+    return newPlaca;
+  }
+
+  async updatePlacaOrificio(id: number, placa: InsertPlacaOrificio): Promise<PlacaOrificio> {
+    const [updatedPlaca] = await db
+      .update(placasOrificio)
+      .set({ ...placa, updatedAt: new Date() })
+      .where(eq(placasOrificio.id, id))
+      .returning();
+    return updatedPlaca;
+  }
+
+  async deletePlacaOrificio(id: number): Promise<void> {
+    await db.delete(placasOrificio).where(eq(placasOrificio.id, id));
+  }
+
+  async getPlanosColetas(pontoMedicaoId?: number): Promise<PlanoColeta[]> {
+    const query = db.select().from(planoColetas);
+    if (pontoMedicaoId) {
+      return await query.where(eq(planoColetas.pontoMedicaoId, pontoMedicaoId));
+    }
+    return await query.orderBy(desc(planoColetas.dataEmbarque));
+  }
+
+  async createPlanoColeta(plano: InsertPlanoColeta): Promise<PlanoColeta> {
+    const [newPlano] = await db.insert(planoColetas).values(plano).returning();
+    return newPlano;
+  }
+
+  async updatePlanoColeta(id: number, data: Partial<InsertPlanoColeta>): Promise<PlanoColeta> {
+    const [updatedPlano] = await db.update(planoColetas)
+      .set(data)
+      .where(eq(planoColetas.id, id))
+      .returning();
+    return updatedPlano;
+  }
+
+  async deletePlanoColeta(id: number): Promise<void> {
+    await db.delete(planoColetas).where(eq(planoColetas.id, id));
+  }
+
+  async getAnalisesQuimicas(planoColetaId?: number): Promise<AnaliseQuimica[]> {
+    const query = db.select().from(analisesQuimicas);
+    if (planoColetaId) {
+      return await query.where(eq(analisesQuimicas.planoColetaId, planoColetaId));
+    }
+    return await query.orderBy(desc(analisesQuimicas.dataColeta));
+  }
+
+  async createAnaliseQuimica(analise: InsertAnaliseQuimica): Promise<AnaliseQuimica> {
+    const [newAnalise] = await db.insert(analisesQuimicas).values(analise).returning();
+    return newAnalise;
+  }
+
+  async updateAnaliseQuimica(id: number, data: Partial<InsertAnaliseQuimica>): Promise<AnaliseQuimica> {
+    const [updatedAnalise] = await db.update(analisesQuimicas)
+      .set(data)
+      .where(eq(analisesQuimicas.id, id))
+      .returning();
+    return updatedAnalise;
+  }
+
+  async deleteAnaliseQuimica(id: number): Promise<void> {
+    await db.delete(analisesQuimicas).where(eq(analisesQuimicas.id, id));
+  }
+
+  async getDashboardStats(): Promise<{
+    totalEquipamentos: number;
+    calibracoesVencidas: number;
+    criticos: number;
+    conformidade: number;
+    polosDistribution: any[];
+  }> {
+    const [totalEquip] = await db.select({ count: count() }).from(equipamentos);
+    const [vencidas] = await db.select({ count: count() }).from(planoCalibracoes).where(lte(planoCalibracoes.diasParaVencer, 0));
+    const [criticos] = await db.select({ count: count() }).from(planoCalibracoes).where(and(gte(planoCalibracoes.diasParaVencer, 1), lte(planoCalibracoes.diasParaVencer, 7)));
+    
+    const polosData = await db.select({
+      id: polos.id,
+      nome: polos.nome,
+      sigla: polos.sigla,
+      equipCount: count(equipamentos.id),
+    })
+    .from(polos)
+    .leftJoin(equipamentos, eq(polos.id, equipamentos.poloId))
+    .groupBy(polos.id, polos.nome, polos.sigla)
+    .orderBy(desc(count(equipamentos.id)));
+
+    const totalEquipamentos = totalEquip.count;
+    const conformes = totalEquipamentos - vencidas.count - criticos.count;
+    const conformidade = totalEquipamentos > 0 ? (conformes / totalEquipamentos) * 100 : 0;
+
+    return {
+      totalEquipamentos,
+      calibracoesVencidas: vencidas.count,
+      criticos: criticos.count,
+      conformidade: Math.round(conformidade * 10) / 10,
+      polosDistribution: polosData,
+    };
+  }
+
+  // Válvulas
+  async getValvulas(equipamentoId?: number): Promise<Valvula[]> {
+    let query = db.select().from(valvulas);
+    if (equipamentoId) {
+      query = query.where(eq(valvulas.equipamentoId, equipamentoId)) as any;
+    }
+    return await query.orderBy(asc(valvulas.tagValvula));
+  }
+
+  async getValvula(id: number): Promise<Valvula | undefined> {
+    const [valvula] = await db.select().from(valvulas).where(eq(valvulas.id, id));
+    return valvula || undefined;
+  }
+
+  async createValvula(valvula: InsertValvula): Promise<Valvula> {
+    const [newValvula] = await db.insert(valvulas).values(valvula).returning();
+    return newValvula;
+  }
+
+  async updateValvula(id: number, valvula: Partial<InsertValvula>): Promise<Valvula> {
+    const [updatedValvula] = await db.update(valvulas)
+      .set({ ...valvula, updatedAt: new Date() })
+      .where(eq(valvulas.id, id))
+      .returning();
+    return updatedValvula;
+  }
+
+  async deleteValvula(id: number): Promise<void> {
+    await db.delete(valvulas).where(eq(valvulas.id, id));
+  }
+
+  // Controle de Incertezas
+  async getControleIncertezas(equipamentoId?: number): Promise<ControleIncerteza[]> {
+    let query = db.select().from(controleIncertezas);
+    if (equipamentoId) {
+      query = query.where(eq(controleIncertezas.equipamentoId, equipamentoId));
+    }
+    return await query.orderBy(desc(controleIncertezas.dataMedicao));
+  }
+
+  async getControleIncerteza(id: number): Promise<ControleIncerteza | undefined> {
+    const [incerteza] = await db.select().from(controleIncertezas).where(eq(controleIncertezas.id, id));
+    return incerteza || undefined;
+  }
+
+  async createControleIncerteza(incerteza: InsertControleIncerteza): Promise<ControleIncerteza> {
+    const [newIncerteza] = await db.insert(controleIncertezas).values(incerteza).returning();
+    return newIncerteza;
+  }
+
+  async updateControleIncerteza(id: number, incerteza: Partial<InsertControleIncerteza>): Promise<ControleIncerteza> {
+    const [updatedIncerteza] = await db.update(controleIncertezas)
+      .set({ ...incerteza, updatedAt: new Date() })
+      .where(eq(controleIncertezas.id, id))
+      .returning();
+    return updatedIncerteza;
+  }
+
+  async deleteControleIncerteza(id: number): Promise<void> {
+    await db.delete(controleIncertezas).where(eq(controleIncertezas.id, id));
+  }
+
+  // Limites de Incerteza
+  async getIncertezaLimites(): Promise<IncertezaLimite[]> {
+    return await db.select().from(incertezaLimites).where(eq(incertezaLimites.ativo, true));
+  }
+
+  async getIncertezaLimite(id: number): Promise<IncertezaLimite | undefined> {
+    const [limite] = await db.select().from(incertezaLimites).where(eq(incertezaLimites.id, id));
+    return limite || undefined;
+  }
+
+  async createIncertezaLimite(limite: InsertIncertezaLimite): Promise<IncertezaLimite> {
+    const [newLimite] = await db.insert(incertezaLimites).values(limite).returning();
+    return newLimite;
+  }
+
+  async updateIncertezaLimite(id: number, limite: Partial<InsertIncertezaLimite>): Promise<IncertezaLimite> {
+    const [updatedLimite] = await db.update(incertezaLimites)
+      .set(limite)
+      .where(eq(incertezaLimites.id, id))
+      .returning();
+    return updatedLimite;
+  }
+
+  async deleteIncertezaLimite(id: number): Promise<void> {
+    await db.delete(incertezaLimites).where(eq(incertezaLimites.id, id));
+  }
+
+  // Sistema de Notificações
+  async getSistemaNotificacoes(filters?: { status?: string; categoria?: string; limit?: number }): Promise<SistemaNotificacao[]> {
+    let query = db.select().from(sistemaNotificacoes);
+    
+    const conditions = [];
+    if (filters?.status) {
+      conditions.push(eq(sistemaNotificacoes.status, filters.status));
+    }
+    if (filters?.categoria) {
+      conditions.push(eq(sistemaNotificacoes.categoria, filters.categoria));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)) as any;
+    }
+    
+    query = query.orderBy(desc(sistemaNotificacoes.createdAt)) as any;
+    
+    if (filters?.limit) {
+      query = query.limit(filters.limit) as any;
+    }
+    
+    return await query;
+  }
+
+  async getSistemaNotificacao(id: number): Promise<SistemaNotificacao | undefined> {
+    const [notificacao] = await db.select().from(sistemaNotificacoes).where(eq(sistemaNotificacoes.id, id));
+    return notificacao || undefined;
+  }
+
+  async createSistemaNotificacao(notificacao: InsertSistemaNotificacao): Promise<SistemaNotificacao> {
+    const [newNotificacao] = await db.insert(sistemaNotificacoes).values(notificacao).returning();
+    return newNotificacao;
+  }
+
+  async updateSistemaNotificacao(id: number, notificacao: Partial<InsertSistemaNotificacao>): Promise<SistemaNotificacao> {
+    const [updatedNotificacao] = await db.update(sistemaNotificacoes)
+      .set({ ...notificacao, updatedAt: new Date() })
+      .where(eq(sistemaNotificacoes.id, id))
+      .returning();
+    return updatedNotificacao;
+  }
+
+  async deleteSistemaNotificacao(id: number): Promise<void> {
+    await db.delete(sistemaNotificacoes).where(eq(sistemaNotificacoes.id, id));
+  }
+
+  async markNotificationAsRead(id: number): Promise<void> {
+    await db.update(sistemaNotificacoes)
+      .set({ 
+        status: 'lida', 
+        dataLeitura: new Date(),
+        updatedAt: new Date() 
+      })
+      .where(eq(sistemaNotificacoes.id, id));
+  }
+
+  async getUnreadNotificationsCount(): Promise<number> {
+    const [result] = await db.select({ count: count() })
+      .from(sistemaNotificacoes)
+      .where(eq(sistemaNotificacoes.status, 'ativa'));
+    return result.count;
+  }
+}
+
+export const storage = new DatabaseStorage();

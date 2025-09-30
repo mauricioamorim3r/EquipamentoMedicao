@@ -24,6 +24,7 @@ export interface CalibrationStats {
 
 export interface EquipmentWithCalibration {
   id: number;
+  numeroSerie: string;
   tag: string;
   nome: string;
   fabricante: string;

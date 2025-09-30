@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,10 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, Filter, Download, Edit, Trash2, Eye, MapPin, Calendar, Settings } from "lucide-react";
+import { Plus, Search, Filter, Download, Edit, Trash2, Eye, MapPin, Calendar, Settings, Upload, FileDown, FileUp, FileSpreadsheet } from "lucide-react";
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useImportExport } from "@/hooks/use-import-export";
 import EquipmentForm from "@/components/equipment-form";
 import EquipmentModal from "@/components/equipment-modal";
 import type { Equipamento, Polo, Instalacao } from "@shared/schema";
@@ -24,8 +25,20 @@ export default function Equipment() {
   const [editingEquipment, setEditingEquipment] = useState<Equipamento | null>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<EquipmentWithCalibration | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  
+
   const { toast } = useToast();
+  const { downloadTemplate, exportData, importData, isDownloading, isUploading, isExporting } = useImportExport("equipamentos");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      await importData(file);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
 
   // Fetch data
   const { data: equipamentos, isLoading: equipmentLoading } = useQuery({
@@ -163,26 +176,66 @@ export default function Equipment() {
             Controle completo de equipamentos de medição
           </p>
         </div>
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openNewEquipmentForm} data-testid="button-new-equipment">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Equipamento
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingEquipment ? 'Editar Equipamento' : 'Novo Equipamento'}
-              </DialogTitle>
-            </DialogHeader>
-            <EquipmentForm
-              equipment={editingEquipment}
-              onClose={closeForm}
-              onSuccess={closeForm}
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+          {/* Import/Export Buttons */}
+          <Button
+            variant="outline"
+            onClick={downloadTemplate}
+            disabled={isDownloading}
+            data-testid="button-download-template"
+          >
+            <FileDown className="w-4 h-4 mr-2" />
+            Baixar Template
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={exportData}
+            disabled={isExporting}
+            data-testid="button-export-data"
+          >
+            <FileSpreadsheet className="w-4 h-4 mr-2" />
+            Exportar Dados
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            data-testid="button-import-data"
+          >
+            <FileUp className="w-4 h-4 mr-2" />
+            Importar Dados
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+
+          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openNewEquipmentForm} data-testid="button-new-equipment">
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Equipamento
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingEquipment ? 'Editar Equipamento' : 'Novo Equipamento'}
+                </DialogTitle>
+              </DialogHeader>
+              <EquipmentForm
+                equipment={editingEquipment}
+                onClose={closeForm}
+                onSuccess={closeForm}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filters */}

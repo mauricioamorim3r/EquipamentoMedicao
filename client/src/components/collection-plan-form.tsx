@@ -104,9 +104,9 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
   const onSubmit = (data: FormValues) => {
     const submitData = {
       ...data,
-      dataEmbarque: data.dataEmbarque ? new Date(data.dataEmbarque) : null,
-      dataDesembarque: data.dataDesembarque ? new Date(data.dataDesembarque) : null,
-      dataRealEmbarque: data.dataRealEmbarque ? new Date(data.dataRealEmbarque) : null,
+      dataEmbarque: data.dataEmbarque ? data.dataEmbarque : null,
+      dataDesembarque: data.dataDesembarque ? data.dataDesembarque : null,
+      dataRealEmbarque: data.dataRealEmbarque ? data.dataRealEmbarque : null,
     };
     
     if (isEditing && plan) {

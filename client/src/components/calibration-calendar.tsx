@@ -4,12 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import type { EquipmentWithCalibration } from "@/types";
+import type { CalendarioCalibracao } from "@shared/schema";
 
 interface CalibrationCalendarProps {
   equipamentos: EquipmentWithCalibration[];
+  onDateClick?: (date: Date, calibrations?: CalendarioCalibracao[]) => void;
 }
 
-export default function CalibrationCalendar({ equipamentos }: CalibrationCalendarProps) {
+export default function CalibrationCalendar({ equipamentos, onDateClick }: CalibrationCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const getCurrentMonthDates = () => {
@@ -173,6 +175,7 @@ export default function CalibrationCalendar({ equipamentos }: CalibrationCalenda
                     ? `${equipmentsOnDate.length} calibração(ões): ${equipmentsOnDate.map(eq => eq.tag).join(', ')}`
                     : undefined
                   }
+                  onClick={() => onDateClick?.(date)}
                 >
                   <div className="flex items-start justify-between">
                     <span className={`text-sm ${
@@ -190,8 +193,7 @@ export default function CalibrationCalendar({ equipamentos }: CalibrationCalenda
                       {equipmentsOnDate.slice(0, 2).map((eq) => (
                         <div
                           key={eq.id}
-                          className="text-xs p-1 rounded text-white truncate"
-                          style={{ backgroundColor: 'var(--primary)' }}
+                          className="text-xs p-1 rounded text-white truncate bg-primary"
                         >
                           {eq.tag}
                         </div>

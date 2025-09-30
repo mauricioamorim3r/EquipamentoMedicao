@@ -10,7 +10,7 @@ import { Plus, Search, Filter, Download, Edit, Trash2, Eye, Circle, Calendar, Al
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import OrificePlateForm from "@/components/orifice-plate-form";
+import EnhancedOrificePlateForm from "@/components/enhanced-orifice-plate-form";
 import type { PlacaOrificio } from "@shared/schema";
 
 export default function OrificePlates() {
@@ -43,20 +43,21 @@ export default function OrificePlates() {
     return matchesSearch && matchesEquipment;
   }) || [];
 
-  const getInspectionStatusBadge = (dataInspecao?: string, dataMaximaUso?: string) => {
-    if (!dataInspecao || !dataMaximaUso) {
+  const getInspectionStatusBadge = (dataInspecao?: string) => {
+    if (!dataInspecao) {
       return { text: 'Sem dados', className: 'bg-gray-100 text-gray-800' };
     }
-    
+
     const today = new Date();
-    const maxUseDate = new Date(dataMaximaUso);
-    const daysUntilExpiry = Math.floor((maxUseDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (daysUntilExpiry < 0) {
+    const inspectionDate = new Date(dataInspecao);
+    const daysSinceInspection = Math.floor((today.getTime() - inspectionDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Consider inspection valid for 1 year (365 days)
+    if (daysSinceInspection > 365) {
       return { text: 'Vencida', className: 'bg-red-100 text-red-800' };
-    } else if (daysUntilExpiry <= 30) {
+    } else if (daysSinceInspection > 335) {
       return { text: 'Próxima troca', className: 'bg-orange-100 text-orange-800' };
-    } else if (daysUntilExpiry <= 90) {
+    } else if (daysSinceInspection > 275) {
       return { text: 'Alerta', className: 'bg-yellow-100 text-yellow-800' };
     } else {
       return { text: 'OK', className: 'bg-green-100 text-green-800' };
@@ -121,13 +122,13 @@ export default function OrificePlates() {
               Nova Placa
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-screen overflow-y-auto">
+          <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingPlate ? 'Editar Placa de Orifício' : 'Nova Placa de Orifício'}
               </DialogTitle>
             </DialogHeader>
-            <OrificePlateForm
+            <EnhancedOrificePlateForm
               plate={editingPlate}
               onClose={closeForm}
               onSuccess={closeForm}
@@ -158,8 +159,8 @@ export default function OrificePlates() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Em Condições</p>
                 <p className="text-3xl font-bold text-green-600">
-                  {filteredPlacas.filter(p => {
-                    const badge = getInspectionStatusBadge(p.dataInspecao || undefined, p.dataMaximaUso || undefined);
+                  {filteredPlacas.filter((p: any) => {
+                    const badge = getInspectionStatusBadge(p.dataInspecao || undefined);
                     return badge.text === 'OK';
                   }).length}
                 </p>
@@ -177,8 +178,8 @@ export default function OrificePlates() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Próximas à Troca</p>
                 <p className="text-3xl font-bold text-orange-600">
-                  {filteredPlacas.filter(p => {
-                    const badge = getInspectionStatusBadge(p.dataInspecao || undefined, p.dataMaximaUso || undefined);
+                  {filteredPlacas.filter((p: any) => {
+                    const badge = getInspectionStatusBadge(p.dataInspecao || undefined);
                     return badge.text === 'Próxima troca';
                   }).length}
                 </p>
@@ -196,8 +197,8 @@ export default function OrificePlates() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Vencidas</p>
                 <p className="text-3xl font-bold text-red-600">
-                  {filteredPlacas.filter(p => {
-                    const badge = getInspectionStatusBadge(p.dataInspecao || undefined, p.dataMaximaUso || undefined);
+                  {filteredPlacas.filter((p: any) => {
+                    const badge = getInspectionStatusBadge(p.dataInspecao || undefined);
                     return badge.text === 'Vencida';
                   }).length}
                 </p>
@@ -292,8 +293,7 @@ export default function OrificePlates() {
             <div className="space-y-4">
               {filteredPlacas.map((placa: PlacaOrificio) => {
                 const statusBadge = getInspectionStatusBadge(
-                  placa.dataInspecao || undefined, 
-                  placa.dataMaximaUso || undefined
+                  placa.dataInspecao || undefined
                 );
                 
                 return (
@@ -315,12 +315,12 @@ export default function OrificePlates() {
                         
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
                           <div>
-                            <p className="font-medium text-foreground">Equipamento: {placa.equipamentoId}</p>
+                            <p className="font-medium text-foreground">N° Série: {placa.numeroSerie}</p>
                             <p>Material: {placa.material || 'N/A'}</p>
-                            <p>Classe: {placa.classePressao || 'N/A'}</p>
+                            <p>Norma: {placa.norma || 'N/A'}</p>
                           </div>
                           <div>
-                            <p>Diâmetro Externo: {placa.diametroExterno20c ? `${placa.diametroExterno20c} mm` : 'N/A'}</p>
+                            <p>Diâmetro Externo: {placa.diametroExterno ? `${placa.diametroExterno} mm` : 'N/A'}</p>
                             <p>Diâmetro Orifício: {placa.diametroOrificio20c ? `${placa.diametroOrificio20c} mm` : 'N/A'}</p>
                             <p>Espessura: {placa.espessura ? `${placa.espessura} mm` : 'N/A'}</p>
                           </div>
@@ -329,10 +329,8 @@ export default function OrificePlates() {
                             <p>Data Instalação: {placa.dataInstalacao ? new Date(placa.dataInstalacao).toLocaleDateString('pt-BR') : 'N/A'}</p>
                           </div>
                           <div>
-                            <p className={statusBadge.text === 'Vencida' ? 'text-red-600 font-medium' : ''}>
-                              Máxima Uso: {placa.dataMaximaUso ? new Date(placa.dataMaximaUso).toLocaleDateString('pt-BR') : 'N/A'}
-                            </p>
-                            <p>EMA: {placa.emaEspecifico ? `${placa.emaEspecifico}%` : 'N/A'}</p>
+                            <p>Carta Nº: {placa.cartaNumero || 'N/A'}</p>
+                            <p>Certificado: {placa.certificadoVigente || 'N/A'}</p>
                           </div>
                         </div>
                       </div>

@@ -250,7 +250,7 @@ export default function Wells() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Poços Ativos</p>
                 <p className="text-3xl font-bold text-green-600">
-                  {filteredWells.filter(w => w.status === 'ativo').length}
+                  {filteredWells.filter((w: any) => w.status === 'ativo').length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">

@@ -44,7 +44,10 @@ export default function BtpTestForm({ well, onClose, onSuccess }: BtpTestFormPro
       vazaoAgua: 0,
       bsw: 0,
       rgo: 0,
-      numeroBoletim: "",
+      numeroBoletimTeste: "",
+      tagMedidorOleo: "",
+      resultadoTeste: "",
+      ehUltimoTeste: false,
       responsavelTeste: "",
       observacoes: "",
     },
@@ -129,12 +132,12 @@ export default function BtpTestForm({ well, onClose, onSuccess }: BtpTestFormPro
 
             <FormField
               control={form.control}
-              name="numeroBoletim"
+              name="numeroBoletimTeste"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Número do Boletim</FormLabel>
                   <FormControl>
-                    <Input {...field} className="font-mono" data-testid="input-bulletin-number" />
+                    <Input {...field} value={field.value || ''} className="font-mono" data-testid="input-bulletin-number" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -148,7 +151,7 @@ export default function BtpTestForm({ well, onClose, onSuccess }: BtpTestFormPro
                 <FormItem>
                   <FormLabel>Responsável pelo Teste</FormLabel>
                   <FormControl>
-                    <Input {...field} data-testid="input-responsible" />
+                    <Input {...field} value={field.value || ''} data-testid="input-responsible" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -298,6 +301,7 @@ export default function BtpTestForm({ well, onClose, onSuccess }: BtpTestFormPro
                 <Textarea 
                   placeholder="Observações sobre o teste..."
                   {...field}
+                  value={field.value || ''}
                   rows={3}
                   data-testid="textarea-observations"
                 />

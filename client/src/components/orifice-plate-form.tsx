@@ -9,14 +9,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useEquipmentAutoFill } from "@/hooks/use-auto-fill";
 import { insertPlacaOrificioSchema, type InsertPlacaOrificio, type PlacaOrificio, type Equipamento } from "@shared/schema";
 import { z } from "zod";
+import { useEffect } from "react";
 
 const formSchema = insertPlacaOrificioSchema.extend({
-  diametroExterno20c: z.coerce.number().optional(),
+  diametroExterno: z.coerce.number().optional(),
   diametroOrificio20c: z.coerce.number().optional(),
   espessura: z.coerce.number().optional(),
-  emaEspecifico: z.coerce.number().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -35,18 +36,15 @@ export default function OrificePlateForm({ plate, onClose, onSuccess }: OrificeP
     resolver: zodResolver(formSchema),
     defaultValues: {
       equipamentoId: plate?.equipamentoId || 0,
-      diametroExterno20c: plate?.diametroExterno20c || undefined,
+      numeroSerie: plate?.numeroSerie || "",
+      diametroExterno: plate?.diametroExterno || undefined,
       diametroOrificio20c: plate?.diametroOrificio20c || undefined,
       espessura: plate?.espessura || undefined,
       material: plate?.material || "",
-      classePressao: plate?.classePressao || "",
       dataInspecao: plate?.dataInspecao || "",
       dataInstalacao: plate?.dataInstalacao || "",
-      dataMaximaUso: plate?.dataMaximaUso || "",
       cartaNumero: plate?.cartaNumero || "",
-      criterioAceitacao: plate?.criterioAceitacao || "",
-      emaEspecifico: plate?.emaEspecifico || undefined,
-      certificadoDimensional: plate?.certificadoDimensional || "",
+      observacao: plate?.observacao || "",
     },
   });
 
@@ -54,6 +52,51 @@ export default function OrificePlateForm({ plate, onClose, onSuccess }: OrificeP
     queryKey: ["/api/equipamentos"],
     queryFn: () => api.getEquipamentos(),
   });
+
+  // Watch equipment selection for auto-fill
+  const selectedEquipamentoId = form.watch("equipamentoId");
+  const { data: equipmentData } = useEquipmentAutoFill(selectedEquipamentoId);
+
+  // Auto-fill when equipment changes
+  useEffect(() => {
+    if (equipmentData && !isEditing) {
+      const { equipamento, instalacao, polo } = equipmentData;
+      
+      // Auto-generate serial number if empty
+      const currentNumeroSerie = form.getValues("numeroSerie");
+      if (!currentNumeroSerie && equipamento) {
+        const serialSuggestion = `PO-${equipamento.tag}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+        form.setValue("numeroSerie", serialSuggestion);
+      }
+      
+      // Auto-fill material if equipment has model info
+      const currentMaterial = form.getValues("material");
+      if (!currentMaterial && equipamento?.modelo) {
+        // Common orifice plate materials based on equipment model
+        const materialMapping: Record<string, string> = {
+          "Inox": "Aço Inoxidável 316L",
+          "Carbon": "Aço Carbono",
+          "Hastelloy": "Hastelloy C-276",
+          "Monel": "Monel 400"
+        };
+        
+        const suggestedMaterial = Object.keys(materialMapping).find(key => 
+          equipamento.modelo?.includes(key)
+        );
+        
+        if (suggestedMaterial) {
+          form.setValue("material", materialMapping[suggestedMaterial]);
+        } else {
+          form.setValue("material", "Aço Inoxidável 316L"); // Default
+        }
+      }
+
+      toast({
+        title: "Auto preenchimento",
+        description: `Dados baseados no equipamento ${equipamento.tag} preenchidos automaticamente.`,
+      });
+    }
+  }, [equipmentData, form, isEditing, toast]);
 
   const createMutation = useMutation({
     mutationFn: api.createPlacaOrificio,
@@ -136,6 +179,25 @@ export default function OrificePlateForm({ plate, onClose, onSuccess }: OrificeP
 
           <FormField
             control={form.control}
+            name="numeroSerie"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Número de Série *</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Ex: PO-001"
+                    data-testid="input-numero-serie"
+                    {...field}
+                    value={field.value || ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="cartaNumero"
             render={({ field }) => (
               <FormItem>
@@ -157,7 +219,7 @@ export default function OrificePlateForm({ plate, onClose, onSuccess }: OrificeP
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             control={form.control}
-            name="diametroExterno20c"
+            name="diametroExterno"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Diâmetro Externo @ 20°C (mm)</FormLabel>
@@ -219,47 +281,26 @@ export default function OrificePlateForm({ plate, onClose, onSuccess }: OrificeP
           />
         </div>
 
+        <FormField
+          control={form.control}
+          name="material"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Material</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Ex: Aço inoxidável 316L"
+                  data-testid="input-material"
+                  {...field}
+                  value={field.value || ""}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="material"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Material</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ex: Aço inoxidável 316L"
-                    data-testid="input-material"
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="classePressao"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Classe de Pressão</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ex: 150# / 300# / 600#"
-                    data-testid="input-classe-pressao"
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="dataInspecao"
@@ -297,77 +338,19 @@ export default function OrificePlateForm({ plate, onClose, onSuccess }: OrificeP
               </FormItem>
             )}
           />
-
-          <FormField
-            control={form.control}
-            name="dataMaximaUso"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data Máxima de Uso</FormLabel>
-                <FormControl>
-                  <Input
-                    type="date"
-                    data-testid="input-data-maxima-uso"
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
 
         <FormField
           control={form.control}
-          name="emaEspecifico"
+          name="observacao"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>EMA Específico (%)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="Ex: 0.50"
-                  data-testid="input-ema-especifico"
-                  {...field}
-                  value={field.value || ""}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="criterioAceitacao"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Critério de Aceitação</FormLabel>
+              <FormLabel>Observações</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Descreva os critérios de aceitação..."
-                  data-testid="input-criterio-aceitacao"
-                  {...field}
-                  value={field.value || ""}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="certificadoDimensional"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Certificado Dimensional</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Número ou referência do certificado"
-                  data-testid="input-certificado-dimensional"
+                  placeholder="Observações sobre a placa de orifício..."
+                  data-testid="input-observacao"
+                  rows={3}
                   {...field}
                   value={field.value || ""}
                 />

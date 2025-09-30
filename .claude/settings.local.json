@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/mauricio.amorim/OneDrive - BRAVA ENERGIA/Downloads/**)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm install:*)",
+      "Bash(npx update-browserslist-db:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

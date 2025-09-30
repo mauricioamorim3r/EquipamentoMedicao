@@ -50,6 +50,15 @@ export default function ChemicalAnalysis() {
     return matchesSearch && matchesStatus;
   }) || [];
 
+  // Calculate summary statistics
+  const summaryStats = {
+    total: filteredPlans.length,
+    pending: filteredPlans.filter((p: any) => p.status === 'pendente').length,
+    scheduled: filteredPlans.filter((p: any) => p.status === 'agendado').length,
+    inProgress: filteredPlans.filter((p: any) => p.status === 'coletado' || p.status === 'laboratorio').length,
+    completed: filteredPlans.filter((p: any) => p.status === 'concluido').length,
+  };
+
   const getCollectionStatusBadge = (plan: PlanoColeta) => {
     // Use the actual status field instead of inferring from checkboxes
     switch (plan.status) {
@@ -125,12 +134,11 @@ export default function ChemicalAnalysis() {
   };
 
   // Calculate summary statistics using status field
-  const summaryStats = {
-    total: filteredPlans.length,
-    pending: filteredPlans.filter(p => p.status === 'pendente').length,
-    scheduled: filteredPlans.filter(p => p.status === 'agendado').length,
-    inProgress: filteredPlans.filter(p => p.status === 'coletado' || p.status === 'laboratorio').length,
-    completed: filteredPlans.filter(p => p.status === 'concluido').length,
+  const stats = {
+    pending: filteredPlans.filter((p: any) => p.status === 'pendente').length,
+    scheduled: filteredPlans.filter((p: any) => p.status === 'agendado').length,
+    inProgress: filteredPlans.filter((p: any) => p.status === 'coletado' || p.status === 'laboratorio').length,
+    completed: filteredPlans.filter((p: any) => p.status === 'concluido').length,
   };
 
   return (
