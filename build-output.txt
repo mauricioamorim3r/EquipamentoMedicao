@@ -1,0 +1,77 @@
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+[36mvite v5.4.20 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 3512 modules transformed.
+rendering chunks...
+computing gzip size...
+[2m../dist/public/[22m[32mindex.html                                 [39m[1m[2m  2.27 kB[22m[1m[22m[2m │ gzip:   0.91 kB[22m
+[2m../dist/public/[22m[35massets/index-DCLEpfCk.css                  [39m[1m[2m 75.75 kB[22m[1m[22m[2m │ gzip:  13.05 kB[22m
+[2m../dist/public/[22m[36massets/addDays-C6eGO7TY.js                 [39m[1m[2m  0.15 kB[22m[1m[22m[2m │ gzip:   0.15 kB[22m
+[2m../dist/public/[22m[36massets/addMonths-fzcik_LU.js               [39m[1m[2m  0.29 kB[22m[1m[22m[2m │ gzip:   0.22 kB[22m
+[2m../dist/public/[22m[36massets/plus-Y71n1wws.js                    [39m[1m[2m  0.32 kB[22m[1m[22m[2m │ gzip:   0.26 kB[22m
+[2m../dist/public/[22m[36massets/thermometer-JipcPnZ0.js             [39m[1m[2m  0.33 kB[22m[1m[22m[2m │ gzip:   0.27 kB[22m
+[2m../dist/public/[22m[36massets/filter-Dd2JnyJx.js                  [39m[1m[2m  0.33 kB[22m[1m[22m[2m │ gzip:   0.26 kB[22m
+[2m../dist/public/[22m[36massets/search-Cp6v6Xsb.js                  [39m[1m[2m  0.34 kB[22m[1m[22m[2m │ gzip:   0.27 kB[22m
+[2m../dist/public/[22m[36massets/clock-DdKZaL5h.js                   [39m[1m[2m  0.35 kB[22m[1m[22m[2m │ gzip:   0.27 kB[22m
+[2m../dist/public/[22m[36massets/trending-up-6vTaJ9Bg.js             [39m[1m[2m  0.37 kB[22m[1m[22m[2m │ gzip:   0.28 kB[22m
+[2m../dist/public/[22m[36massets/history-C2paGmbZ.js                 [39m[1m[2m  0.41 kB[22m[1m[22m[2m │ gzip:   0.30 kB[22m
+[2m../dist/public/[22m[36massets/test-tube-CGgpNGTx.js               [39m[1m[2m  0.42 kB[22m[1m[22m[2m │ gzip:   0.30 kB[22m
+[2m../dist/public/[22m[36massets/eye-DwXUMUh2.js                     [39m[1m[2m  0.42 kB[22m[1m[22m[2m │ gzip:   0.30 kB[22m
+[2m../dist/public/[22m[36massets/upload-CpWteRHK.js                  [39m[1m[2m  0.43 kB[22m[1m[22m[2m │ gzip:   0.32 kB[22m
+[2m../dist/public/[22m[36massets/download-D02Rd5Sl.js                [39m[1m[2m  0.43 kB[22m[1m[22m[2m │ gzip:   0.32 kB[22m
+[2m../dist/public/[22m[36massets/differenceInDays-DH4_sajS.js        [39m[1m[2m  0.47 kB[22m[1m[22m[2m │ gzip:   0.27 kB[22m
+[2m../dist/public/[22m[36massets/file-down-Blr-RG_M.js               [39m[1m[2m  0.47 kB[22m[1m[22m[2m │ gzip:   0.31 kB[22m
+[2m../dist/public/[22m[36massets/square-pen-IjIwvkg5.js              [39m[1m[2m  0.49 kB[22m[1m[22m[2m │ gzip:   0.34 kB[22m
+[2m../dist/public/[22m[36massets/textarea-BWu1MgHu.js                [39m[1m[2m  0.50 kB[22m[1m[22m[2m │ gzip:   0.33 kB[22m
+[2m../dist/public/[22m[36massets/trash-2-g8JoM4x_.js                 [39m[1m[2m  0.53 kB[22m[1m[22m[2m │ gzip:   0.35 kB[22m
+[2m../dist/public/[22m[36massets/droplets-BeX2ty6j.js                [39m[1m[2m  0.54 kB[22m[1m[22m[2m │ gzip:   0.39 kB[22m
+[2m../dist/public/[22m[36massets/file-spreadsheet-CMpIQ-LV.js        [39m[1m[2m  0.54 kB[22m[1m[22m[2m │ gzip:   0.33 kB[22m
+[2m../dist/public/[22m[36massets/chevron-right-CTYQWAYV.js           [39m[1m[2m  0.55 kB[22m[1m[22m[2m │ gzip:   0.28 kB[22m
+[2m../dist/public/[22m[36massets/label-DpxHojWw.js                   [39m[1m[2m  0.55 kB[22m[1m[22m[2m │ gzip:   0.38 kB[22m
+[2m../dist/public/[22m[36massets/input-DN6rdG68.js                   [39m[1m[2m  0.58 kB[22m[1m[22m[2m │ gzip:   0.35 kB[22m
+[2m../dist/public/[22m[36massets/not-found-ec-WGoUa.js               [39m[1m[2m  0.59 kB[22m[1m[22m[2m │ gzip:   0.34 kB[22m
+[2m../dist/public/[22m[36massets/ship-Bk4QL1RI.js                    [39m[1m[2m  0.62 kB[22m[1m[22m[2m │ gzip:   0.38 kB[22m
+[2m../dist/public/[22m[36massets/table-BkhMRjC0.js                   [39m[1m[2m  1.49 kB[22m[1m[22m[2m │ gzip:   0.51 kB[22m
+[2m../dist/public/[22m[36massets/use-auto-fill-gFhIeZVV.js           [39m[1m[2m  1.68 kB[22m[1m[22m[2m │ gzip:   0.60 kB[22m
+[2m../dist/public/[22m[36massets/pt-BR-Rej1N0Ho.js                   [39m[1m[2m  5.85 kB[22m[1m[22m[2m │ gzip:   2.11 kB[22m
+[2m../dist/public/[22m[36massets/tabs-Bg3R-yrm.js                    [39m[1m[2m  6.43 kB[22m[1m[22m[2m │ gzip:   2.55 kB[22m
+[2m../dist/public/[22m[36massets/notifications-CFezVlBM.js           [39m[1m[2m  7.01 kB[22m[1m[22m[2m │ gzip:   2.04 kB[22m
+[2m../dist/public/[22m[36massets/equipment-modal-BDXqUR5Y.js         [39m[1m[2m  7.14 kB[22m[1m[22m[2m │ gzip:   1.96 kB[22m
+[2m../dist/public/[22m[36massets/dialog-DMJsGSgk.js                  [39m[1m[2m  7.19 kB[22m[1m[22m[2m │ gzip:   2.64 kB[22m
+[2m../dist/public/[22m[36massets/calibration-history-2lHxDKuL.js     [39m[1m[2m  9.18 kB[22m[1m[22m[2m │ gzip:   2.59 kB[22m
+[2m../dist/public/[22m[36massets/testes-pocos-CHIGx2RP.js            [39m[1m[2m 10.59 kB[22m[1m[22m[2m │ gzip:   3.05 kB[22m
+[2m../dist/public/[22m[36massets/campos-JgZmiUBq.js                  [39m[1m[2m 10.97 kB[22m[1m[22m[2m │ gzip:   3.05 kB[22m
+[2m../dist/public/[22m[36massets/measurement-points-R-uQ3br6.js      [39m[1m[2m 12.63 kB[22m[1m[22m[2m │ gzip:   3.35 kB[22m
+[2m../dist/public/[22m[36massets/calibration-calendar-Dz_s9al8.js    [39m[1m[2m 14.89 kB[22m[1m[22m[2m │ gzip:   3.62 kB[22m
+[2m../dist/public/[22m[36massets/reports-ZUODpYc3.js                 [39m[1m[2m 16.62 kB[22m[1m[22m[2m │ gzip:   3.77 kB[22m
+[2m../dist/public/[22m[36massets/gestao-cilindros-JI0JT9Vz.js        [39m[1m[2m 17.50 kB[22m[1m[22m[2m │ gzip:   4.82 kB[22m
+[2m../dist/public/[22m[36massets/valves-CidTbwD3.js                  [39m[1m[2m 19.01 kB[22m[1m[22m[2m │ gzip:   4.45 kB[22m
+[2m../dist/public/[22m[36massets/uncertainty-control-z8DItTTE.js     [39m[1m[2m 19.39 kB[22m[1m[22m[2m │ gzip:   4.45 kB[22m
+[2m../dist/public/[22m[36massets/format-DQrxQt2E.js                  [39m[1m[2m 20.73 kB[22m[1m[22m[2m │ gzip:   5.87 kB[22m
+[2m../dist/public/[22m[36massets/notification-settings-O-NIo499.js   [39m[1m[2m 20.79 kB[22m[1m[22m[2m │ gzip:   6.25 kB[22m
+[2m../dist/public/[22m[36massets/installations-BL75xwLP.js           [39m[1m[2m 20.93 kB[22m[1m[22m[2m │ gzip:   4.87 kB[22m
+[2m../dist/public/[22m[36massets/select-CDG6xOAQ.js                  [39m[1m[2m 21.69 kB[22m[1m[22m[2m │ gzip:   7.54 kB[22m
+[2m../dist/public/[22m[36massets/wells-DzEXvK1n.js                   [39m[1m[2m 22.04 kB[22m[1m[22m[2m │ gzip:   5.43 kB[22m
+[2m../dist/public/[22m[36massets/calibrations-BGBrT9fx.js            [39m[1m[2m 22.18 kB[22m[1m[22m[2m │ gzip:   5.78 kB[22m
+[2m../dist/public/[22m[36massets/orifice-plates-CwgzkHuG.js          [39m[1m[2m 23.81 kB[22m[1m[22m[2m │ gzip:   5.40 kB[22m
+[2m../dist/public/[22m[36massets/trechos-retos-KoeyvyGf.js           [39m[1m[2m 26.02 kB[22m[1m[22m[2m │ gzip:   5.61 kB[22m
+[2m../dist/public/[22m[36massets/equipment-C_RS_2dk.js               [39m[1m[2m 26.27 kB[22m[1m[22m[2m │ gzip:   6.81 kB[22m
+[2m../dist/public/[22m[36massets/chemical-analysis-B3-XydX6.js       [39m[1m[2m 27.57 kB[22m[1m[22m[2m │ gzip:   6.55 kB[22m
+[2m../dist/public/[22m[36massets/protecao-lacre-DzHLxXQG.js          [39m[1m[2m 29.66 kB[22m[1m[22m[2m │ gzip:   5.09 kB[22m
+[2m../dist/public/[22m[36massets/medidores-primarios-CMTCdZJv.js     [39m[1m[2m 31.61 kB[22m[1m[22m[2m │ gzip:   5.62 kB[22m
+[2m../dist/public/[22m[36massets/calendar-ChMAnqMm.js                [39m[1m[2m 34.58 kB[22m[1m[22m[2m │ gzip:  10.91 kB[22m
+[2m../dist/public/[22m[36massets/execution-calibrations-o07rLB2O.js  [39m[1m[2m 53.00 kB[22m[1m[22m[2m │ gzip:   5.73 kB[22m
+[2m../dist/public/[22m[36massets/dashboard-DeUNSHC2.js               [39m[1m[2m 53.06 kB[22m[1m[22m[2m │ gzip:  11.49 kB[22m
+[2m../dist/public/[22m[36massets/schema-CRhW8bn7.js                  [39m[1m[2m 70.06 kB[22m[1m[22m[2m │ gzip:  16.52 kB[22m
+[2m../dist/public/[22m[36massets/dashboard-completo-B7XNBKk9.js      [39m[1m[2m 74.29 kB[22m[1m[22m[2m │ gzip:  17.14 kB[22m
+[2m../dist/public/[22m[36massets/index-C-eDfF2q.js                   [39m[1m[2m 88.96 kB[22m[1m[22m[2m │ gzip:  24.83 kB[22m
+[2m../dist/public/[22m[36massets/index-BoHgwzCK.js                   [39m[1m[2m343.02 kB[22m[1m[22m[2m │ gzip: 109.64 kB[22m
+[2m../dist/public/[22m[36massets/subMonths-C6bb7AXf.js               [39m[1m[2m389.37 kB[22m[1m[22m[2m │ gzip: 107.13 kB[22m
+[32m✓ built in 10.14s[39m
+
+  dist\index.js  179.9kb
+
+Done in 23ms

@@ -22,6 +22,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useAutoFill } from "@/hooks/use-auto-fill";
+import { useEffect } from "react";
 
 // Schema para o formulário de cilindros
 const formSchema = z.object({
@@ -55,16 +57,26 @@ export default function GestaoForm() {
     },
   });
 
-  // Queries para dados
-  const { data: polos = [] } = useQuery({
-    queryKey: ["/api/polos"],
-    queryFn: () => api.getPolos(),
-  });
+  // Hook de autopreenchimento
+  const {
+    data,
+    getFilteredInstalacoes,
+    getPoloByInstalacao,
+  } = useAutoFill();
 
-  const { data: instalacoes = [] } = useQuery({
-    queryKey: ["/api/instalacoes"],
-    queryFn: () => api.getInstalacoes(),
-  });
+  // Watch para autopreencher
+  const selectedPoloId = form.watch("poloId");
+  const selectedInstalacaoId = form.watch("instalacaoId");
+
+  // Autopreencher polo quando instalação é selecionada
+  useEffect(() => {
+    if (selectedInstalacaoId) {
+      const polo = getPoloByInstalacao(selectedInstalacaoId);
+      if (polo && polo.id !== selectedPoloId) {
+        form.setValue("poloId", polo.id);
+      }
+    }
+  }, [selectedInstalacaoId]);
 
   // Mutation para criar novo registro
   const createGestaoCilindrosMutation = useMutation({
@@ -100,10 +112,8 @@ export default function GestaoForm() {
     });
   };
 
-  // Filtragem de instalações por polo
-  const getInstalacoesByPolo = (poloId: number) => {
-    return instalacoes.filter((inst: any) => inst.poloId === poloId);
-  };
+  // Instalações filtradas por polo selecionado
+  const filteredInstalacoes = getFilteredInstalacoes(selectedPoloId);
   
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -148,7 +158,7 @@ export default function GestaoForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {polos.map((polo: any) => (
+                          {data.polos.map((polo: any) => (
                             <SelectItem key={polo.id} value={polo.id.toString()}>
                               {polo.nome}
                             </SelectItem>
@@ -177,13 +187,11 @@ export default function GestaoForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {form.watch("poloId") && 
-                            getInstalacoesByPolo(form.watch("poloId")).map((inst: any) => (
-                              <SelectItem key={inst.id} value={inst.id.toString()}>
-                                {inst.nome}
-                              </SelectItem>
-                            ))
-                          }
+                          {filteredInstalacoes.map((inst: any) => (
+                            <SelectItem key={inst.id} value={inst.id.toString()}>
+                              {inst.nome}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />

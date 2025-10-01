@@ -5,7 +5,11 @@
       "Bash(npm run:*)",
       "Bash(npx tsc:*)",
       "Bash(npm install:*)",
-      "Bash(npx update-browserslist-db:*)"
+      "Bash(npx update-browserslist-db:*)",
+      "Bash(tee:*)",
+      "Bash(for:*)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

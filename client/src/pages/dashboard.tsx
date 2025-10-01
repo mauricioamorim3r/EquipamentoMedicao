@@ -10,6 +10,7 @@ import EquipmentModal from "@/components/equipment-modal";
 import AdvancedMetricsModal from "@/components/advanced-metrics-modal";
 import CalendarioDashboard from "@/components/calendario-dashboard";
 import LacresKpiCards from "@/components/lacres-kpi-cards";
+import CertificateAlertsMonitor from "@/components/certificate-alerts-monitor";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import type { DashboardStats, CalibrationStats, EquipmentWithCalibration } from "@/types";
@@ -424,6 +425,11 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Monitor de Alertas de Certificados */}
+      <div className="mb-8">
+        <CertificateAlertsMonitor />
       </div>
 
       {/* Equipment Modal */}

@@ -165,7 +165,10 @@ export const planoCalibracoes = pgTable("plano_calibracao", {
 export const certificadosCalibração = pgTable("certificados_calibracao", {
   id: integer("certificado_id").primaryKey().generatedByDefaultAsIdentity(),
   equipamentoId: integer("equipamento_id").references(() => equipamentos.id).notNull(),
-
+  numeroSerieEquipamento: text("numero_serie_equipamento").notNull(),
+  tagEquipamento: text("tag_equipamento").notNull(),
+  nomeEquipamento: text("nome_equipamento").notNull(),
+  
   // Informações do certificado
   numeroCertificado: text("numero_certificado").notNull(),
   revisaoCertificado: text("revisao_certificado"),
@@ -199,8 +202,11 @@ export const certificadosCalibração = pgTable("certificados_calibracao", {
 export const execucaoCalibracoes = pgTable("execucao_calibracoes", {
   id: integer("execucao_id").primaryKey().generatedByDefaultAsIdentity(),
   equipamentoId: integer("equipamento_id").references(() => equipamentos.id).notNull(),
-
-  // Informações específicas de calibração (não duplicadas)
+  
+  // Informações básicas do equipamento
+  numeroSerieEquipamento: text("numero_serie_equipamento").notNull(),
+  tagEquipamento: text("tag_equipamento").notNull(),
+  nomeEquipamento: text("nome_equipamento").notNull(),
   aplicabilidade: text("aplicabilidade"),
   fluido: text("fluido"),
   pontoMedicao: text("ponto_medicao"),
@@ -321,11 +327,11 @@ export const execucaoCalibracoes = pgTable("execucao_calibracoes", {
 export const historicoCalibracoes = pgTable("historico_calibracoes", {
   id: integer("historico_id").primaryKey().generatedByDefaultAsIdentity(),
   equipamentoId: integer("equipamento_id").references(() => equipamentos.id).notNull(),
-
-  // Snapshot histórico - dados no momento da calibração
-  tagPontoMedicaoSnapshot: text("tag_ponto_medicao"),
-  nomePontoMedicaoSnapshot: text("nome_ponto_medicao"),
-  classificacaoSnapshot: text("classificacao"),
+  poloId: integer("polo_id").references(() => polos.id),
+  instalacaoId: integer("instalacao_id").references(() => instalacoes.id),
+  tagPontoMedicao: text("tag_ponto_medicao"),
+  nomePontoMedicao: text("nome_ponto_medicao"),
+  classificacao: text("classificacao"),
 
   // Último Certificado
   dataCalibracão: date("data_calibracao").notNull(),
@@ -359,11 +365,14 @@ export const historicoCalibracoes = pgTable("historico_calibracoes", {
 export const calendarioCalibracoes = pgTable("calendario_calibracoes", {
   id: integer("calendario_id").primaryKey().generatedByDefaultAsIdentity(),
   equipamentoId: integer("equipamento_id").references(() => equipamentos.id).notNull(),
-
-  // Dados específicos do agendamento (não duplicados - polo/instalação vêm via equipamentoId)
+  poloId: integer("polo_id").references(() => polos.id).notNull(),
+  instalacaoId: integer("instalacao_id").references(() => instalacoes.id).notNull(),
   tagPontoMedicao: text("tag_ponto_medicao"),
   nomePontoMedicao: text("nome_ponto_medicao"),
   classificacao: text("classificacao"),
+  tagEquipamento: text("tag_equipamento"),
+  nomeEquipamento: text("nome_equipamento"),
+  numeroSerie: text("numero_serie"),
   tipoCalibracao: text("tipo_calibracao"),
   motivo: text("motivo"),
   laboratorio: text("laboratorio"),

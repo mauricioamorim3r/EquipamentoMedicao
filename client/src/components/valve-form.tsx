@@ -10,6 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useEquipmentAutoFill, useAutoFill } from "@/hooks/use-auto-fill";
+import { useEffect } from "react";
 import { z } from "zod";
 import type { Valvula } from "@shared/schema";
 
@@ -74,10 +76,25 @@ export default function ValveForm({ valve, onClose, onSuccess }: ValveFormProps)
     },
   });
 
-  const { data: equipamentos } = useQuery({
-    queryKey: ["/api/equipamentos"],
-    queryFn: () => api.getEquipamentos(),
-  });
+  // Hook de autopreenchimento
+  const { data } = useAutoFill();
+  const selectedEquipamentoId = form.watch("equipamentoId");
+  const { data: autoFillData } = useEquipmentAutoFill(selectedEquipamentoId);
+
+  // Autopreencher dados quando equipamento é selecionado
+  useEffect(() => {
+    if (autoFillData?.equipamento && !isEditing) {
+      form.setValue("numeroSerie", autoFillData.equipamento.numeroSerie);
+      form.setValue("tagValvula", autoFillData.equipamento.tag);
+      if (autoFillData.polo) {
+        form.setValue("poloId", autoFillData.polo.id);
+      }
+      if (autoFillData.instalacao) {
+        form.setValue("instalacaoId", autoFillData.instalacao.id);
+        form.setValue("localInstalacao", autoFillData.instalacao.nome);
+      }
+    }
+  }, [autoFillData, isEditing]);
 
   const createMutation = useMutation({
     mutationFn: (data: FormValues) => api.createValvula(data),
