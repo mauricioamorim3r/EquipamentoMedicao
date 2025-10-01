@@ -5,7 +5,25 @@ export const api = {
   get: (url: string) => fetch(url).then(res => res.json()),
   
   // Dashboard
-  getDashboardStats: () => fetch("/api/dashboard/stats").then(res => res.json()),
+  getDashboardStats: () => {
+    console.log('Making request to /api/dashboard/stats');
+    return fetch("/api/dashboard/stats", {
+      signal: AbortSignal.timeout(30000) // 30 segundos de timeout
+    }).then(async res => {
+      console.log('Dashboard stats response:', res.status, res.statusText);
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Dashboard stats error response:', text);
+        throw new Error(`${res.status}: ${text}`);
+      }
+      const data = await res.json();
+      console.log('Dashboard stats data:', data);
+      return data;
+    }).catch(error => {
+      console.error('Dashboard stats request failed:', error);
+      throw error;
+    });
+  },
   
   // Polos
   getPolos: () => fetch("/api/polos").then(res => res.json()),
