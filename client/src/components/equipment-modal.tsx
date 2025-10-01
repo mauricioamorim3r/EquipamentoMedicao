@@ -169,9 +169,9 @@ export default function EquipmentModal({
                 </h4>
                 <p className={`text-sm mt-1 ${
                   equipment.diasParaVencer <= 0 ? 'text-red-600' :
-                  equipment.diasParaVencer <= 7 ? 'text-orange-600' :
+                  equipment.diasParaVencer <= 7 ? 'text-orange-700' :
                   equipment.diasParaVencer <= 30 ? 'text-yellow-600' :
-                  'text-green-600'
+                  'text-green-700'
                 }`}>
                   Próxima calibração: {formatDate(equipment.dataProximaCalibracão)}
                   {equipment.certificado && (

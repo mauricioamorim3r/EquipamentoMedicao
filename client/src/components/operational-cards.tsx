@@ -127,7 +127,7 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
                 </div>
                 
                 {operationalData.proximosTestesPocos.atrasados > 0 && (
-                  <div className="flex items-center text-xs text-orange-600">
+                  <div className="flex items-center text-xs text-orange-700">
                     <AlertCircle className="w-3 h-3 mr-1" />
                     {operationalData.proximosTestesPocos.atrasados} teste(s) atrasado(s)
                   </div>
@@ -147,7 +147,7 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
                   Cilindros nas Instalações
                 </CardTitle>
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Cylinder className="w-5 h-5 text-green-600" />
+                  <Cylinder className="w-5 h-5 text-green-700" />
                 </div>
               </div>
             </CardHeader>
@@ -155,20 +155,20 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
               <div className="space-y-3">
                 <div className="flex items-end justify-between">
                   <div>
-                    <p className="text-2xl font-bold text-green-600">
+                    <p className="text-2xl font-bold text-green-700">
                       {operationalData.cilindros.totalAtivo}
                     </p>
                     <p className="text-xs text-muted-foreground">cilindros ativos</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium text-green-600">{operationalData.cilindros.prontos}</p>
+                    <p className="text-sm font-medium text-green-700">{operationalData.cilindros.prontos}</p>
                     <p className="text-xs text-muted-foreground">prontos</p>
                   </div>
                 </div>
 
                 <div className="flex justify-between text-xs">
                   <div className="text-center">
-                    <p className="font-medium text-orange-600">{operationalData.cilindros.aguardandoTeste}</p>
+                    <p className="font-medium text-orange-700">{operationalData.cilindros.aguardandoTeste}</p>
                     <p className="text-muted-foreground">aguardando</p>
                   </div>
                   <div className="text-center">
@@ -181,7 +181,7 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
                   {operationalData.cilindros.distribuicao.slice(0, 2).map((dist, index) => (
                     <div key={index} className="flex justify-between items-center text-xs">
                       <span className="text-muted-foreground">{dist.instalacao}</span>
-                      <Badge variant="outline" className="text-green-600">{dist.quantidade}</Badge>
+                      <Badge variant="outline" className="text-green-700">{dist.quantidade}</Badge>
                     </div>
                   ))}
                 </div>
@@ -257,7 +257,7 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
                   Cromatografias Recebidas
                 </CardTitle>
                 <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
-                  <TestTube className="w-5 h-5 text-cyan-600" />
+                  <TestTube className="w-5 h-5 text-cyan-700" />
                 </div>
               </div>
             </CardHeader>
@@ -265,13 +265,13 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
               <div className="space-y-3">
                 <div className="flex items-end justify-between">
                   <div>
-                    <p className="text-2xl font-bold text-cyan-600">
+                    <p className="text-2xl font-bold text-cyan-700">
                       {operationalData.cromatografias.ultimasRecebidas}
                     </p>
                     <p className="text-xs text-muted-foreground">este mês</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium text-orange-600">
+                    <p className="text-sm font-medium text-orange-700">
                       {operationalData.cromatografias.pendentesAnalise}
                     </p>
                     <p className="text-xs text-muted-foreground">pendentes</p>
@@ -281,15 +281,15 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-muted-foreground">Última recebida:</span>
-                    <span className="font-medium text-cyan-600">{operationalData.cromatografias.ultimaData}</span>
+                    <span className="font-medium text-cyan-700">{operationalData.cromatografias.ultimaData}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-muted-foreground">Próxima coleta:</span>
-                    <span className="font-medium text-cyan-600">{operationalData.cromatografias.proximaColeta}</span>
+                    <span className="font-medium text-cyan-700">{operationalData.cromatografias.proximaColeta}</span>
                   </div>
                 </div>
                 
-                <div className="flex items-center text-xs text-green-600">
+                <div className="flex items-center text-xs text-green-700">
                   <TrendingUp className="w-3 h-3 mr-1" />
                   +3 vs. mês anterior
                 </div>
@@ -308,7 +308,7 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
                   Próxima Janela de Embarque
                 </CardTitle>
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Ship className="w-5 h-5 text-orange-600" />
+                  <Ship className="w-5 h-5 text-orange-700" />
                 </div>
               </div>
             </CardHeader>
@@ -316,32 +316,32 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
               <div className="space-y-3">
                 <div className="flex items-end justify-between">
                   <div>
-                    <p className="text-2xl font-bold text-orange-600">
+                    <p className="text-2xl font-bold text-orange-700">
                       {operationalData.janelasEmbarque.diasRestantes}
                     </p>
                     <p className="text-xs text-muted-foreground">dias restantes</p>
                   </div>
-                  <Badge variant="outline" className="text-orange-600 border-orange-200">
+                  <Badge variant="outline" className="text-orange-700 border-orange-200">
                     {operationalData.janelasEmbarque.coletasPendentes} coletas
                   </Badge>
                 </div>
                 
                 <div className="bg-orange-50 p-2 rounded-md">
                   <div className="flex items-center mb-1">
-                    <Calendar className="w-3 h-3 text-orange-600 mr-1" />
+                    <Calendar className="w-3 h-3 text-orange-700 mr-1" />
                     <p className="text-xs font-medium text-orange-800">
                       {operationalData.janelasEmbarque.proximaJanela}
                     </p>
                   </div>
                   <div className="flex items-center">
-                    <MapPin className="w-3 h-3 text-orange-600 mr-1" />
+                    <MapPin className="w-3 h-3 text-orange-700 mr-1" />
                     <p className="text-xs text-orange-700">
                       Destino: {operationalData.janelasEmbarque.destino}
                     </p>
                   </div>
                 </div>
                 
-                <div className="flex items-center text-xs text-orange-600">
+                <div className="flex items-center text-xs text-orange-700">
                   <Clock className="w-3 h-3 mr-1" />
                   Preparar documentação e amostras
                 </div>
@@ -368,7 +368,7 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="bg-green-50 p-2 rounded text-center">
-                    <p className="font-bold text-green-600">87%</p>
+                    <p className="font-bold text-green-700">87%</p>
                     <p className="text-green-700">Eficiência</p>
                   </div>
                   <div className="bg-blue-50 p-2 rounded text-center">
@@ -384,11 +384,11 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
                   </div>
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-muted-foreground">Concluídas hoje:</span>
-                    <span className="font-medium text-green-600">8</span>
+                    <span className="font-medium text-green-700">8</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-muted-foreground">Pendências:</span>
-                    <span className="font-medium text-orange-600">5</span>
+                    <span className="font-medium text-orange-700">5</span>
                   </div>
                 </div>
                 

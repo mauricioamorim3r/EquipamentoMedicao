@@ -271,7 +271,7 @@ export default function NotificationSettings() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-100 rounded-lg">
-                <Mail className="h-5 w-5 text-green-600" />
+                <Mail className="h-5 w-5 text-green-700" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Com Email</p>

@@ -26,7 +26,10 @@ const GestaoCilindros = lazy(() => import("@/pages/gestao-cilindros"));
 const Installations = lazy(() => import("@/pages/installations"));
 const MeasurementPoints = lazy(() => import("@/pages/measurement-points"));
 const MedidoresPrimarios = lazy(() => import("@/pages/medidores-primarios"));
+const ProtecaoLacre = lazy(() => import("@/pages/protecao-lacre"));
 const NotificationSettings = lazy(() => import("@/pages/notification-settings"));
+const Notifications = lazy(() => import("@/pages/notifications"));
+const TestesPocos = lazy(() => import("@/pages/testes-pocos"));
 const DashboardCompleto = lazy(() => import("@/pages/dashboard-completo"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
@@ -50,7 +53,6 @@ function Router() {
               <Route path="/dashboard-completo" component={DashboardCompleto} />
               <Route path="/equipamentos" component={Equipment} />
               <Route path="/calibracoes" component={Calibrations} />
-              <Route path="/calendario-calibracoes" component={CalibrationCalendar} />
               <Route path="/execucao-calibracoes" component={ExecutionCalibrations} />
               <Route path="/historico-calibracoes" component={CalibrationHistory} />
               <Route path="/campos" component={Campos} />
@@ -58,11 +60,14 @@ function Router() {
               <Route path="/placas-orificio" component={OrificePlates} />
               <Route path="/trechos-retos" component={TrechosRetos} />
               <Route path="/medidores-primarios" component={MedidoresPrimarios} />
+              <Route path="/protecao-lacre" component={ProtecaoLacre} />
               <Route path="/valvulas" component={Valves} />
               <Route path="/gestao-cilindros" component={GestaoCilindros} />
               <Route path="/instalacoes" component={Installations} />
               <Route path="/pontos-medicao" component={MeasurementPoints} />
-              <Route path="/notificacoes" component={NotificationSettings} />
+              <Route path="/testes-pocos" component={TestesPocos} />
+              <Route path="/notificacoes" component={Notifications} />
+              <Route path="/configuracoes-notificacoes" component={NotificationSettings} />
               <Route path="/analises-quimicas" component={ChemicalAnalysis} />
               <Route path="/controle-incertezas" component={UncertaintyControl} />
               <Route path="/relatorios" component={Reports} />

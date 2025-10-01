@@ -5,7 +5,7 @@ import {
   historicoCalibracoes, calendarioCalibracoes, cadastroPocos, testesPocos, placasOrificio, trechosRetos,
   medidoresPrimarios, planoColetas, analisesQuimicas, gestaoCilindros, analisesFisicoQuimicasGenerica,
   analisesCromatografia, analisesPvt, valvulas, controleIncertezas, incertezaLimites, sistemaNotificacoes,
-  certificadosCalibração, execucaoCalibracoes,
+  certificadosCalibração, execucaoCalibracoes, lacresFisicos, lacresEletronicos, controleLacres,
   type User, type InsertUser, type Polo, type InsertPolo, type Campo, type InsertCampo,
   type Instalacao, type InsertInstalacao, type Equipamento, type InsertEquipamento,
   type PontoMedicao, type InsertPontoMedicao, type PlanoCalibracão, type InsertPlanoCalibracão,
@@ -21,7 +21,10 @@ import {
   type ControleIncerteza, type InsertControleIncerteza, type IncertezaLimite,
   type InsertIncertezaLimite, type SistemaNotificacao, type InsertSistemaNotificacao,
   type CertificadoCalibracao, type InsertCertificadoCalibracao,
-  type ExecucaoCalibracao, type InsertExecucaoCalibracao
+  type ExecucaoCalibracao, type InsertExecucaoCalibracao,
+  type LacreFisico, type InsertLacreFisico,
+  type LacreEletronico, type InsertLacreEletronico,
+  type ControleLacre, type InsertControleLacre
 } from "@shared/schema";
 
 export interface IStorage {
@@ -171,6 +174,30 @@ export interface IStorage {
   createAnalisePvt(analise: InsertAnalisePvt): Promise<AnalisePvt>;
   updateAnalisePvt(id: number, analise: Partial<InsertAnalisePvt>): Promise<AnalisePvt>;
   deleteAnalisePvt(id: number): Promise<void>;
+
+  // Lacres Físicos
+  getLacresFisicos(): Promise<LacreFisico[]>;
+  getLacreFisico(id: number): Promise<LacreFisico | undefined>;
+  createLacreFisico(lacre: InsertLacreFisico): Promise<LacreFisico>;
+  updateLacreFisico(id: number, lacre: Partial<InsertLacreFisico>): Promise<LacreFisico>;
+  deleteLacreFisico(id: number): Promise<void>;
+
+  // Lacres Eletrônicos
+  getLacresEletronicos(): Promise<LacreEletronico[]>;
+  getLacreEletronico(id: number): Promise<LacreEletronico | undefined>;
+  createLacreEletronico(lacre: InsertLacreEletronico): Promise<LacreEletronico>;
+  updateLacreEletronico(id: number, lacre: Partial<InsertLacreEletronico>): Promise<LacreEletronico>;
+  deleteLacreEletronico(id: number): Promise<void>;
+
+  // Controle de Lacres
+  getControleLacres(): Promise<ControleLacre[]>;
+  getControleLacre(id: number): Promise<ControleLacre | undefined>;
+  createControleLacre(controle: InsertControleLacre): Promise<ControleLacre>;
+  updateControleLacre(id: number, controle: Partial<InsertControleLacre>): Promise<ControleLacre>;
+  deleteControleLacre(id: number): Promise<void>;
+
+  // Calendar Events
+  getCalendarEvents(filters?: { month?: number; year?: number }): Promise<any[]>;
 }
 
 export class Storage implements IStorage {
@@ -965,6 +992,40 @@ export class Storage implements IStorage {
     return result[0];
   }
 
+  async getAllTestesPocos(filters?: { poloId?: number; instalacaoId?: number; pocoId?: number }) {
+    let query = db.select().from(testesPocos);
+    
+    if (filters?.pocoId) {
+      query = query.where(eq(testesPocos.pocoId, filters.pocoId)) as any;
+    }
+    // For polo and instalacao filters, we would need to join with other tables
+    // For now, return all tests and let the frontend filter
+    
+    return await query.orderBy(desc(testesPocos.dataTeste));
+  }
+
+  async getTestePoco(id: number) {
+    const result = await db.select().from(testesPocos)
+      .where(eq(testesPocos.id, id))
+      .limit(1);
+    return result[0] || null;
+  }
+
+  async updateTestePoco(id: number, teste: any) {
+    const result = await db.update(testesPocos)
+      .set({ ...teste, updatedAt: new Date() })
+      .where(eq(testesPocos.id, id))
+      .returning();
+    return result[0] || null;
+  }
+
+  async deleteTestePoco(id: number) {
+    const result = await db.delete(testesPocos)
+      .where(eq(testesPocos.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
   // Incerteza Limites
   async getIncertezaLimites() {
     return await db.select().from(incertezaLimites)
@@ -977,6 +1038,192 @@ export class Storage implements IStorage {
     return result[0];
   }
 
+  // Lacres Físicos
+  async getLacresFisicos() {
+    return await db.select().from(lacresFisicos).orderBy(desc(lacresFisicos.createdAt));
+  }
+
+  async getLacreFisico(id: number) {
+    const [lacre] = await db.select().from(lacresFisicos).where(eq(lacresFisicos.id, id));
+    return lacre;
+  }
+
+  async createLacreFisico(lacre: InsertLacreFisico) {
+    const result = await db.insert(lacresFisicos).values(lacre).returning();
+    return result[0];
+  }
+
+  async updateLacreFisico(id: number, lacre: Partial<InsertLacreFisico>) {
+    const result = await db
+      .update(lacresFisicos)
+      .set({ ...lacre, updatedAt: new Date() })
+      .where(eq(lacresFisicos.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteLacreFisico(id: number) {
+    await db.delete(lacresFisicos).where(eq(lacresFisicos.id, id));
+  }
+
+  // Lacres Eletrônicos
+  async getLacresEletronicos() {
+    return await db.select().from(lacresEletronicos).orderBy(desc(lacresEletronicos.createdAt));
+  }
+
+  async getLacreEletronico(id: number) {
+    const [lacre] = await db.select().from(lacresEletronicos).where(eq(lacresEletronicos.id, id));
+    return lacre;
+  }
+
+  async createLacreEletronico(lacre: InsertLacreEletronico) {
+    const result = await db.insert(lacresEletronicos).values(lacre).returning();
+    return result[0];
+  }
+
+  async updateLacreEletronico(id: number, lacre: Partial<InsertLacreEletronico>) {
+    const result = await db
+      .update(lacresEletronicos)
+      .set({ ...lacre, updatedAt: new Date() })
+      .where(eq(lacresEletronicos.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteLacreEletronico(id: number) {
+    await db.delete(lacresEletronicos).where(eq(lacresEletronicos.id, id));
+  }
+
+  // Controle de Lacres
+  async getControleLacres() {
+    return await db.select().from(controleLacres).orderBy(desc(controleLacres.createdAt));
+  }
+
+  async getControleLacre(id: number) {
+    const [controle] = await db.select().from(controleLacres).where(eq(controleLacres.id, id));
+    return controle;
+  }
+
+  async createControleLacre(controle: InsertControleLacre) {
+    const result = await db.insert(controleLacres).values(controle).returning();
+    return result[0];
+  }
+
+  async updateControleLacre(id: number, controle: Partial<InsertControleLacre>) {
+    const result = await db
+      .update(controleLacres)
+      .set({ ...controle, updatedAt: new Date() })
+      .where(eq(controleLacres.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteControleLacre(id: number) {
+    await db.delete(controleLacres).where(eq(controleLacres.id, id));
+  }
+
+  // Calendar Events - Aggregate events from multiple sources
+  async getCalendarEvents(filters?: { month?: number; year?: number }) {
+    const events: any[] = [];
+    
+    try {
+      // Build date filters if provided
+      let startDate: Date | undefined;
+      let endDate: Date | undefined;
+      
+      if (filters?.month !== undefined && filters?.year !== undefined) {
+        startDate = new Date(filters.year, filters.month - 1, 1);
+        endDate = new Date(filters.year, filters.month, 0);
+      }
+
+      // 1. Equipment Calibrations (próxima calibração)
+      const whereConditions = [sql`${calendarioCalibracoes.previsaoCalibracao} IS NOT NULL`];
+      
+      if (startDate && endDate) {
+        whereConditions.push(
+          gte(calendarioCalibracoes.previsaoCalibracao, startDate.toISOString().split('T')[0]),
+          lte(calendarioCalibracoes.previsaoCalibracao, endDate.toISOString().split('T')[0])
+        );
+      }
+
+      const calibrationEvents = await db
+        .select({
+          id: calendarioCalibracoes.equipamentoId,
+          title: calendarioCalibracoes.tagEquipamento,
+          description: calendarioCalibracoes.nomeEquipamento,
+          date: calendarioCalibracoes.previsaoCalibracao,
+          type: sql`'calibracao'`.as('type'),
+          status: calendarioCalibracoes.status,
+          priority: sql`CASE 
+            WHEN ${calendarioCalibracoes.status} = 'vencido' THEN 'high'
+            WHEN ${calendarioCalibracoes.status} = 'proximo' THEN 'medium' 
+            ELSE 'low' 
+          END`.as('priority')
+        })
+        .from(calendarioCalibracoes)
+        .where(and(...whereConditions));
+      events.push(...calibrationEvents);
+
+      // 2. Well Tests (testes de poços)
+      const wellTestConditions = [sql`${testesPocos.dataTeste} IS NOT NULL`];
+      
+      if (startDate && endDate) {
+        wellTestConditions.push(
+          gte(testesPocos.dataTeste, startDate.toISOString().split('T')[0]),
+          lte(testesPocos.dataTeste, endDate.toISOString().split('T')[0])
+        );
+      }
+
+      const wellTestEvents = await db
+        .select({
+          id: testesPocos.id,
+          title: sql`'Teste BTP - ' || ${testesPocos.numeroBoletimTeste}`.as('title'),
+          description: testesPocos.observacoes,
+          date: testesPocos.dataTeste,
+          type: sql`'teste_poco'`.as('type'),
+          status: sql`'programada'`.as('status'),
+          priority: sql`'medium'`.as('priority')
+        })
+        .from(testesPocos)
+        .where(and(...wellTestConditions));
+      events.push(...wellTestEvents);
+
+      // 3. Chemical Analysis Collections (coletas de análises)
+      const analysisConditions = [sql`${planoColetas.dataEmbarque} IS NOT NULL`];
+      
+      if (startDate && endDate) {
+        analysisConditions.push(
+          gte(planoColetas.dataEmbarque, startDate.toISOString().split('T')[0]),
+          lte(planoColetas.dataEmbarque, endDate.toISOString().split('T')[0])
+        );
+      }
+
+      const analysisEvents = await db
+        .select({
+          id: planoColetas.id,
+          title: sql`'Coleta - ' || ${planoColetas.id}`.as('title'),
+          description: planoColetas.observacoes,
+          date: planoColetas.dataEmbarque,
+          type: sql`'analise_quimica'`.as('type'),
+          status: sql`'programada'`.as('status'),
+          priority: sql`'low'`.as('priority')
+        })
+        .from(planoColetas)
+        .where(and(...analysisConditions));
+      events.push(...analysisEvents);
+
+      // Calendar Calibrations já incluída acima
+
+      // Sort events by date
+      events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      return events;
+    } catch (error) {
+      console.error("Error fetching calendar events:", error);
+      return [];
+    }
+  }
+
   // Unread Notifications Count
   async getUnreadNotificationsCount() {
     const [result] = await db
@@ -984,7 +1231,7 @@ export class Storage implements IStorage {
       .from(sistemaNotificacoes)
       .where(eq(sistemaNotificacoes.status, 'ativa'));
 
-    return result.count;
+    return result?.count || 0;
   }
 }
 

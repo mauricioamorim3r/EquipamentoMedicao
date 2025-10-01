@@ -74,6 +74,7 @@ export default function ImportExportButtons({
         accept=".xlsx,.xls"
         onChange={handleFileSelect}
         className="hidden"
+        aria-label="Selecionar arquivo Excel para importação"
       />
     </>
   );

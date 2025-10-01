@@ -249,7 +249,7 @@ export default function Wells() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Poços Ativos</p>
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-3xl font-bold text-green-700">
                   {filteredWells.filter((w: any) => w.status === 'ativo').length}
                 </p>
               </div>
@@ -280,7 +280,7 @@ export default function Wells() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Próximos ao Prazo</p>
-                <p className="text-3xl font-bold text-orange-600">0</p>
+                <p className="text-3xl font-bold text-orange-700">0</p>
                 <p className="text-xs text-muted-foreground">Carregando dados...</p>
               </div>
               <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">

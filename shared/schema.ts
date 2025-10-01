@@ -207,29 +207,74 @@ export const execucaoCalibracoes = pgTable("execucao_calibracoes", {
   numeroSerieEquipamento: text("numero_serie_equipamento").notNull(),
   tagEquipamento: text("tag_equipamento").notNull(),
   nomeEquipamento: text("nome_equipamento").notNull(),
+  aplicabilidade: text("aplicabilidade"),
+  fluido: text("fluido"),
+  pontoMedicao: text("ponto_medicao"),
+  localCalibracao: text("local_calibracao"),
+  diasParaAlertar: integer("dias_para_alertar"),
+  frequenciaCalibracaoMeses: integer("frequencia_calibracao_meses"),
   
-  // Último certificado
+  // Último certificado - dados básicos
   numeroUltimoCertificado: text("numero_ultimo_certificado"),
   revisaoUltimoCertificado: text("revisao_ultimo_certificado"),
   dataUltimoCertificado: date("data_ultimo_certificado"),
+  dataEmissaoUltimo: date("data_emissao_ultimo"),
   statusUltimoCertificado: text("status_ultimo_certificado"),
   certificadoUltimoPath: text("certificado_ultimo_path"),
   
-  // Penúltimo certificado
+  // Último certificado - dados técnicos
+  laboratorioUltimo: text("laboratorio_ultimo"),
+  incertezaCalibracaoUltimo: real("incerteza_calibracao_ultimo"),
+  erroMaximoAdmissivelCalibracaoUltimo: real("erro_maximo_admissivel_calibracao_ultimo"),
+  incertezaLimiteAnpUltimo: real("incerteza_limite_anp_ultimo"),
+  erroMaximoAdmissivelAnpUltimo: real("erro_maximo_admissivel_anp_ultimo"),
+  observacaoUltimo: text("observacao_ultimo"),
+  meterFactorUltimo: real("meter_factor_ultimo"),
+  variacaoMfPercentUltimo: real("variacao_mf_percent_ultimo"),
+  kFactorUltimo: real("k_factor_ultimo"),
+  ajusteUltimo: boolean("ajuste_ultimo"),
+  
+  // Penúltimo certificado - dados básicos
   numeroPenultimoCertificado: text("numero_penultimo_certificado"),
   revisaoPenultimoCertificado: text("revisao_penultimo_certificado"),
   dataPenultimoCertificado: date("data_penultimo_certificado"),
+  dataEmissaoPenultimo: date("data_emissao_penultimo"),
   statusPenultimoCertificado: text("status_penultimo_certificado"),
   certificadoPenultimoPath: text("certificado_penultimo_path"),
   
-  // Antepenúltimo certificado
+  // Penúltimo certificado - dados técnicos
+  laboratorioPenultimo: text("laboratorio_penultimo"),
+  incertezaCalibracaoPenultimo: real("incerteza_calibracao_penultimo"),
+  erroMaximoAdmissivelCalibracaoPenultimo: real("erro_maximo_admissivel_calibracao_penultimo"),
+  incertezaLimiteAnpPenultimo: real("incerteza_limite_anp_penultimo"),
+  erroMaximoAdmissivelAnpPenultimo: real("erro_maximo_admissivel_anp_penultimo"),
+  observacaoPenultimo: text("observacao_penultimo"),
+  meterFactorPenultimo: real("meter_factor_penultimo"),
+  variacaoMfPercentPenultimo: real("variacao_mf_percent_penultimo"),
+  kFactorPenultimo: real("k_factor_penultimo"),
+  ajustePenultimo: boolean("ajuste_penultimo"),
+  
+  // Antepenúltimo certificado - dados básicos
   numeroAntepenultimoCertificado: text("numero_antepenultimo_certificado"),
   revisaoAntepenultimoCertificado: text("revisao_antepenultimo_certificado"),
   dataAntepenultimoCertificado: date("data_antepenultimo_certificado"),
+  dataEmissaoAntepenultimo: date("data_emissao_antepenultimo"),
   statusAntepenultimoCertificado: text("status_antepenultimo_certificado"),
   certificadoAntepenultimoPath: text("certificado_antepenultimo_path"),
   
-  // Periodicidade e observações
+  // Antepenúltimo certificado - dados técnicos
+  laboratorioAntepenultimo: text("laboratorio_antepenultimo"),
+  incertezaCalibracaoAntepenultimo: real("incerteza_calibracao_antepenultimo"),
+  erroMaximoAdmissivelCalibracaoAntepenultimo: real("erro_maximo_admissivel_calibracao_antepenultimo"),
+  incertezaLimiteAnpAntepenultimo: real("incerteza_limite_anp_antepenultimo"),
+  erroMaximoAdmissivelAnpAntepenultimo: real("erro_maximo_admissivel_anp_antepenultimo"),
+  observacaoAntepenultimo: text("observacao_antepenultimo"),
+  meterFactorAntepenultimo: real("meter_factor_antepenultimo"),
+  variacaoMfPercentAntepenultimo: real("variacao_mf_percent_antepenultimo"),
+  kFactorAntepenultimo: real("k_factor_antepenultimo"),
+  ajusteAntepenultimo: boolean("ajuste_antepenultimo"),
+  
+  // Periodicidade e observações gerais
   periodicidadeCalibracao: integer("periodicidade_calibracao_anp"),
   observacoes: text("observacoes"),
   
@@ -879,6 +924,62 @@ export const controleIncertezasRelations = relations(controleIncertezas, ({ one 
   }),
 }));
 
+// Proteção e Lacre Tables
+export const lacresFisicos = pgTable("lacres_fisicos", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poloId: integer("polo_id").references(() => polos.id),
+  campoId: integer("campo_id").references(() => campos.id),
+  instalacaoId: integer("instalacao_id").references(() => instalacoes.id),
+  localLacre: text("local_lacre").notNull(),
+  descricaoLacre: text("descricao_lacre").notNull(),
+  tipoLacre: text("tipo_lacre").notNull(),
+  observacao: text("observacao"),
+  preenchidoPor: text("preenchido_por").notNull(),
+  dataPreenchimento: date("data_preenchimento").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const lacresEletronicos = pgTable("lacres_eletronicos", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poloId: integer("polo_id").references(() => polos.id),
+  campoId: integer("campo_id").references(() => campos.id),
+  instalacaoId: integer("instalacao_id").references(() => instalacoes.id),
+  localLacre: text("local_lacre").notNull(),
+  tag: text("tag").notNull(),
+  tipoAcesso: text("tipo_acesso").notNull(),
+  login: text("login").notNull(),
+  senha: text("senha").notNull(),
+  observacao: text("observacao"),
+  preenchidoPor: text("preenchido_por").notNull(),
+  dataPreenchimento: date("data_preenchimento").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const controleLacres = pgTable("controle_lacres", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poloId: integer("polo_id").references(() => polos.id),
+  campoId: integer("campo_id").references(() => campos.id).notNull(),
+  instalacaoId: integer("instalacao_id").references(() => instalacoes.id).notNull(),
+  concessionario: text("concessionario").notNull(),
+  dataAtualizacao: date("data_atualizacao").notNull(),
+  nome: text("nome").notNull(),
+  item: integer("item").notNull(),
+  descricaoEquipamento: text("descricao_equipamento").notNull(),
+  numeroSerie: text("numero_serie").notNull(),
+  lacreNumeracao: text("lacre_numeracao").notNull(),
+  dataLacrado: date("data_lacrado").notNull(),
+  violado: text("violado").notNull().default("nao"), // "sim" ou "nao"
+  dataViolado: date("data_violado"),
+  motivo: text("motivo"),
+  dataNovoLacre: date("data_novo_lacre"),
+  novoLacreNumeracao: text("novo_lacre_numeracao"),
+  lacradoPor: text("lacrado_por").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -964,6 +1065,24 @@ export const insertIncertezaLimiteSchema = createInsertSchema(incertezaLimites).
 });
 
 export const insertSistemaNotificacaoSchema = createInsertSchema(sistemaNotificacoes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertLacreFisicoSchema = createInsertSchema(lacresFisicos).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertLacreEletronicoSchema = createInsertSchema(lacresEletronicos).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertControleLacreSchema = createInsertSchema(controleLacres).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -1085,3 +1204,9 @@ export type AnaliseCromatografia = typeof analisesCromatografia.$inferSelect;
 export type InsertAnaliseCromatografia = z.infer<typeof insertAnaliseCromatografiaSchema>;
 export type AnalisePvt = typeof analisesPvt.$inferSelect;
 export type InsertAnalisePvt = z.infer<typeof insertAnalisePvtSchema>;
+export type LacreFisico = typeof lacresFisicos.$inferSelect;
+export type InsertLacreFisico = z.infer<typeof insertLacreFisicoSchema>;
+export type LacreEletronico = typeof lacresEletronicos.$inferSelect;
+export type InsertLacreEletronico = z.infer<typeof insertLacreEletronicoSchema>;
+export type ControleLacre = typeof controleLacres.$inferSelect;
+export type InsertControleLacre = z.infer<typeof insertControleLacreSchema>;

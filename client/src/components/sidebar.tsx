@@ -16,7 +16,8 @@ import {
   Package,
   Building,
   Activity,
-  Bell
+  Bell,
+  Shield
 } from "lucide-react";
 
 const menuItems = [
@@ -25,7 +26,6 @@ const menuItems = [
   { path: "/calibracoes", label: "Plano de Calibrações", icon: Calendar },
   { path: "/execucao-calibracoes", label: "Execução de Calibrações", icon: Settings },
   { path: "/historico-calibracoes", label: "Histórico de Calibrações", icon: FileText },
-  { path: "/calendario-calibracoes", label: "Calendário (Antigo)", icon: Calendar },
   { path: "/campos", label: "Campos", icon: MapPin },
   { path: "/pocos", label: "Poços", icon: Flame },
   { path: "/instalacoes", label: "Instalações", icon: Building },
@@ -34,15 +34,18 @@ const menuItems = [
   { path: "/placas-orificio", label: "Placas de Orifício", icon: Circle },
   { path: "/trechos-retos", label: "Trechos Retos", icon: Ruler },
   { path: "/medidores-primarios", label: "Medidores Primários", icon: Gauge },
+  { path: "/protecao-lacre", label: "Proteção e Lacre", icon: Shield },
   { path: "/valvulas", label: "Válvulas", icon: Gauge },
   { path: "/gestao-cilindros", label: "Gestão de Cilindros", icon: Package },
+  { path: "/testes-pocos", label: "Testes de Poços", icon: FlaskConical },
   { path: "/analises-quimicas", label: "Análises Químicas", icon: FlaskConical },
   { path: "/controle-incertezas", label: "Controle de Incertezas", icon: AlertCircle },
-  { path: "/relatorios", label: "Relatórios", icon: FileText },
 ];
 
 export default function Sidebar() {
   const [location] = useLocation();
+  
+  // Force refresh - updated at 10:56 PM - 30/09/2025
 
   return (
     <div className="w-64 bg-card border-r border-border p-4 flex flex-col" data-testid="sidebar">

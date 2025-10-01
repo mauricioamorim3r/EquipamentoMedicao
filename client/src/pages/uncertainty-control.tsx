@@ -1,23 +1,22 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, Search, Calculator, FileText, AlertTriangle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Search, Calculator, FileText, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "@/lib/api";
-import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { ControleIncerteza, IncertezaLimite, Equipamento } from "@shared/schema";
+import type { ControleIncerteza, IncertezaLimite } from "@shared/schema";
+
+// Importar componente de formulário
+import NovaAnaliseIncerteza from "@/components/incerteza-form";
 
 export default function UncertaintyControl() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedEquipamento, setSelectedEquipamento] = useState<string>("");
   const { toast } = useToast();
 
   const { data: controleIncertezas = [], isLoading } = useQuery({
@@ -28,31 +27,6 @@ export default function UncertaintyControl() {
   const { data: incertezaLimites = [] } = useQuery({
     queryKey: ["/api/incerteza-limites"],
     queryFn: () => api.getIncertezaLimites(),
-  });
-
-  const { data: equipamentos = [] } = useQuery({
-    queryKey: ["/api/equipamentos"],
-    queryFn: () => api.getEquipamentos(),
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data: any) => api.createControleIncerteza(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/controle-incertezas"] });
-      toast({
-        title: "Sucesso",
-        description: "Controle de incerteza criado com sucesso",
-      });
-      setIsCreateDialogOpen(false);
-      setSelectedEquipamento("");
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Erro ao criar controle de incerteza",
-        variant: "destructive",
-      });
-    },
   });
 
   const filteredControles = controleIncertezas.filter((controle: ControleIncerteza) => {
@@ -109,25 +83,7 @@ export default function UncertaintyControl() {
     return { conforme, limite: criterio };
   };
 
-  const handleCreateControle = () => {
-    if (!selectedEquipamento) {
-      toast({
-        title: "Erro",
-        description: "Selecione um equipamento",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const equipamento = equipamentos.find((e: Equipamento) => e.id.toString() === selectedEquipamento);
-    
-    createMutation.mutate({
-      pontoMedicaoId: parseInt(selectedEquipamento),
-      numeroCertificado: `CERT-${equipamento?.tag}-${Date.now()}`,
-      dataExecucao: new Date().toISOString().split('T')[0],
-      status: "pendente",
-    });
-  };
+  // No handler needed as it's moved to the form component
 
   // Estatísticas
   const totalControles = controleIncertezas.length;
@@ -147,47 +103,7 @@ export default function UncertaintyControl() {
           <h1 className="text-3xl font-bold">Controle de Incertezas</h1>
           <p className="text-gray-600">Gestão de incertezas de medição conforme GUM e ANP</p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Análise
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Nova Análise de Incerteza</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Equipamento</label>
-                <Select value={selectedEquipamento} onValueChange={setSelectedEquipamento}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o equipamento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {equipamentos.map((equip: Equipamento) => (
-                      <SelectItem key={equip.id} value={equip.id.toString()}>
-                        {equip.tag} - {equip.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex gap-2 pt-4">
-                <Button 
-                  onClick={handleCreateControle}
-                  disabled={createMutation.isPending || !selectedEquipamento}
-                >
-                  {createMutation.isPending ? "Criando..." : "Criar Análise"}
-                </Button>
-                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                  Cancelar
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <NovaAnaliseIncerteza />
       </div>
 
       {/* KPIs */}
@@ -205,7 +121,7 @@ export default function UncertaintyControl() {
             <CardTitle className="text-sm font-medium">Conformes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{conformes}</div>
+            <div className="text-2xl font-bold text-green-700">{conformes}</div>
             <p className="text-xs text-gray-600">
               {totalControles > 0 ? Math.round((conformes / totalControles) * 100) : 0}%
             </p>

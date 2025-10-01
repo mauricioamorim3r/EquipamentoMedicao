@@ -14,6 +14,51 @@ import { insertEquipamentoSchema, type InsertEquipamento, type Equipamento, type
 import { z } from "zod";
 import { useEffect } from "react";
 
+const UNIDADES_MEDIDA = [
+  "%",
+  "°C",
+  "°F",
+  "bar",
+  "barg",
+  "h",
+  "K",
+  "kg",
+  "kg/cm²",
+  "kg/d",
+  "kg/h",
+  "kg/L",
+  "kg/m³",
+  "kgf/cm²",
+  "km",
+  "km²",
+  "km³",
+  "L",
+  "lb",
+  "m",
+  "m²",
+  "m³",
+  "m³/d",
+  "m³/h",
+  "mg",
+  "mg/L",
+  "mi",
+  "ml",
+  "mm",
+  "mol",
+  "outro",
+  "ppm",
+  "psi",
+  "psia",
+  "psig",
+  "pulsos/m³",
+  "s",
+  "scf",
+  "Sm³/h",
+  "t",
+  "t/h",
+  "ton"
+];
+
 const EQUIPMENT_TYPES = [
   "Amostrador Automático",
   "Amostrador Manual",
@@ -296,9 +341,20 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Unidade de Medida</FormLabel>
-                    <FormControl>
-                      <Input {...field} value={field.value || ""} placeholder="Ex: m³/h, bar, °C" data-testid="input-unit" />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-unit">
+                          <SelectValue placeholder="Selecione a unidade de medida" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {UNIDADES_MEDIDA.map((unidade) => (
+                          <SelectItem key={unidade} value={unidade}>
+                            {unidade}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

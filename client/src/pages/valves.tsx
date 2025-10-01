@@ -185,7 +185,7 @@ export default function Valves() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Operacionais</p>
-                <p className="text-3xl font-bold text-green-600">{stats.operacional}</p>
+                <p className="text-3xl font-bold text-green-700">{stats.operacional}</p>
               </div>
               <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
                 <CheckCircle className="text-green-500 w-6 h-6" />

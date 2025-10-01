@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Bell, Check, Trash2, AlertTriangle, Info, CheckCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,7 @@ interface NotificationPanelProps {
 
 export default function NotificationPanel({ unreadCount }: NotificationPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
 
   const { data: notificacoes = [], isLoading } = useQuery({
@@ -91,26 +93,40 @@ export default function NotificationPanel({ unreadCount }: NotificationPanelProp
   const activeNotifications = notificacoes.filter((n: SistemaNotificacao) => n.status === "ativa");
   const readNotifications = notificacoes.filter((n: SistemaNotificacao) => n.status === "lida");
 
+  const handleNotificationClick = () => {
+    setLocation("/notificacoes");
+  };
+
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="relative p-2"
-          data-testid="notifications-button"
-        >
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span 
-              className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center"
-              data-testid="notification-count"
-            >
-              {unreadCount}
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
+    <div className="relative">
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="relative p-2"
+        data-testid="notifications-button"
+        onClick={handleNotificationClick}
+      >
+        <Bell className="h-5 w-5" />
+        {unreadCount > 0 && (
+          <span 
+            className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center"
+            data-testid="notification-count"
+          >
+            {unreadCount}
+          </span>
+        )}
+      </Button>
+      
+      {/* Quick preview tooltip on hover - optional */}
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <button 
+            className="absolute inset-0 opacity-0"
+            onMouseEnter={() => setIsOpen(true)}
+            onMouseLeave={() => setIsOpen(false)}
+            aria-label="Preview de notificações"
+          />
+        </PopoverTrigger>
       <PopoverContent className="w-96 p-0" align="end">
         <Card>
           <CardHeader className="pb-3">
@@ -245,5 +261,6 @@ export default function NotificationPanel({ unreadCount }: NotificationPanelProp
         </Card>
       </PopoverContent>
     </Popover>
+    </div>
   );
 }

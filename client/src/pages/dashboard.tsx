@@ -8,6 +8,8 @@ import KpiCards from "@/components/kpi-cards";
 import OperationalCards from "@/components/operational-cards";
 import EquipmentModal from "@/components/equipment-modal";
 import AdvancedMetricsModal from "@/components/advanced-metrics-modal";
+import CalendarioDashboard from "@/components/calendario-dashboard";
+import LacresKpiCards from "@/components/lacres-kpi-cards";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import type { DashboardStats, CalibrationStats, EquipmentWithCalibration } from "@/types";
@@ -60,7 +62,7 @@ export default function Dashboard() {
         bgColor: 'bg-green-50',
         borderColor: 'border-green-500',
         textColor: 'text-green-800',
-        countColor: 'text-green-600',
+        countColor: 'text-green-700',
         percentageColor: 'text-green-700',
         dotColor: 'bg-green-500',
       },
@@ -82,7 +84,7 @@ export default function Dashboard() {
         bgColor: 'bg-orange-50',
         borderColor: 'border-orange-500',
         textColor: 'text-orange-800',
-        countColor: 'text-orange-600',
+        countColor: 'text-orange-700',
         percentageColor: 'text-orange-700',
         dotColor: 'bg-orange-500',
       },
@@ -112,6 +114,14 @@ export default function Dashboard() {
 
       {/* Operational Cards - New colorful cards for operational metrics */}
       <OperationalCards isLoading={statsLoading} />
+
+      {/* Calendário de Atividades */}
+      <div className="mb-8">
+        <CalendarioDashboard />
+      </div>
+
+      {/* KPIs de Controle de Lacres */}
+      <LacresKpiCards />
 
       {/* Status de Calibrações e Distribuição por Polos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -190,7 +200,7 @@ export default function Dashboard() {
                       </div>
                       <div className="text-right">
                         <p className="font-medium text-foreground">{percentage}%</p>
-                        <p className="text-xs text-green-600">95% conformidade</p>
+                        <p className="text-xs text-green-700">95% conformidade</p>
                       </div>
                     </div>
                   );
@@ -262,7 +272,7 @@ export default function Dashboard() {
                                 {statusBadge.text}
                               </Badge>
                             </td>
-                            <td className={`py-3 font-medium ${equip.diasParaVencer && equip.diasParaVencer <= 0 ? 'text-red-600' : 'text-orange-600'}`}>
+                            <td className={`py-3 font-medium ${equip.diasParaVencer && equip.diasParaVencer <= 0 ? 'text-red-600' : 'text-orange-700'}`}>
                               {equip.diasParaVencer !== undefined ? equip.diasParaVencer : 'N/A'}
                             </td>
                             <td className="py-3">

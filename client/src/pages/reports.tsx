@@ -126,7 +126,7 @@ export default function Reports() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Taxa de Conformidade</p>
-                  <p className="text-3xl font-bold text-green-600">{complianceStats.complianceRate}%</p>
+                  <p className="text-3xl font-bold text-green-700">{complianceStats.complianceRate}%</p>
                 </div>
                 <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
                   <CheckCircle className="text-green-500 w-6 h-6" />
@@ -371,7 +371,7 @@ export default function Reports() {
                   </div>
                   <div className="p-3 bg-green-50 border border-green-200 rounded">
                     <p className="font-medium text-green-800">Último Relatório</p>
-                    <p className="text-sm text-green-600">Enviado em 05/02/2024</p>
+                    <p className="text-sm text-green-700">Enviado em 05/02/2024</p>
                   </div>
                 </div>
                 <div className="mt-4 space-y-2">

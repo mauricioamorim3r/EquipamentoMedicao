@@ -337,21 +337,21 @@ export default function DashboardCompleto() {
               <div>
                 <p className="text-sm font-medium text-green-700">Eficiência do Sistema</p>
                 <p className="text-3xl font-bold text-green-900">{metrics?.efficiency}%</p>
-                <p className="text-xs text-green-600 mt-1">
+                <p className="text-xs text-green-700 mt-1">
                   Status: {metrics?.compliance}
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-green-600" />
+                <TrendingUp className="w-6 h-6 text-green-700" />
               </div>
             </div>
             <div className="flex items-center mt-3 text-xs">
               {trend.change >= 0 ? (
-                <TrendingUp className="w-3 h-3 text-green-600 mr-1" />
+                <TrendingUp className="w-3 h-3 text-green-700 mr-1" />
               ) : (
                 <TrendingDown className="w-3 h-3 text-red-600 mr-1" />
               )}
-              <span className={trend.change >= 0 ? 'text-green-600' : 'text-red-600'}>
+              <span className={trend.change >= 0 ? 'text-green-700' : 'text-red-600'}>
                 {Math.abs(trend.change)}% vs mês anterior
               </span>
             </div>
@@ -364,12 +364,12 @@ export default function DashboardCompleto() {
               <div>
                 <p className="text-sm font-medium text-orange-700">Nível de Risco</p>
                 <p className="text-3xl font-bold text-orange-900">{metrics?.riskLevel}</p>
-                <p className="text-xs text-orange-600 mt-1">
+                <p className="text-xs text-orange-700 mt-1">
                   {calibrationStats?.expired + calibrationStats?.critical} itens críticos
                 </p>
               </div>
               <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-orange-600" />
+                <AlertTriangle className="w-6 h-6 text-orange-700" />
               </div>
             </div>
           </CardContent>
@@ -448,10 +448,10 @@ export default function DashboardCompleto() {
               <CardContent>
                 <div className="space-y-4">
                   {[
-                    { type: 'calibracao', description: 'Calibração realizada - FIT-001', time: '2 horas atrás', icon: CheckCircle, color: 'text-green-600' },
+                    { type: 'calibracao', description: 'Calibração realizada - FIT-001', time: '2 horas atrás', icon: CheckCircle, color: 'text-green-700' },
                     { type: 'alerta', description: 'Alerta de vencimento - TIT-003', time: '4 horas atrás', icon: AlertTriangle, color: 'text-yellow-600' },
                     { type: 'novo', description: 'Novo equipamento cadastrado', time: '1 dia atrás', icon: Activity, color: 'text-blue-600' },
-                    { type: 'manutencao', description: 'Manutenção programada - PIT-002', time: '2 dias atrás', icon: Clock, color: 'text-orange-600' },
+                    { type: 'manutencao', description: 'Manutenção programada - PIT-002', time: '2 dias atrás', icon: Clock, color: 'text-orange-700' },
                   ].map((item, index) => {
                     const IconComponent = item.icon;
                     return (
@@ -593,7 +593,7 @@ export default function DashboardCompleto() {
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Ativos:</span>
-                        <span className="font-medium text-green-600">{polo.ativos}</span>
+                        <span className="font-medium text-green-700">{polo.ativos}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Eficiência:</span>
@@ -645,7 +645,7 @@ export default function DashboardCompleto() {
                         R$ {financialMetrics.custoCalibracoes.toLocaleString('pt-BR')}
                       </p>
                     </div>
-                    <DollarSign className="w-8 h-8 text-green-600" />
+                    <DollarSign className="w-8 h-8 text-green-700" />
                   </div>
                 </CardContent>
               </Card>
@@ -673,7 +673,7 @@ export default function DashboardCompleto() {
                         R$ {financialMetrics.custoPorPolo.toLocaleString('pt-BR')}
                       </p>
                     </div>
-                    <Building className="w-8 h-8 text-orange-600" />
+                    <Building className="w-8 h-8 text-orange-700" />
                   </div>
                 </CardContent>
               </Card>
@@ -1053,9 +1053,9 @@ export default function DashboardCompleto() {
                       <div>
                         <p className="text-sm font-medium text-cyan-700">Nível Automação</p>
                         <p className="text-2xl font-bold text-cyan-900">67%</p>
-                        <p className="text-xs text-cyan-600">Processos automatizados</p>
+                        <p className="text-xs text-cyan-700">Processos automatizados</p>
                       </div>
-                      <Settings className="w-8 h-8 text-cyan-600" />
+                      <Settings className="w-8 h-8 text-cyan-700" />
                     </div>
                   </CardContent>
                 </Card>
@@ -1183,7 +1183,7 @@ export default function DashboardCompleto() {
                       <div className="text-center p-4 bg-green-50 rounded">
                         <h3 className="font-bold text-green-800">Baixo Risco</h3>
                         <p className="text-2xl font-bold text-green-900">145</p>
-                        <p className="text-sm text-green-600">Equipamentos</p>
+                        <p className="text-sm text-green-700">Equipamentos</p>
                       </div>
                     </div>
 

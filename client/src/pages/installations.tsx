@@ -187,7 +187,7 @@ export default function Installations() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Ativas</p>
-                <p className="text-3xl font-bold text-green-600">{stats.ativas}</p>
+                <p className="text-3xl font-bold text-green-700">{stats.ativas}</p>
               </div>
               <Activity className="w-8 h-8 text-green-500" />
             </div>
@@ -211,7 +211,7 @@ export default function Installations() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Cap. Petróleo</p>
-                <p className="text-3xl font-bold text-orange-600">{stats.producao.toFixed(0)}</p>
+                <p className="text-3xl font-bold text-orange-700">{stats.producao.toFixed(0)}</p>
                 <p className="text-xs text-muted-foreground">bbl/dia</p>
               </div>
               <Droplets className="w-8 h-8 text-orange-500" />

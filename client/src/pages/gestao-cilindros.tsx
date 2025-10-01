@@ -1,28 +1,12 @@
-import { Package } from "lucide-react";
+import { CilindrosTable } from "@/components/cilindro-form";
 
 export default function GestaoCilindros() {
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
-            Gestão de Cilindros
-          </h1>
-          <p className="text-muted-foreground">
-            Gestão de cilindros com schema correto
-          </p>
-        </div>
-      </div>
+    <div className="container mx-auto py-6 space-y-8">
+      <h1 className="text-2xl font-bold">Gestão de Cilindros</h1>
       
-      <div className="text-center py-12">
-        <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold text-foreground mb-2">
-          Schema Corrigido
-        </h3>
-        <p className="text-muted-foreground">
-          Agora usando o schema gestaoCilindros com campos corretos:
-          poloId, instalacaoId, pocosTeste, quantidadeCilindros, status e datas de logística.
-        </p>
+      <div className="grid grid-cols-1 gap-6">
+        <CilindrosTable />
       </div>
     </div>
   );

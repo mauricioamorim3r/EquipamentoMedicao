@@ -30,7 +30,7 @@ export default function KpiCards({ stats, isLoading }: KpiCardsProps) {
       icon: CheckCircle,
       color: "text-chart-1",
       bgColor: "bg-chart-1/20",
-      changeColor: "text-green-600",
+      changeColor: "text-green-700",
       changeIcon: TrendingUp,
     },
     {
@@ -50,7 +50,7 @@ export default function KpiCards({ stats, isLoading }: KpiCardsProps) {
       icon: AlertTriangle,
       color: "text-orange-500",
       bgColor: "bg-orange-500/20",
-      changeColor: "text-orange-600",
+      changeColor: "text-orange-700",
       changeIcon: TrendingDown,
     },
     {
@@ -60,7 +60,7 @@ export default function KpiCards({ stats, isLoading }: KpiCardsProps) {
       icon: CheckCircle,
       color: "text-green-500",
       bgColor: "bg-green-500/20",
-      changeColor: stats.conformidade >= 95 ? "text-green-600" : "text-orange-600",
+      changeColor: stats.conformidade >= 95 ? "text-green-700" : "text-orange-700",
       changeIcon: stats.conformidade >= 95 ? CheckCircle : AlertTriangle,
     },
   ];

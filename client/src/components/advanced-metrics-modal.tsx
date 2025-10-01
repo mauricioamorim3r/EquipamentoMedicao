@@ -148,7 +148,7 @@ export default function AdvancedMetricsModal({ trigger }: AdvancedMetricsModalPr
             <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
               <CardContent className="p-4">
                 <div className="text-center">
-                  <DollarSign className="w-6 h-6 mx-auto mb-2 text-green-600" />
+                  <DollarSign className="w-6 h-6 mx-auto mb-2 text-green-700" />
                   <p className="text-lg font-bold text-green-900">{metrics.roi}%</p>
                   <p className="text-xs text-green-700">ROI</p>
                 </div>
@@ -253,7 +253,7 @@ export default function AdvancedMetricsModal({ trigger }: AdvancedMetricsModalPr
                       <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                       <span className="text-sm font-medium text-green-800">Performance Excepcional</span>
                     </div>
-                    <p className="text-xs text-green-600">
+                    <p className="text-xs text-green-700">
                       Eficiência {metrics.efficiency}% acima da meta de 85%
                     </p>
                   </div>
@@ -305,9 +305,9 @@ export default function AdvancedMetricsModal({ trigger }: AdvancedMetricsModalPr
                   <p className="text-2xl font-bold text-green-900">
                     R$ {metrics.savings.toLocaleString('pt-BR')}
                   </p>
-                  <p className="text-sm text-green-600">Economia Manutenção Preventiva</p>
+                  <p className="text-sm text-green-700">Economia Manutenção Preventiva</p>
                   <div className="flex items-center justify-center mt-2">
-                    <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                    <TrendingUp className="w-4 h-4 text-green-700 mr-1" />
                     <span className="text-sm text-green-600">+12% vs último período</span>
                   </div>
                 </div>

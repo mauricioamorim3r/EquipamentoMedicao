@@ -67,7 +67,7 @@ export default function Calibrations() {
       title: "OK (> 90 dias)",
       count: stats.ok,
       percentage: stats.total > 0 ? ((stats.ok / stats.total) * 100).toFixed(1) : "0",
-      color: "text-green-600",
+      color: "text-green-700",
       bgColor: "bg-green-100",
       icon: CheckCircle,
     },
@@ -91,7 +91,7 @@ export default function Calibrations() {
       title: "Crítico (1-7 dias)",
       count: stats.critical,
       percentage: stats.total > 0 ? ((stats.critical / stats.total) * 100).toFixed(1) : "0",
-      color: "text-orange-600",
+      color: "text-orange-700",
       bgColor: "bg-orange-100",
       icon: AlertCircle,
     },
@@ -365,7 +365,7 @@ export default function Calibrations() {
                               equipment.diasParaVencer !== undefined && equipment.diasParaVencer <= 7 
                                 ? 'text-red-600' 
                                 : equipment.diasParaVencer !== undefined && equipment.diasParaVencer <= 30
-                                ? 'text-orange-600'
+                                ? 'text-orange-700'
                                 : ''
                             }`}>
                               {equipment.diasParaVencer !== undefined 

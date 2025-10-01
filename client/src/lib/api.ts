@@ -1,6 +1,9 @@
 import { apiRequest } from "./queryClient";
 
 export const api = {
+  // Generic GET method
+  get: (url: string) => fetch(url).then(res => res.json()),
+  
   // Dashboard
   getDashboardStats: () => fetch("/api/dashboard/stats").then(res => res.json()),
   
@@ -192,4 +195,19 @@ export const api = {
   // Métodos ausentes para Pontos de Medição  
   updatePontoMedicao: (id: number, data: any) => apiRequest("PUT", `/api/pontos-medicao/${id}`, data),
   deletePontoMedicao: (id: number) => apiRequest("DELETE", `/api/pontos-medicao/${id}`),
+
+  // Testes de Poços
+  getTestesPocos: (filters?: { poloId?: number; instalacaoId?: number; pocoId?: number }) => {
+    const params = new URLSearchParams();
+    if (filters?.poloId) params.append("poloId", filters.poloId.toString());
+    if (filters?.instalacaoId) params.append("instalacaoId", filters.instalacaoId.toString());
+    if (filters?.pocoId) params.append("pocoId", filters.pocoId.toString());
+    
+    const url = params.toString() ? `/api/testes-pocos?${params}` : "/api/testes-pocos";
+    return fetch(url).then(res => res.json());
+  },
+  getTestePoco: (id: number) => fetch(`/api/testes-pocos/${id}`).then(res => res.json()),
+  createTestePoco: (data: any) => apiRequest("POST", "/api/testes-pocos", data),
+  updateTestePoco: (id: number, data: any) => apiRequest("PUT", `/api/testes-pocos/${id}`, data),
+  deleteTestePoco: (id: number) => apiRequest("DELETE", `/api/testes-pocos/${id}`),
 };

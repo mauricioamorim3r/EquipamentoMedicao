@@ -17,7 +17,8 @@ import {
   insertValvulaSchema, insertControleIncertezaSchema, insertIncertezaLimiteSchema, insertSistemaNotificacaoSchema,
   insertCampoSchema, insertCalendarioCalibracaoSchema, insertHistoricoCalibracaoSchema,
   insertTrechoRetoSchema, insertMedidorPrimarioSchema, insertGestaoCilindroSchema, insertAnaliseFqGenericaSchema,
-  insertAnaliseCromatografiaSchema, insertAnalisePvtSchema, insertCertificadoCalibracaoSchema, insertExecucaoCalibracaoSchema
+  insertAnaliseCromatografiaSchema, insertAnalisePvtSchema, insertCertificadoCalibracaoSchema, insertExecucaoCalibracaoSchema,
+  insertLacreFisicoSchema, insertLacreEletronicoSchema, insertControleLacreSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -321,6 +322,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: error.errors });
       }
       console.error("Error creating well test:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Testes de Poços routes (independentes)
+  app.get("/api/testes-pocos", async (req, res) => {
+    try {
+      const filters = {
+        poloId: req.query.poloId ? parseInt(req.query.poloId as string) : undefined,
+        instalacaoId: req.query.instalacaoId ? parseInt(req.query.instalacaoId as string) : undefined,
+        pocoId: req.query.pocoId ? parseInt(req.query.pocoId as string) : undefined,
+      };
+      const testes = await storage.getAllTestesPocos(filters);
+      res.json(testes);
+    } catch (error) {
+      console.error("Error fetching testes pocos:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/testes-pocos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const teste = await storage.getTestePoco(id);
+      if (!teste) {
+        return res.status(404).json({ error: "Teste não encontrado" });
+      }
+      res.json(teste);
+    } catch (error) {
+      console.error("Error fetching teste poco:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/testes-pocos", async (req, res) => {
+    try {
+      const data = insertTestePocoSchema.parse(req.body);
+      const teste = await storage.createTestePoco(data);
+      res.status(201).json(teste);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error creating teste poco:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/testes-pocos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertTestePocoSchema.parse(req.body);
+      const teste = await storage.updateTestePoco(id, data);
+      if (!teste) {
+        return res.status(404).json({ error: "Teste não encontrado" });
+      }
+      res.json(teste);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error updating teste poco:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/testes-pocos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteTestePoco(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Teste não encontrado" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting teste poco:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -697,9 +774,236 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/notificacoes/unread-count", async (req, res) => {
     try {
       const count = await storage.getUnreadNotificationsCount();
-      res.json({ count });
+      res.json(count);
     } catch (error) {
       console.error("Error fetching unread notifications count:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Create sample notifications for testing
+  app.post("/api/notificacoes/create-samples", async (req, res) => {
+    try {
+      const sampleNotifications = [
+        {
+          titulo: "Calibração Vencida - Transmissor TP-001",
+          mensagem: "O certificado de calibração do transmissor TP-001 venceu em 15/09/2025. É necessário agendar nova calibração.",
+          tipo: "warning",
+          categoria: "calibracao",
+          prioridade: "alta",
+          status: "ativa"
+        },
+        {
+          titulo: "Teste BTP Próximo - Poço POC-025",
+          mensagem: "O teste BTP do poço POC-025 está agendado para 05/10/2025. Verificar disponibilidade de equipamentos.",
+          tipo: "info",
+          categoria: "poco",
+          prioridade: "normal",
+          status: "ativa"
+        },
+        {
+          titulo: "Válvula PSV-003 em Manutenção",
+          mensagem: "A válvula PSV-003 foi removida para manutenção. Prazo estimado: 7 dias úteis.",
+          tipo: "info",
+          categoria: "valvula",
+          prioridade: "baixa",
+          status: "ativa"
+        },
+        {
+          titulo: "Análise Química Concluída",
+          mensagem: "A análise química da amostra AMT-2025-089 foi concluída. Resultados disponíveis no sistema.",
+          tipo: "success",
+          categoria: "sistema",
+          prioridade: "normal",
+          status: "lida"
+        },
+        {
+          titulo: "Sistema de Incerteza Atualizado",
+          mensagem: "O cálculo de incerteza do ponto SMA-001 foi recalculado após calibração dos transmissores.",
+          tipo: "success",
+          categoria: "incerteza",
+          prioridade: "baixa",
+          status: "lida"
+        }
+      ];
+
+      const createdNotifications = [];
+      for (const notification of sampleNotifications) {
+        const created = await storage.createNotificacao(notification);
+        createdNotifications.push(created);
+      }
+
+      res.json({ message: "Sample notifications created", notifications: createdNotifications });
+    } catch (error) {
+      console.error("Error creating sample notifications:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Dashboard Calendar Events
+  app.get("/api/dashboard/calendar-events", async (req, res) => {
+    try {
+      const month = req.query.month ? parseInt(req.query.month as string) : undefined;
+      const year = req.query.year ? parseInt(req.query.year as string) : undefined;
+      
+      const events = await storage.getCalendarEvents({ month, year });
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching calendar events:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Proteção e Lacre routes
+  // Lacres Físicos
+  app.get("/api/lacres-fisicos", async (req, res) => {
+    try {
+      const lacres = await storage.getLacresFisicos();
+      res.json(lacres);
+    } catch (error) {
+      console.error("Error fetching lacres físicos:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/lacres-fisicos", async (req, res) => {
+    try {
+      const data = insertLacreFisicoSchema.parse(req.body);
+      const lacre = await storage.createLacreFisico(data);
+      res.status(201).json(lacre);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error creating lacre físico:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/lacres-fisicos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertLacreFisicoSchema.partial().parse(req.body);
+      const lacre = await storage.updateLacreFisico(id, data);
+      res.json(lacre);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error updating lacre físico:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/lacres-fisicos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteLacreFisico(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting lacre físico:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Lacres Eletrônicos
+  app.get("/api/lacres-eletronicos", async (req, res) => {
+    try {
+      const lacres = await storage.getLacresEletronicos();
+      res.json(lacres);
+    } catch (error) {
+      console.error("Error fetching lacres eletrônicos:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/lacres-eletronicos", async (req, res) => {
+    try {
+      const data = insertLacreEletronicoSchema.parse(req.body);
+      const lacre = await storage.createLacreEletronico(data);
+      res.status(201).json(lacre);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error creating lacre eletrônico:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/lacres-eletronicos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertLacreEletronicoSchema.partial().parse(req.body);
+      const lacre = await storage.updateLacreEletronico(id, data);
+      res.json(lacre);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error updating lacre eletrônico:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/lacres-eletronicos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteLacreEletronico(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting lacre eletrônico:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Controle de Lacres
+  app.get("/api/controle-lacres", async (req, res) => {
+    try {
+      const registros = await storage.getControleLacres();
+      res.json(registros);
+    } catch (error) {
+      console.error("Error fetching controle lacres:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/controle-lacres", async (req, res) => {
+    try {
+      const data = insertControleLacreSchema.parse(req.body);
+      const registro = await storage.createControleLacre(data);
+      res.status(201).json(registro);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error creating controle lacre:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/controle-lacres/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertControleLacreSchema.partial().parse(req.body);
+      const registro = await storage.updateControleLacre(id, data);
+      res.json(registro);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error updating controle lacre:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/controle-lacres/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteControleLacre(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting controle lacre:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -1427,6 +1731,289 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoints para exportação de relatórios de lacres
+  app.get("/api/lacres/export/excel", async (req, res) => {
+    try {
+      const { tipo } = req.query;
+      let data: any[] = [];
+      let filename = "";
+      let sheetName = "";
+
+      switch (tipo) {
+        case "fisico":
+          data = await storage.getLacresFisicos();
+          filename = "lacres_fisicos";
+          sheetName = "Lacres Físicos";
+          break;
+        case "eletronico":
+          data = await storage.getLacresEletronicos();
+          filename = "lacres_eletronicos";
+          sheetName = "Lacres Eletrônicos";
+          break;
+        case "controle":
+          data = await storage.getControleLacres();
+          filename = "controle_lacres";
+          sheetName = "Controle de Lacres";
+          break;
+        default:
+          return res.status(400).json({ error: "Tipo de lacre inválido" });
+      }
+
+      // Transform data for Excel export
+      const transformedData = data.map(item => ({
+        ...item,
+        dataPreenchimento: item.dataPreenchimento ? new Date(item.dataPreenchimento).toLocaleDateString('pt-BR') : '',
+        dataLacrado: item.dataLacrado ? new Date(item.dataLacrado).toLocaleDateString('pt-BR') : '',
+        dataViolado: item.dataViolado ? new Date(item.dataViolado).toLocaleDateString('pt-BR') : '',
+        dataNovoLacre: item.dataNovoLacre ? new Date(item.dataNovoLacre).toLocaleDateString('pt-BR') : '',
+        dataAtualizacao: item.dataAtualizacao ? new Date(item.dataAtualizacao).toLocaleDateString('pt-BR') : '',
+      }));
+
+      const excelBuffer = exportToExcel(transformedData, `${filename}.xlsx`, sheetName);
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.setHeader("Content-Disposition", `attachment; filename=${filename}_${new Date().toISOString().split('T')[0]}.xlsx`);
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error("Error exporting lacres to Excel:", error);
+      res.status(500).json({ error: "Erro ao exportar para Excel" });
+    }
+  });
+
+  app.get("/api/lacres/export/pdf", async (req, res) => {
+    try {
+      const { tipo } = req.query;
+      let data: any[] = [];
+      let title = "";
+
+      switch (tipo) {
+        case "fisico":
+          data = await storage.getLacresFisicos();
+          title = "Relatório de Lacres Físicos";
+          break;
+        case "eletronico":
+          data = await storage.getLacresEletronicos();
+          title = "Relatório de Lacres Eletrônicos";
+          break;
+        case "controle":
+          data = await storage.getControleLacres();
+          title = "Relatório de Controle de Lacres";
+          break;
+        default:
+          return res.status(400).json({ error: "Tipo de lacre inválido" });
+      }
+
+      // Simple PDF generation (for now, we'll use a basic HTML to PDF approach)
+      const html = generateLacresPDFHTML(data, title, tipo as "fisico" | "eletronico" | "controle");
+      
+      // For now, return HTML (in production, you'd use a PDF library like puppeteer)
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename=lacres_${tipo}_${new Date().toISOString().split('T')[0]}.pdf`);
+      res.send(html);
+    } catch (error) {
+      console.error("Error exporting lacres to PDF:", error);
+      res.status(500).json({ error: "Erro ao exportar para PDF" });
+    }
+  });
+
+  // KPIs de lacres para dashboard
+  app.get("/api/lacres/kpis", async (req, res) => {
+    try {
+      const [lacresFisicos, lacresEletronicos, controleLacres] = await Promise.all([
+        storage.getLacresFisicos(),
+        storage.getLacresEletronicos(),
+        storage.getControleLacres()
+      ]);
+
+      const lacresViolados = controleLacres.filter(lacre => lacre.violado === "sim").length;
+      const totalLacres = controleLacres.length;
+      const percentualViolacao = totalLacres > 0 ? (lacresViolados / totalLacres * 100).toFixed(1) : "0";
+
+      const kpis = {
+        totalLacresFisicos: lacresFisicos.length,
+        totalLacresEletronicos: lacresEletronicos.length,
+        totalControleLacres: totalLacres,
+        lacresViolados,
+        percentualViolacao: parseFloat(percentualViolacao),
+        lacresAtivos: totalLacres - lacresViolados,
+      };
+
+      res.json(kpis);
+    } catch (error) {
+      console.error("Error fetching lacres KPIs:", error);
+      res.status(500).json({ error: "Erro ao buscar KPIs" });
+    }
+  });
+
+  // Verificar lacres violados e criar notificações
+  app.post("/api/lacres/verificar-violacoes", async (req, res) => {
+    try {
+      const controleLacres = await storage.getControleLacres();
+      const lacresViolados = controleLacres.filter(lacre => lacre.violado === "sim");
+      
+      // Criar notificações para lacres violados
+      const notificacoesPromises = lacresViolados.map(async (lacre) => {
+        const titulo = `🚨 Lacre Violado - ${lacre.descricaoEquipamento}`;
+        const mensagem = `O lacre ${lacre.lacreNumeracao} do equipamento ${lacre.descricaoEquipamento} (${lacre.numeroSerie}) foi violado. Data da violação: ${lacre.dataViolado ? new Date(lacre.dataViolado).toLocaleDateString('pt-BR') : 'Não informada'}. Motivo: ${lacre.motivo || 'Não informado'}.`;
+        
+        return storage.createNotificacao({
+          tipo: "alerta",
+          titulo,
+          mensagem,
+          categoria: "lacres",
+          prioridade: "alta",
+          status: "ativa",
+          dataExpiracao: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        });
+      });
+
+      const notificacoesCriadas = await Promise.all(notificacoesPromises);
+
+      res.json({
+        lacresViolados: lacresViolados.length,
+        notificacoesCriadas: notificacoesCriadas.length,
+        detalhes: lacresViolados.map(lacre => ({
+          id: lacre.id,
+          equipamento: lacre.descricaoEquipamento,
+          numeroSerie: lacre.numeroSerie,
+          lacre: lacre.lacreNumeracao,
+          dataViolacao: lacre.dataViolado,
+          motivo: lacre.motivo
+        }))
+      });
+    } catch (error) {
+      console.error("Error checking lacres violations:", error);
+      res.status(500).json({ error: "Erro ao verificar violações" });
+    }
+  });
+
+  // Endpoint para lacres próximos ao vencimento (lacres antigos)
+  app.get("/api/lacres/proximos-vencimento", async (req, res) => {
+    try {
+      const { dias = 30 } = req.query; // Default: lacres com mais de 30 dias
+      const dataLimite = new Date();
+      dataLimite.setDate(dataLimite.getDate() - parseInt(dias as string));
+
+      const controleLacres = await storage.getControleLacres();
+      const lacresAntigos = controleLacres.filter(lacre => {
+        if (!lacre.dataLacrado) return false;
+        const dataLacrado = new Date(lacre.dataLacrado);
+        return dataLacrado < dataLimite && lacre.violado === "nao";
+      });
+
+      // Criar notificações para lacres antigos
+      const notificacoesPromises = lacresAntigos.map(async (lacre) => {
+        const diasLacrado = Math.floor((Date.now() - new Date(lacre.dataLacrado!).getTime()) / (1000 * 60 * 60 * 24));
+        const titulo = `⚠️ Lacre Antigo - ${lacre.descricaoEquipamento}`;
+        const mensagem = `O lacre ${lacre.lacreNumeracao} do equipamento ${lacre.descricaoEquipamento} está lacrado há ${diasLacrado} dias. Considere realizar uma verificação.`;
+        
+        return storage.createNotificacao({
+          tipo: "aviso",
+          titulo,
+          mensagem,
+          categoria: "lacres",
+          prioridade: "media",
+          status: "ativa",
+          dataExpiracao: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        });
+      });
+
+      const notificacoesCriadas = await Promise.all(notificacoesPromises);
+
+      res.json({
+        lacresAntigos: lacresAntigos.length,
+        notificacoesCriadas: notificacoesCriadas.length,
+        detalhes: lacresAntigos.map(lacre => ({
+          id: lacre.id,
+          equipamento: lacre.descricaoEquipamento,
+          numeroSerie: lacre.numeroSerie,
+          lacre: lacre.lacreNumeracao,
+          dataLacrado: lacre.dataLacrado,
+          diasLacrado: Math.floor((Date.now() - new Date(lacre.dataLacrado!).getTime()) / (1000 * 60 * 60 * 24))
+        }))
+      });
+    } catch (error) {
+      console.error("Error checking old lacres:", error);
+      res.status(500).json({ error: "Erro ao verificar lacres antigos" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Helper function to generate PDF HTML
+function generateLacresPDFHTML(data: any[], title: string, tipo: "fisico" | "eletronico" | "controle"): string {
+  const tableHeaders = {
+    fisico: ["ID", "Local", "Descrição", "Tipo", "Preenchido Por", "Data"],
+    eletronico: ["ID", "Local", "TAG", "Tipo Acesso", "Login", "Preenchido Por", "Data"],
+    controle: ["ID", "Campo", "Instalação", "Equipamento", "Nº Série", "Lacre", "Status", "Data Lacrado"]
+  };
+
+  const headers = tableHeaders[tipo];
+  
+  let tableRows = "";
+  data.forEach(item => {
+    let row = "<tr>";
+    switch (tipo) {
+      case "fisico":
+        row += `<td>${item.id}</td><td>${item.localLacre}</td><td>${item.descricaoLacre}</td><td>${item.tipoLacre}</td><td>${item.preenchidoPor}</td><td>${item.dataPreenchimento ? new Date(item.dataPreenchimento).toLocaleDateString('pt-BR') : ''}</td>`;
+        break;
+      case "eletronico":
+        row += `<td>${item.id}</td><td>${item.localLacre}</td><td>${item.tag}</td><td>${item.tipoAcesso}</td><td>${item.login}</td><td>${item.preenchidoPor}</td><td>${item.dataPreenchimento ? new Date(item.dataPreenchimento).toLocaleDateString('pt-BR') : ''}</td>`;
+        break;
+      case "controle":
+        row += `<td>${item.id}</td><td>${item.campo || 'N/A'}</td><td>${item.instalacao || 'N/A'}</td><td>${item.descricaoEquipamento}</td><td>${item.numeroSerie}</td><td>${item.lacreNumeracao}</td><td>${item.violado === 'sim' ? '🔴 Violado' : '🟢 Íntegro'}</td><td>${item.dataLacrado ? new Date(item.dataLacrado).toLocaleDateString('pt-BR') : ''}</td>`;
+        break;
+    }
+    row += "</tr>";
+    tableRows += row;
+  });
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>${title}</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .header h1 { color: #2563eb; margin-bottom: 5px; }
+            .header p { color: #6b7280; margin: 0; }
+            .info { margin-bottom: 20px; padding: 10px; background-color: #f3f4f6; border-radius: 5px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; font-size: 12px; }
+            th { background-color: #f9fafb; font-weight: bold; }
+            tr:nth-child(even) { background-color: #f9fafb; }
+            .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #6b7280; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>${title}</h1>
+            <p>Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
+        </div>
+        
+        <div class="info">
+            <strong>Total de registros:</strong> ${data.length}
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    ${headers.map(header => `<th>${header}</th>`).join('')}
+                </tr>
+            </thead>
+            <tbody>
+                ${tableRows}
+            </tbody>
+        </table>
+        
+        <div class="footer">
+            <p>Sistema de Gestão de Medição - Relatório de Lacres</p>
+        </div>
+    </body>
+    </html>
+  `;
 }

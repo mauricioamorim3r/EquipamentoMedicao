@@ -209,7 +209,7 @@ export default function MeasurementPoints() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Ativos</p>
-                <p className="text-3xl font-bold text-green-600">{stats.ativos}</p>
+                <p className="text-3xl font-bold text-green-700">{stats.ativos}</p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-500" />
             </div>

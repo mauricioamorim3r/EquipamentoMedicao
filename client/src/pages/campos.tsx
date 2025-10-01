@@ -386,7 +386,7 @@ export default function Campos() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Campos Ativos</p>
-                <p className="text-3xl font-bold text-green-600">{stats.ativos}</p>
+                <p className="text-3xl font-bold text-green-700">{stats.ativos}</p>
               </div>
               <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
                 <Building className="text-green-500 w-6 h-6" />

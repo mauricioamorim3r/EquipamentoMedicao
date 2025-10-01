@@ -213,6 +213,7 @@ export default function Equipment() {
             accept=".xlsx,.xls"
             onChange={handleFileSelect}
             className="hidden"
+            aria-label="Importar arquivo de equipamentos"
           />
 
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>

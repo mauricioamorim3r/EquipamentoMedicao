@@ -158,7 +158,7 @@ export default function OrificePlates() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Em Condições</p>
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-3xl font-bold text-green-700">
                   {filteredPlacas.filter((p: any) => {
                     const badge = getInspectionStatusBadge(p.dataInspecao || undefined);
                     return badge.text === 'OK';
@@ -177,7 +177,7 @@ export default function OrificePlates() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Próximas à Troca</p>
-                <p className="text-3xl font-bold text-orange-600">
+                <p className="text-3xl font-bold text-orange-700">
                   {filteredPlacas.filter((p: any) => {
                     const badge = getInspectionStatusBadge(p.dataInspecao || undefined);
                     return badge.text === 'Próxima troca';
