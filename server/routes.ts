@@ -32,6 +32,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Database connection test endpoint
+  app.get("/api/health/database", async (_req, res) => {
+    try {
+      const polos = await storage.getPolos();
+      res.status(200).json({
+        status: "ok",
+        database: "connected",
+        timestamp: new Date().toISOString(),
+        polosCount: polos.length
+      });
+    } catch (error) {
+      console.error("Database health check failed:", error);
+      res.status(500).json({
+        status: "error", 
+        database: "disconnected",
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Polos routes
   app.get("/api/polos", async (req, res) => {
     try {

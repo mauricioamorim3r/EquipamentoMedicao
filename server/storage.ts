@@ -932,31 +932,54 @@ export class Storage implements IStorage {
 
   // Dashboard Statistics
   async getDashboardStats() {
-    const [equipamentosCount] = await db.select({ count: count() }).from(equipamentos);
-    const [calibracoesCount] = await db.select({ count: count() }).from(planoCalibracoes);
-    const [pocosCount] = await db.select({ count: count() }).from(cadastroPocos);
-    const [placasCount] = await db.select({ count: count() }).from(placasOrificio);
+    console.log('Starting getDashboardStats...');
+    
+    try {
+      console.log('Fetching equipamentos count...');
+      const [equipamentosCount] = await db.select({ count: count() }).from(equipamentos);
+      console.log('Equipamentos count:', equipamentosCount.count);
+      
+      console.log('Fetching calibracoes count...');
+      const [calibracoesCount] = await db.select({ count: count() }).from(planoCalibracoes);
+      console.log('Calibracoes count:', calibracoesCount.count);
+      
+      console.log('Fetching pocos count...');
+      const [pocosCount] = await db.select({ count: count() }).from(cadastroPocos);
+      console.log('Pocos count:', pocosCount.count);
+      
+      console.log('Fetching placas count...');
+      const [placasCount] = await db.select({ count: count() }).from(placasOrificio);
+      console.log('Placas count:', placasCount.count);
 
-    // Get distribution by polos with equipment counts
-    const polosWithCounts = await db
-      .select({
-        id: polos.id,
-        nome: polos.nome,
-        sigla: polos.sigla,
-        equipCount: count(equipamentos.id),
-      })
-      .from(polos)
-      .leftJoin(equipamentos, eq(polos.id, equipamentos.poloId))
-      .groupBy(polos.id, polos.nome, polos.sigla)
-      .orderBy(desc(count(equipamentos.id)));
+      // Get distribution by polos with equipment counts
+      console.log('Fetching polos distribution...');
+      const polosWithCounts = await db
+        .select({
+          id: polos.id,
+          nome: polos.nome,
+          sigla: polos.sigla,
+          equipCount: count(equipamentos.id),
+        })
+        .from(polos)
+        .leftJoin(equipamentos, eq(polos.id, equipamentos.poloId))
+        .groupBy(polos.id, polos.nome, polos.sigla)
+        .orderBy(desc(count(equipamentos.id)));
+      console.log('Polos distribution:', polosWithCounts.length, 'polos found');
 
-    return {
-      totalEquipamentos: equipamentosCount.count,
-      totalCalibracoes: calibracoesCount.count,
-      totalPocos: pocosCount.count,
-      totalPlacas: placasCount.count,
-      polosDistribution: polosWithCounts,
-    };
+      const result = {
+        totalEquipamentos: equipamentosCount.count,
+        totalCalibracoes: calibracoesCount.count,
+        totalPocos: pocosCount.count,
+        totalPlacas: placasCount.count,
+        polosDistribution: polosWithCounts,
+      };
+      
+      console.log('Dashboard stats result:', result);
+      return result;
+    } catch (error) {
+      console.error('Error in getDashboardStats:', error);
+      throw error;
+    }
   }
 
   // Calibration Statistics
