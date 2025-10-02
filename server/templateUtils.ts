@@ -13,39 +13,42 @@ export const EQUIPAMENTOS_TEMPLATE = {
     "TAG*", "Nome*", "Tipo*", "Fabricante", "Modelo", "Número de Série",
 
     // Localização
-    "Polo ID*", "Instalação ID*", "Campo ID", "Área", "Localização Específica",
+    "Polo ID*", "Instalação ID*",
 
-    // Características Técnicas
-    "Faixa Operacional", "Unidade Medição", "Classe Exatidão", "Incerteza Medição",
-    "Resolução", "Rangeabilidade", "Vazão Nominal", "Pressão Máxima",
-    "Temperatura Máxima", "Material Construção",
+    // Características Técnicas (Campos do Schema)
+    "Unidade Medida", "Resolução", 
+    "Faixa Min Equipamento", "Faixa Max Equipamento",
+    "Faixa Min PAM", "Faixa Max PAM",
+    "Faixa Min Calibrada", "Faixa Max Calibrada",
+    "Condições Ambientais Operação", "Software Versão",
+    "Classificação",
 
-    // Calibração
-    "Frequência Calibração (dias)", "Data Última Calibração", "Data Próxima Calibração",
-    "Periodicidade ANP (meses)", "Laboratório Calibração",
+    // Calibração e Manutenção
+    "Frequência Calibração ANP", "Ativo MXM", "Plano Manutenção",
+    "Critério Aceitação", "Erro Máximo Admissível",
 
-    // Status e Observações
-    "Status Operacional*", "Status Metrológico", "Criticidade*", "Observações"
+    // Status
+    "Status Operacional*", "Status*"
   ],
 
   exampleData: [
     [
       "FT-001", "Medidor de Vazão Turbina", "Medidor de Vazão", "Emerson", "8800C", "AB123456",
-      "1", "1", "1", "Processamento", "Linha Principal",
-      "0-1000 m³/h", "m³/h", "0.5%", "±0.3%",
-      "0.1", "10:1", "500 m³/h", "150 bar",
-      "80°C", "Aço Inox 316",
-      "365", "2024-01-15", "2025-01-15",
-      "12", "Labcal Metrologia",
-      "em_operacao", "conforme", "alta", "Equipamento crítico para medição fiscal"
+      "1", "1",
+      "m³/h", "0.1",
+      "0", "1000", "0", "1000", "0", "1000",
+      "Temperatura: -20°C a +80°C", "v2.1.5",
+      "Medição Fiscal",
+      "365", "EQ001", "PM-001",
+      "±0.5%", "0.3",
+      "Em Operação", "ativo"
     ]
   ],
 
   validations: {
-    required: ["TAG*", "Nome*", "Tipo*", "Polo ID*", "Instalação ID*", "Status Operacional*", "Criticidade*"],
-    statusOperacionalOptions: ["em_operacao", "fora_operacao", "em_calibracao", "em_manutencao", "fora_uso", "sobressalente"],
-    statusMetrologicoOptions: ["conforme", "nao_conforme", "em_calibracao", "vencido"],
-    criticidadeOptions: ["alta", "media", "baixa"],
+    required: ["TAG*", "Nome*", "Tipo*", "Polo ID*", "Instalação ID*", "Status Operacional*", "Status*"],
+    statusOperacionalOptions: ["Em Operação", "Fora de Operação", "Em Calibração", "Em Manutenção", "Fora de Uso", "Sobressalente"],
+    statusOptions: ["ativo", "inativo", "manutencao", "descartado"],
     tipoOptions: ["Medidor de Vazão", "Transmissor de Pressão", "Transmissor de Temperatura", "Analisador", "Cromatógrafo", "Densímetro", "Outro"]
   },
 
@@ -58,28 +61,24 @@ export const EQUIPAMENTOS_TEMPLATE = {
     "Número de Série": "numeroSerie",
     "Polo ID*": "poloId",
     "Instalação ID*": "instalacaoId",
-    "Campo ID": "campoId",
-    "Área": "area",
-    "Localização Específica": "localizacaoEspecifica",
-    "Faixa Operacional": "faixaOperacional",
-    "Unidade Medição": "unidadeMedicao",
-    "Classe Exatidão": "classeExatidao",
-    "Incerteza Medição": "incertezaMedicao",
+    "Unidade Medida": "unidadeMedida",
     "Resolução": "resolucao",
-    "Rangeabilidade": "rangeabilidade",
-    "Vazão Nominal": "vazaoNominal",
-    "Pressão Máxima": "pressaoMaxima",
-    "Temperatura Máxima": "temperaturaMaxima",
-    "Material Construção": "materialConstrucao",
-    "Frequência Calibração (dias)": "frequenciaCalibracao",
-    "Data Última Calibração": "dataUltimaCalibracao",
-    "Data Próxima Calibração": "dataProximaCalibracao",
-    "Periodicidade ANP (meses)": "periodicidadeAnp",
-    "Laboratório Calibração": "laboratorioCalibracao",
+    "Faixa Min Equipamento": "faixaMinEquipamento",
+    "Faixa Max Equipamento": "faixaMaxEquipamento",
+    "Faixa Min PAM": "faixaMinPam",
+    "Faixa Max PAM": "faixaMaxPam",
+    "Faixa Min Calibrada": "faixaMinCalibrada",
+    "Faixa Max Calibrada": "faixaMaxCalibrada",
+    "Condições Ambientais Operação": "condicoesAmbientaisOperacao",
+    "Software Versão": "softwareVersao",
+    "Classificação": "classificacao",
+    "Frequência Calibração ANP": "frequenciaCalibracao",
+    "Ativo MXM": "ativoMxm",
+    "Plano Manutenção": "planoManutencao",
+    "Critério Aceitação": "criterioAceitacao",
+    "Erro Máximo Admissível": "erroMaximoAdmissivel",
     "Status Operacional*": "statusOperacional",
-    "Status Metrológico": "statusMetrologico",
-    "Criticidade*": "criticidade",
-    "Observações": "observacoes"
+    "Status*": "status"
   }
 };
 
