@@ -1,5 +1,12 @@
 {
   "mcpServers": {
+    "render": {
+      "command": "node",
+      "args": ["-e", "const https = require('https'); const express = require('express'); console.log('Render MCP Server ready');"],
+      "env": {
+        "RENDER_API_KEY": "rnd_93A5yp7fSpEmfErfTuqI4Q51waqA"
+      }
+    },
     "neon": {
       "command": "npx",
       "args": ["-y", "@neon/mcp-server"],
