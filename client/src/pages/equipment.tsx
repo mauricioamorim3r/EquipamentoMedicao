@@ -41,10 +41,17 @@ export default function Equipment() {
   };
 
   // Fetch data
-  const { data: equipamentos, isLoading: equipmentLoading } = useQuery({
+  const { data: equipamentos, isLoading: equipmentLoading, error } = useQuery({
     queryKey: ["/api/equipamentos/with-calibration", selectedPolo, selectedInstalacao, selectedStatus],
     queryFn: () => api.getEquipamentosWithCalibration(),
+    retry: 3,
+    refetchOnWindowFocus: false,
   });
+
+  // Debug: log dos dados
+  console.log("Equipamentos carregados:", equipamentos);
+  console.log("Loading:", equipmentLoading);
+  console.log("Error:", error);
 
   const { data: polos } = useQuery({
     queryKey: ["/api/polos"],
@@ -84,12 +91,17 @@ export default function Equipment() {
       eq.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       eq.fabricante?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesPolo = !selectedPolo || selectedPolo === "all" || eq.poloId.toString() === selectedPolo;
-    const matchesInstalacao = !selectedInstalacao || selectedInstalacao === "all" || eq.instalacaoId.toString() === selectedInstalacao;
+    const matchesPolo = !selectedPolo || selectedPolo === "all" || eq.poloId?.toString() === selectedPolo;
+    const matchesInstalacao = !selectedInstalacao || selectedInstalacao === "all" || eq.instalacaoId?.toString() === selectedInstalacao;
     const matchesStatus = !selectedStatus || selectedStatus === "all" || eq.status === selectedStatus;
 
     return matchesSearch && matchesPolo && matchesInstalacao && matchesStatus;
   }) || [];
+
+  // Debug filtros
+  console.log("Filtros ativos:", { searchTerm, selectedPolo, selectedInstalacao, selectedStatus });
+  console.log("Equipamentos filtrados:", filteredEquipments.length);
+  console.log("Dados dos equipamentos:", equipamentos?.map(eq => ({ tag: eq.tag, poloId: eq.poloId, status: eq.status, statusOperacional: eq.statusOperacional })));
 
   const getStatusBadge = (status: string) => {
     switch (status) {
