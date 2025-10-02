@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "render": {
+      "command": "npx",
+      "args": ["-y", "@render/mcp-server"],
+      "env": {
+        "RENDER_API_KEY": "rnd_93A5yp7fSpEmfErfTuqI4Q51waqA"
+      }
+    },
+    "neon": {
+      "command": "npx",
+      "args": ["-y", "@neon/mcp-server"],
+      "env": {
+        "NEON_API_KEY": "napi_2kizhf9ldo6us0k40msrapepcd7if837x2fjbl90138o0evbo1rnku5pyk4zuzug"
+      }
+    }
+  }
+}

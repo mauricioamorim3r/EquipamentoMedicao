@@ -1,0 +1,39 @@
+{
+  "project": {
+    "name": "EquipamentoMedicao",
+    "type": "react",
+    "path": "C:\\appsMau\\EquipamentoMedicao"
+  },
+  "mcp": {
+    "render": {
+      "apiKey": "rnd_93A5yp7fSpEmfErfTuqI4Q51waqA",
+      "serverUrl": "https://api.render.com/v1",
+      "features": [
+        "list_services",
+        "deploy_status",
+        "service_logs",
+        "restart_service",
+        "env_vars_management"
+      ]
+    },
+    "neon": {
+      "apiKey": "napi_2kizhf9ldo6us0k40msrapepcd7if837x2fjbl90138o0evbo1rnku5pyk4zuzug",
+      "serverUrl": "https://console.neon.tech/api/v2",
+      "features": [
+        "list_projects",
+        "sql_execution",
+        "branch_management",
+        "connection_strings",
+        "database_schema"
+      ]
+    }
+  },
+  "templates": {
+    "render": {
+      "buildCommand": "npm ci && npm run build",
+      "startCommand": "npm start",
+      "env": "node",
+      "type": "web_service"
+    }
+  }
+}
