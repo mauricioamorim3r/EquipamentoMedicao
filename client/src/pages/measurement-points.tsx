@@ -29,7 +29,7 @@ import {
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-// import MeasurementPointForm from "@/components/measurement-point-form";
+import MeasurementPointForm from "@/components/measurement-point-form";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { PontoMedicao, Polo, Instalacao } from "@shared/schema";
@@ -175,16 +175,11 @@ export default function MeasurementPoints() {
                   {editingPoint ? 'Editar Ponto de Medição' : 'Novo Ponto de Medição'}
                 </DialogTitle>
               </DialogHeader>
-              {/* <MeasurementPointForm
+              <MeasurementPointForm
                 measurementPoint={editingPoint}
                 onSuccess={handleFormSuccess}
                 onCancel={() => setIsFormOpen(false)}
-              /> */}
-              <div className="p-6 text-center text-gray-500">
-                Formulário de Ponto de Medição temporariamente indisponível.
-                <br />
-                Funcionalidade será implementada em breve.
-              </div>
+              />
             </DialogContent>
           </Dialog>
         </div>

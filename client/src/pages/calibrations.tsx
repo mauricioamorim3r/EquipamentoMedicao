@@ -460,7 +460,7 @@ export default function Calibrations() {
           <DialogHeader>
             <DialogTitle>
               {selectedCalibration 
-                ? `Editar Calibração - ${selectedCalibration.tagEquipamento}`
+                ? `Editar Calibração - ID: ${selectedCalibration.id}`
                 : 'Agendar Nova Calibração'
               }
             </DialogTitle>
@@ -512,14 +512,9 @@ function CalibrationForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       equipamentoId: calibration?.equipamentoId || 0,
-      poloId: calibration?.poloId || 0,
-      instalacaoId: calibration?.instalacaoId || 0,
       tagPontoMedicao: calibration?.tagPontoMedicao || "",
       nomePontoMedicao: calibration?.nomePontoMedicao || "",
       classificacao: calibration?.classificacao || "",
-      tagEquipamento: calibration?.tagEquipamento || "",
-      nomeEquipamento: calibration?.nomeEquipamento || "",
-      numeroSerie: calibration?.numeroSerie || "",
       tipoCalibracao: calibration?.tipoCalibracao || "",
       motivo: calibration?.motivo || "",
       laboratorio: calibration?.laboratorio || "",
@@ -577,14 +572,6 @@ function CalibrationForm({
   // Auto-fill equipment data when equipment is selected
   const selectedEquipment = form.watch("equipamentoId");
   const equipment = equipamentos.find(eq => eq.id === selectedEquipment);
-  
-  if (equipment && selectedEquipment !== calibration?.equipamentoId) {
-    form.setValue("tagEquipamento", equipment.tag);
-    form.setValue("nomeEquipamento", equipment.nome);
-    form.setValue("numeroSerie", equipment.numeroSerie);
-    form.setValue("poloId", equipment.poloId);
-    form.setValue("instalacaoId", equipment.instalacaoId);
-  }
 
   return (
     <Form {...form}>
@@ -606,56 +593,6 @@ function CalibrationForm({
                     {equipamentos.map((eq) => (
                       <SelectItem key={eq.id} value={eq.id.toString()}>
                         {eq.tag} - {eq.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="poloId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Polo</FormLabel>
-                <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value.toString()}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o polo" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {polos.map((polo) => (
-                      <SelectItem key={polo.id} value={polo.id.toString()}>
-                        {polo.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="instalacaoId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Instalação</FormLabel>
-                <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value.toString()}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a instalação" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {instalacoes.map((inst) => (
-                      <SelectItem key={inst.id} value={inst.id.toString()}>
-                        {inst.nome}
                       </SelectItem>
                     ))}
                   </SelectContent>

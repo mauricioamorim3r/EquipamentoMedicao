@@ -165,10 +165,7 @@ export const planoCalibracoes = pgTable("plano_calibracao", {
 export const certificadosCalibração = pgTable("certificados_calibracao", {
   id: integer("certificado_id").primaryKey().generatedByDefaultAsIdentity(),
   equipamentoId: integer("equipamento_id").references(() => equipamentos.id).notNull(),
-  numeroSerieEquipamento: text("numero_serie_equipamento").notNull(),
-  tagEquipamento: text("tag_equipamento").notNull(),
-  nomeEquipamento: text("nome_equipamento").notNull(),
-  
+
   // Informações do certificado
   numeroCertificado: text("numero_certificado").notNull(),
   revisaoCertificado: text("revisao_certificado"),
@@ -202,11 +199,8 @@ export const certificadosCalibração = pgTable("certificados_calibracao", {
 export const execucaoCalibracoes = pgTable("execucao_calibracoes", {
   id: integer("execucao_id").primaryKey().generatedByDefaultAsIdentity(),
   equipamentoId: integer("equipamento_id").references(() => equipamentos.id).notNull(),
-  
-  // Informações básicas do equipamento
-  numeroSerieEquipamento: text("numero_serie_equipamento").notNull(),
-  tagEquipamento: text("tag_equipamento").notNull(),
-  nomeEquipamento: text("nome_equipamento").notNull(),
+
+  // Informações específicas de calibração (não duplicadas)
   aplicabilidade: text("aplicabilidade"),
   fluido: text("fluido"),
   pontoMedicao: text("ponto_medicao"),
@@ -327,11 +321,11 @@ export const execucaoCalibracoes = pgTable("execucao_calibracoes", {
 export const historicoCalibracoes = pgTable("historico_calibracoes", {
   id: integer("historico_id").primaryKey().generatedByDefaultAsIdentity(),
   equipamentoId: integer("equipamento_id").references(() => equipamentos.id).notNull(),
-  poloId: integer("polo_id").references(() => polos.id),
-  instalacaoId: integer("instalacao_id").references(() => instalacoes.id),
-  tagPontoMedicao: text("tag_ponto_medicao"),
-  nomePontoMedicao: text("nome_ponto_medicao"),
-  classificacao: text("classificacao"),
+
+  // Snapshot histórico - dados no momento da calibração
+  tagPontoMedicaoSnapshot: text("tag_ponto_medicao"),
+  nomePontoMedicaoSnapshot: text("nome_ponto_medicao"),
+  classificacaoSnapshot: text("classificacao"),
 
   // Último Certificado
   dataCalibracão: date("data_calibracao").notNull(),
@@ -365,14 +359,11 @@ export const historicoCalibracoes = pgTable("historico_calibracoes", {
 export const calendarioCalibracoes = pgTable("calendario_calibracoes", {
   id: integer("calendario_id").primaryKey().generatedByDefaultAsIdentity(),
   equipamentoId: integer("equipamento_id").references(() => equipamentos.id).notNull(),
-  poloId: integer("polo_id").references(() => polos.id).notNull(),
-  instalacaoId: integer("instalacao_id").references(() => instalacoes.id).notNull(),
+
+  // Dados específicos do agendamento (não duplicados - polo/instalação vêm via equipamentoId)
   tagPontoMedicao: text("tag_ponto_medicao"),
   nomePontoMedicao: text("nome_ponto_medicao"),
   classificacao: text("classificacao"),
-  tagEquipamento: text("tag_equipamento"),
-  nomeEquipamento: text("nome_equipamento"),
-  numeroSerie: text("numero_serie"),
   tipoCalibracao: text("tipo_calibracao"),
   motivo: text("motivo"),
   laboratorio: text("laboratorio"),
@@ -1023,177 +1014,41 @@ export const controleLacres = pgTable("controle_lacres", {
 });
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-  name: true,
-  role: true,
+export const insertUserSchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(1),
+  name: z.string().min(1),
+  role: z.enum(['admin', 'user'])
 });
 
-export const insertPoloSchema = createInsertSchema(polos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertInstalacaoSchema = createInsertSchema(instalacoes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertEquipamentoSchema = createInsertSchema(equipamentos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertPontoMedicaoSchema = createInsertSchema(pontosMedicao).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertPlanoCalibracaoSchema = createInsertSchema(planoCalibracoes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertCadastroPocoSchema = createInsertSchema(cadastroPocos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertTestePocoSchema = createInsertSchema(testesPocos).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertPlacaOrificioSchema = createInsertSchema(placasOrificio).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertPlanoColetaSchema = createInsertSchema(planoColetas).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertAnaliseQuimicaSchema = createInsertSchema(analisesQuimicas).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertValvulaSchema = createInsertSchema(valvulas).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertControleIncertezaSchema = createInsertSchema(controleIncertezas).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertIncertezaLimiteSchema = createInsertSchema(incertezaLimites).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertSistemaNotificacaoSchema = createInsertSchema(sistemaNotificacoes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertLacreFisicoSchema = createInsertSchema(lacresFisicos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertLacreEletronicoSchema = createInsertSchema(lacresEletronicos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertControleLacreSchema = createInsertSchema(controleLacres).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertCampoSchema = createInsertSchema(campos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertCalendarioCalibracaoSchema = createInsertSchema(calendarioCalibracoes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertHistoricoCalibracaoSchema = createInsertSchema(historicoCalibracoes).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertCertificadoCalibracaoSchema = createInsertSchema(certificadosCalibração).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertExecucaoCalibracaoSchema = createInsertSchema(execucaoCalibracoes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertTrechoRetoSchema = createInsertSchema(trechosRetos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertGestaoCilindroSchema = createInsertSchema(gestaoCilindros).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertMedidorPrimarioSchema = createInsertSchema(medidoresPrimarios).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertAnaliseFqGenericaSchema = createInsertSchema(analisesFisicoQuimicasGenerica).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertAnaliseCromatografiaSchema = createInsertSchema(analisesCromatografia).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertAnalisePvtSchema = createInsertSchema(analisesPvt).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export const insertPoloSchema = createInsertSchema(polos);
+export const insertInstalacaoSchema = createInsertSchema(instalacoes);
+export const insertEquipamentoSchema = createInsertSchema(equipamentos);
+export const insertPontoMedicaoSchema = createInsertSchema(pontosMedicao);
+export const insertPlanoCalibracaoSchema = createInsertSchema(planoCalibracoes);
+export const insertCadastroPocoSchema = createInsertSchema(cadastroPocos);
+export const insertTestePocoSchema = createInsertSchema(testesPocos);
+export const insertPlacaOrificioSchema = createInsertSchema(placasOrificio);
+export const insertPlanoColetaSchema = createInsertSchema(planoColetas);
+export const insertAnaliseQuimicaSchema = createInsertSchema(analisesQuimicas);
+export const insertValvulaSchema = createInsertSchema(valvulas);
+export const insertControleIncertezaSchema = createInsertSchema(controleIncertezas);
+export const insertIncertezaLimiteSchema = createInsertSchema(incertezaLimites);
+export const insertSistemaNotificacaoSchema = createInsertSchema(sistemaNotificacoes);
+export const insertLacreFisicoSchema = createInsertSchema(lacresFisicos);
+export const insertLacreEletronicoSchema = createInsertSchema(lacresEletronicos);
+export const insertControleLacreSchema = createInsertSchema(controleLacres);
+export const insertCampoSchema = createInsertSchema(campos);
+export const insertCalendarioCalibracaoSchema = createInsertSchema(calendarioCalibracoes);
+export const insertHistoricoCalibracaoSchema = createInsertSchema(historicoCalibracoes);
+export const insertCertificadoCalibracaoSchema = createInsertSchema(certificadosCalibração);
+export const insertExecucaoCalibracaoSchema = createInsertSchema(execucaoCalibracoes);
+export const insertTrechoRetoSchema = createInsertSchema(trechosRetos);
+export const insertGestaoCilindroSchema = createInsertSchema(gestaoCilindros);
+export const insertMedidorPrimarioSchema = createInsertSchema(medidoresPrimarios);
+export const insertAnaliseFqGenericaSchema = createInsertSchema(analisesFisicoQuimicasGenerica);
+export const insertAnaliseCromatografiaSchema = createInsertSchema(analisesCromatografia);
+export const insertAnalisePvtSchema = createInsertSchema(analisesPvt);
 
 // Types
 export type User = typeof users.$inferSelect;

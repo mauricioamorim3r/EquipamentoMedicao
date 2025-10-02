@@ -1,5 +1,5 @@
 import { config } from "dotenv";
-import { db } from "./db";
+import { db } from "../db";
 import { 
   equipamentos, 
   placasOrificio, 
@@ -75,7 +75,7 @@ async function relatorioStatusFinal() {
     if (camposData.length > 0) {
       console.log("   📋 Campos cadastrados:");
       camposData.forEach(campo => {
-        console.log(`      - ${campo.nome} (${campo.localizacao || 'Localização não definida'})`);
+        console.log(`      - ${campo.nome} (${campo.diretoria || 'Diretoria não definida'})`);
       });
     }
 

@@ -29,6 +29,7 @@ import {
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import WellTestCompleteForm from "@/components/well-test-complete-form";
 
 interface TestePoco {
   id?: number;
@@ -245,19 +246,11 @@ export default function TestesPocos() {
                     {editingTest ? "Editar Teste de Poço" : "Novo Teste de Poço"}
                   </DialogTitle>
                 </DialogHeader>
-                <div className="p-4">
-                  <p className="text-muted-foreground">
-                    Formulário de teste de poço será implementado aqui.
-                  </p>
-                  <div className="flex justify-end gap-2 mt-4">
-                    <Button variant="outline" onClick={handleFormClose}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={handleFormSuccess}>
-                      Salvar
-                    </Button>
-                  </div>
-                </div>
+                <WellTestCompleteForm
+                  wellTest={editingTest}
+                  onSuccess={handleFormSuccess}
+                  onCancel={handleFormClose}
+                />
               </DialogContent>
             </Dialog>
         </div>

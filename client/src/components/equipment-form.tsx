@@ -512,7 +512,7 @@ export default function EquipmentForm({ equipment, onClose, onSuccess }: Equipme
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-4">
               <h4 className="font-medium">Faixa do Equipamento</h4>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="faixaMinEquipamento"

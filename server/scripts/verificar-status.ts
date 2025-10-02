@@ -1,5 +1,5 @@
 import { config } from "dotenv";
-import { db } from "./db";
+import { db } from "../db";
 import { 
   equipamentos, 
   placasOrificio, 
@@ -18,7 +18,7 @@ import {
   analisesFisicoQuimicasGenerica,
   analisesCromatografia,
   analisesPvt
-} from "@shared/schema";
+} from "../../shared/schema";
 
 config({ path: "../.env" });
 
@@ -33,7 +33,7 @@ async function verificarStatusCadastros() {
     
     if (totalEquipamentos.length > 0) {
       const equipamentosPorTipo = totalEquipamentos.reduce((acc, eq) => {
-        const tipo = eq.tipoEquipamento || 'Não especificado';
+        const tipo = eq.tipo || 'Não especificado';
         acc[tipo] = (acc[tipo] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
@@ -48,14 +48,14 @@ async function verificarStatusCadastros() {
     console.log(`\n🔴 PLACAS DE ORIFÍCIO: ${totalPlacas.length} cadastradas`);
     
     if (totalPlacas.length > 0) {
-      const placasPorStatus = totalPlacas.reduce((acc, placa) => {
-        const status = placa.status || 'Sem status';
-        acc[status] = (acc[status] || 0) + 1;
+      const placasPorMaterial = totalPlacas.reduce((acc, placa) => {
+        const material = placa.material || 'Material não especificado';
+        acc[material] = (acc[material] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
       
-      Object.entries(placasPorStatus).forEach(([status, count]) => {
-        console.log(`   - ${status}: ${count}`);
+      Object.entries(placasPorMaterial).forEach(([material, count]) => {
+        console.log(`   - ${material}: ${count}`);
       });
 
       const placasComEquipamento = totalPlacas.filter(p => p.equipamentoId !== null);
@@ -69,7 +69,7 @@ async function verificarStatusCadastros() {
     
     if (totalCampos.length > 0) {
       totalCampos.forEach(campo => {
-        console.log(`   - ${campo.nome} (${campo.localizacao || 'Localização não especificada'})`);
+        console.log(`   - ${campo.nome} (${campo.sigla || 'Sigla não especificada'})`);
       });
     }
 
@@ -79,7 +79,7 @@ async function verificarStatusCadastros() {
     
     if (totalInstalacoes.length > 0) {
       totalInstalacoes.forEach(inst => {
-        console.log(`   - ${inst.nome} (Tipo: ${inst.tipoInstalacao || 'N/A'})`);
+        console.log(`   - ${inst.nome} (Tipo: ${inst.tipo || 'N/A'})`);
       });
     }
 
@@ -160,29 +160,29 @@ async function verificarStatusCadastros() {
     // Verificar últimas atividades (se houver timestamps)
     console.log("\n📅 ÚLTIMAS ATIVIDADES:");
     
-    // Equipamentos com data mais recente
+    // Equipamentos ordenados por data de criação
     const equipamentosRecentes = totalEquipamentos
-      .filter(eq => eq.dataAquisicao)
-      .sort((a, b) => new Date(b.dataAquisicao!).getTime() - new Date(a.dataAquisicao!).getTime())
+      .filter(eq => eq.createdAt)
+      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
       .slice(0, 3);
     
     if (equipamentosRecentes.length > 0) {
       console.log("   Equipamentos recentes:");
       equipamentosRecentes.forEach(eq => {
-        console.log(`   - ${eq.tag || eq.numeroSerie} (${eq.dataAquisicao})`);
+        console.log(`   - ${eq.tag || eq.numeroSerie} (${eq.createdAt?.toLocaleDateString()})`);
       });
     }
 
-    // Placas com calibração mais recente
-    const placasComCalibracao = totalPlacas
-      .filter(p => p.ultimaCalibracao)
-      .sort((a, b) => new Date(b.ultimaCalibracao!).getTime() - new Date(a.ultimaCalibracao!).getTime())
+    // Placas criadas recentemente
+    const placasRecentes = totalPlacas
+      .filter(p => p.createdAt)
+      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
       .slice(0, 3);
     
-    if (placasComCalibracao.length > 0) {
-      console.log("   Placas calibradas recentemente:");
-      placasComCalibracao.forEach(placa => {
-        console.log(`   - ${placa.tag} (${placa.ultimaCalibracao})`);
+    if (placasRecentes.length > 0) {
+      console.log("   Placas criadas recentemente:");
+      placasRecentes.forEach(placa => {
+        console.log(`   - ${placa.numeroSerie} (${placa.createdAt?.toLocaleDateString()})`);
       });
     }
 

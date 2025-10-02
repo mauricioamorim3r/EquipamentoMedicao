@@ -18,14 +18,14 @@ import {
   Search
 } from "lucide-react";
 import { api } from "@/lib/api";
-import type { CertificadoCalibracao } from "@shared/schema";
+import type { CertificadoCalibracaoWithEquipamento } from "@shared/schema";
 
 export default function CalibrationHistory() {
   const [selectedEquipment, setSelectedEquipment] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedEquipment, setExpandedEquipment] = useState<number | null>(null);
-  const [selectedCertificate, setSelectedCertificate] = useState<CertificadoCalibracao | null>(null);
+  const [selectedCertificate, setSelectedCertificate] = useState<CertificadoCalibracaoWithEquipamento | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   const { data: certificados, isLoading: certificatesLoading } = useQuery({
@@ -39,17 +39,17 @@ export default function CalibrationHistory() {
   });
 
   // Group certificates by equipment
-  const certificatesByEquipment = certificados?.reduce((acc: Record<number, CertificadoCalibracao[]>, cert: CertificadoCalibracao) => {
+  const certificatesByEquipment = certificados?.reduce((acc: Record<number, CertificadoCalibracaoWithEquipamento[]>, cert: CertificadoCalibracaoWithEquipamento) => {
     if (!acc[cert.equipamentoId]) {
       acc[cert.equipamentoId] = [];
     }
     acc[cert.equipamentoId].push(cert);
     return acc;
-  }, {} as Record<number, CertificadoCalibracao[]>) || {};
+  }, {} as Record<number, CertificadoCalibracaoWithEquipamento[]>) || {};
 
   // Sort certificates by date (newest first) for each equipment
   Object.keys(certificatesByEquipment).forEach(key => {
-    certificatesByEquipment[parseInt(key)].sort((a: CertificadoCalibracao, b: CertificadoCalibracao) => 
+    certificatesByEquipment[parseInt(key)].sort((a: CertificadoCalibracaoWithEquipamento, b: CertificadoCalibracaoWithEquipamento) => 
       new Date(b.dataCertificado).getTime() - new Date(a.dataCertificado).getTime()
     );
   });
@@ -99,7 +99,7 @@ export default function CalibrationHistory() {
     }
   };
 
-  const handleViewCertificate = (certificate: CertificadoCalibracao) => {
+  const handleViewCertificate = (certificate: CertificadoCalibracaoWithEquipamento) => {
     setSelectedCertificate(certificate);
     setIsDetailDialogOpen(true);
   };
@@ -257,7 +257,7 @@ export default function CalibrationHistory() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {certificates.map((cert: CertificadoCalibracao, index: number) => (
+                        {certificates.map((cert: CertificadoCalibracaoWithEquipamento, index: number) => (
                           <TableRow key={cert.id}>
                             <TableCell>
                               {getOrderBadge(cert.ordemCertificado)}

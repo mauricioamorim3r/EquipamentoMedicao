@@ -48,7 +48,7 @@ export default function Sidebar() {
   // Force refresh - updated at 10:56 PM - 30/09/2025
 
   return (
-    <div className="w-64 bg-card border-r border-border p-4 flex flex-col" data-testid="sidebar">
+    <div className="w-64 bg-card border-r border-border p-4 hidden md:flex flex-col" data-testid="sidebar">
       {/* Logo and Title */}
       <div className="flex items-center mb-8">
         <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mr-3">

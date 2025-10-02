@@ -1,6 +1,6 @@
 import { config } from "dotenv";
-import { db } from "./db";
-import { placasOrificio } from "@shared/schema";
+import { db } from "../db";
+import { placasOrificio } from "../../shared/schema";
 
 config({ path: "../.env" });
 

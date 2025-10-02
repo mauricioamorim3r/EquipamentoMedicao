@@ -25,7 +25,7 @@ import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertExecucaoCalibracaoSchema, type InsertExecucaoCalibracao, type ExecucaoCalibracao } from "@shared/schema";
+import { insertExecucaoCalibracaoSchema, type InsertExecucaoCalibracao, type ExecucaoCalibracaoWithEquipamento } from "@shared/schema";
 import { queryClient } from "@/lib/queryClient";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,7 +37,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function ExecutionCalibrations() {
   const [selectedEquipment, setSelectedEquipment] = useState<string>("all");
   const [isExecutionDialogOpen, setIsExecutionDialogOpen] = useState(false);
-  const [selectedExecution, setSelectedExecution] = useState<ExecucaoCalibracao | null>(null);
+  const [selectedExecution, setSelectedExecution] = useState<ExecucaoCalibracaoWithEquipamento | null>(null);
   const { toast } = useToast();
 
   const { data: execucoesCalibracoes, isLoading: executionsLoading } = useQuery({
@@ -59,7 +59,7 @@ export default function ExecutionCalibrations() {
     setIsExecutionDialogOpen(true);
   };
 
-  const handleEditExecution = (execution: ExecucaoCalibracao) => {
+  const handleEditExecution = (execution: ExecucaoCalibracaoWithEquipamento) => {
     setSelectedExecution(execution);
     setIsExecutionDialogOpen(true);
   };
@@ -576,7 +576,7 @@ export default function ExecutionCalibrations() {
 
 // Componente do formulário de execução
 interface ExecutionFormProps {
-  execution?: ExecucaoCalibracao | null;
+  execution?: ExecucaoCalibracaoWithEquipamento | null;
   equipamentos: any[];
   onClose: () => void;
   onSuccess: () => void;
@@ -590,9 +590,6 @@ function ExecutionForm({ execution, equipamentos, onClose, onSuccess }: Executio
     resolver: zodResolver(formSchema),
     defaultValues: {
       equipamentoId: execution?.equipamentoId || 0,
-      numeroSerieEquipamento: execution?.numeroSerieEquipamento || "",
-      tagEquipamento: execution?.tagEquipamento || "",
-      nomeEquipamento: execution?.nomeEquipamento || "",
       aplicabilidade: execution?.aplicabilidade || "",
       fluido: execution?.fluido || "",
       pontoMedicao: execution?.pontoMedicao || "",
@@ -705,9 +702,7 @@ function ExecutionForm({ execution, equipamentos, onClose, onSuccess }: Executio
   const equipment = equipamentos.find(eq => eq.id === selectedEquipmentId);
   
   if (equipment && selectedEquipmentId !== execution?.equipamentoId) {
-    form.setValue("tagEquipamento", equipment.tag);
-    form.setValue("nomeEquipamento", equipment.nome);
-    form.setValue("numeroSerieEquipamento", equipment.numeroSerie);
+    // Equipment data will be shown from the selected equipment, not stored in form
   }
 
   return (
@@ -1245,7 +1240,7 @@ function ExecutionForm({ execution, equipamentos, onClose, onSuccess }: Executio
             {/* Observações */}
             <FormField
               control={form.control}
-              name="observacoesUltimo"
+              name="observacaoUltimo"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Observações</FormLabel>
@@ -1658,7 +1653,7 @@ function ExecutionForm({ execution, equipamentos, onClose, onSuccess }: Executio
             {/* Observações */}
             <FormField
               control={form.control}
-              name="observacoesPenultimo"
+              name="observacaoPenultimo"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Observações</FormLabel>
@@ -2071,7 +2066,7 @@ function ExecutionForm({ execution, equipamentos, onClose, onSuccess }: Executio
             {/* Observações */}
             <FormField
               control={form.control}
-              name="observacoesAntepenultimo"
+              name="observacaoAntepenultimo"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Observações</FormLabel>

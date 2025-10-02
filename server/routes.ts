@@ -47,7 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         status: "error", 
         database: "disconnected",
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString()
       });
     }
@@ -180,6 +180,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: error.errors });
       }
       console.error("Error creating instalacao:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/instalacoes/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertInstalacaoSchema.partial().parse(req.body);
+      const instalacao = await storage.updateInstalacao(id, data);
+      res.json(instalacao);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error updating instalacao:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/instalacoes/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteInstalacao(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting instalacao:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -444,6 +470,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/placas-orificio/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const placa = await storage.getPlacaOrificio(id);
+      if (!placa) {
+        return res.status(404).json({ error: "Placa not found" });
+      }
+      res.json(placa);
+    } catch (error) {
+      console.error("Error fetching placa orificio:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.post("/api/placas-orificio", async (req, res) => {
     try {
       const data = insertPlacaOrificioSchema.parse(req.body);
@@ -510,6 +550,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/pontos-medicao/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertPontoMedicaoSchema.partial().parse(req.body);
+      const ponto = await storage.updatePontoMedicao(id, data);
+      res.json(ponto);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error updating ponto medicao:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/pontos-medicao/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deletePontoMedicao(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting ponto medicao:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Planos de Coleta routes
   app.get("/api/planos-coleta", async (req, res) => {
     try {
@@ -522,14 +588,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/planos-coleta/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const plano = await storage.getPlanoColeta(id);
+      if (!plano) {
+        return res.status(404).json({ error: "Plano coleta not found" });
+      }
+      res.json(plano);
+    } catch (error) {
+      console.error("Error fetching plano coleta:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.post("/api/planos-coleta", async (req, res) => {
     try {
-      const data = insertPlanoColetaSchema.parse(req.body);
-      
+      const data = insertPlanoColetaSchema.parse(req.body) as { pontoMedicaoId: number };
+
       // Validate that measurement point exists
       if (!data.pontoMedicaoId || data.pontoMedicaoId === 0) {
-        return res.status(400).json({ 
-          error: "Ponto de medição é obrigatório" 
+        return res.status(400).json({
+          error: "Ponto de medição é obrigatório"
         });
       }
 
@@ -591,6 +671,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/analises-quimicas/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const analise = await storage.getAnaliseQuimica(id);
+      if (!analise) {
+        return res.status(404).json({ error: "Análise química not found" });
+      }
+      res.json(analise);
+    } catch (error) {
+      console.error("Error fetching analise quimica:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.post("/api/analises-quimicas", async (req, res) => {
     try {
       const data = insertAnaliseQuimicaSchema.parse(req.body);
@@ -643,6 +737,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/valvulas/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const valvula = await storage.getValvula(id);
+      if (!valvula) {
+        return res.status(404).json({ error: "Válvula not found" });
+      }
+      res.json(valvula);
+    } catch (error) {
+      console.error("Error fetching valvula:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.post("/api/valvulas", async (req, res) => {
     try {
       const data = insertValvulaSchema.parse(req.body);
@@ -691,6 +799,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(incertezas);
     } catch (error) {
       console.error("Error fetching controle incertezas:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/controle-incertezas/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const incerteza = await storage.getControleIncerteza(id);
+      if (!incerteza) {
+        return res.status(404).json({ error: "Controle incerteza not found" });
+      }
+      res.json(incerteza);
+    } catch (error) {
+      console.error("Error fetching controle incerteza:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -1099,6 +1221,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/trechos-retos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const trecho = await storage.getTrechoReto(id);
+      if (!trecho) {
+        return res.status(404).json({ error: "Trecho not found" });
+      }
+      res.json(trecho);
+    } catch (error) {
+      console.error("Error fetching trecho reto:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.post("/api/trechos-retos", async (req, res) => {
     try {
       const data = insertTrechoRetoSchema.parse(req.body);
@@ -1152,6 +1288,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching medidores primarios:", error);
       res.status(500).json({ error: "Failed to fetch medidores primarios" });
+    }
+  });
+
+  app.get("/api/medidores-primarios/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const medidor = await storage.getMedidorPrimario(id);
+      if (!medidor) {
+        return res.status(404).json({ error: "Medidor not found" });
+      }
+      res.json(medidor);
+    } catch (error) {
+      console.error("Error fetching medidor primario:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 
@@ -1410,6 +1560,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: error.errors });
       }
       console.error("Error updating execucao:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Histórico de Calibrações routes
+  app.get("/api/historico-calibracoes", async (req, res) => {
+    try {
+      const equipamentoId = req.query.equipamentoId ? parseInt(req.query.equipamentoId as string) : undefined;
+      const historicos = await storage.getHistoricoCalibracoes(equipamentoId);
+      res.json(historicos);
+    } catch (error) {
+      console.error("Error fetching historico calibracoes:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/historico-calibracoes/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const historico = await storage.getHistoricoCalibracao(id);
+      if (!historico) {
+        return res.status(404).json({ error: "Historico not found" });
+      }
+      res.json(historico);
+    } catch (error) {
+      console.error("Error fetching historico:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/historico-calibracoes", async (req, res) => {
+    try {
+      const data = insertHistoricoCalibracaoSchema.parse(req.body);
+      const historico = await storage.createHistoricoCalibracao(data);
+      res.status(201).json(historico);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error creating historico:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/historico-calibracoes/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertHistoricoCalibracaoSchema.parse(req.body);
+      const historico = await storage.updateHistoricoCalibracao(id, data);
+      res.json(historico);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error updating historico:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/historico-calibracoes/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteHistoricoCalibracao(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting historico:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -1893,7 +2109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           categoria: "lacres",
           prioridade: "alta",
           status: "ativa",
-          dataExpiracao: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          dataExpiracao: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         });
       });
 
@@ -1944,7 +2160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           categoria: "lacres",
           prioridade: "media",
           status: "ativa",
-          dataExpiracao: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          dataExpiracao: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         });
       });
 

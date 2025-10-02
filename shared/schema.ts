@@ -1014,177 +1014,370 @@ export const controleLacres = pgTable("controle_lacres", {
 });
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-  name: true,
-  role: true,
+export const insertUserSchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(1),
+  name: z.string().min(1),
+  role: z.enum(['admin', 'user'])
 });
 
-export const insertPoloSchema = createInsertSchema(polos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const insertPoloSchema = z.object({
+  nome: z.string(),
+  sigla: z.string(),
+  diretoria: z.string().optional(),
+  empresa: z.string().optional(),
+  cnpj: z.string().optional(),
+  status: z.string().optional(),
 });
+export const insertInstalacaoSchema = z.object({
+  poloId: z.number(),
+  campoId: z.number().optional(),
+  nome: z.string(),
+  sigla: z.string(),
+  tipo: z.string().optional(),
+  situacao: z.string().optional(),
+  status: z.string().optional(),
+});
+export const insertEquipamentoSchema = z.object({
+  numeroSerie: z.string(),
+  tag: z.string(),
+  nome: z.string(),
+  tipo: z.string(),
+  modelo: z.string().optional(),
+  fabricante: z.string().optional(),
+  unidadeMedida: z.string().optional(),
+  resolucao: z.string().optional(),
+  faixaMinEquipamento: z.number().optional(),
+  faixaMaxEquipamento: z.number().optional(),
+  faixaMinPam: z.number().optional(),
+  faixaMaxPam: z.number().optional(),
+  faixaMinCalibrada: z.number().optional(),
+  faixaMaxCalibrada: z.number().optional(),
+  condicoesAmbientaisOperacao: z.string().optional(),
+  softwareVersao: z.string().optional(),
+  instalacaoId: z.number(),
+  poloId: z.number(),
+  classificacao: z.string().optional(),
+  frequenciaCalibracao: z.number().optional(),
+  ativoMxm: z.string().optional(),
+  planoManutencao: z.string().optional(),
+  criterioAceitacao: z.string().optional(),
+  erroMaximoAdmissivel: z.number().optional(),
+  statusOperacional: z.string().optional(),
+  status: z.string().optional(),
+});
+export const insertPontoMedicaoSchema = z.object({
+  poloId: z.number(),
+  instalacaoId: z.number(),
+  tag: z.string(),
+  nome: z.string(),
+  classificacao: z.string().optional(),
+  localizacao: z.string().optional(),
+  tipoMedidorPrimario: z.string().optional(),
+  numeroSeriePrimario: z.string().optional(),
+  tagEquipamentoPrimario: z.string().optional(),
+  calibracaoPrimarioValida: z.string().optional(),
+  statusMetrologicoPrimario: z.string().optional(),
+  numeroSerieTrechoReto: z.string().optional(),
+  tagTrechoReto: z.string().optional(),
+  calibracaoTrechoValida: z.string().optional(),
+  statusMetrologicoTrecho: z.string().optional(),
+  numeroSeriePressao: z.string().optional(),
+  tagPressao: z.string().optional(),
+  calibracaoPressaoValida: z.string().optional(),
+  statusMetrologicoPressao: z.string().optional(),
+  numeroSerieTemperatura: z.string().optional(),
+  tagTemperatura: z.string().optional(),
+  calibracaoTemperaturaValida: z.string().optional(),
+  statusMetrologicoTemperatura: z.string().optional(),
+  tipoComputadorVazao: z.string().optional(),
+  numeroSerieComputador: z.string().optional(),
+  tagComputadorVazao: z.string().optional(),
+  calibracaoComputadorValida: z.string().optional(),
+  statusMetrologicoComputador: z.string().optional(),
+  situacaoOperacional: z.string().optional(),
+  status: z.string().optional(),
+});
+export const insertPlanoCalibracaoSchema = z.object({
+  equipamentoId: z.number(),
+  aplicabilidade: z.string().optional(),
+  fluido: z.string().optional(),
+  pontoMedicao: z.string().optional(),
+  localCalibracao: z.string().optional(),
+  diasParaAlertar: z.number().optional(),
+  frequenciaCalibracaoMeses: z.number().optional(),
+  status: z.string().optional(),
+});
+export const insertCadastroPocoSchema = z.object({
+  nome: z.string(),
+  poloId: z.number(),
+  instalacaoId: z.number().optional(),
+  codigo: z.string().optional(),
+  codigoAnp: z.string().optional(),
+  tipo: z.string().optional(),
+  frequenciaTesteDias: z.number().optional(),
+  tipoCompletacao: z.string().optional(),
+  statusOperacional: z.string().optional(),
+  situacaoAtual: z.string().optional(),
+  dataEntradaOperacao: z.string().optional(),
+  coordenadas: z.string().optional(),
+  observacoes: z.string().optional(),
+  status: z.string().optional(),
+});
+export const insertTestePocoSchema = z.object({
+  pocoId: z.number(),
+  poloId: z.number().optional(),
+  instalacaoId: z.number().optional(),
+  dataTeste: z.string(),
+  tipoTeste: z.string(),
+  dataPrevistoProximoTeste: z.string().optional(),
+  numeroBoletimTeste: z.string().optional(),
+  tagMedidorOleo: z.string().optional(),
+  vazaoOleo: z.number().optional(),
+  vazaoGas: z.number().optional(),
+  vazaoAgua: z.number().optional(),
+  bsw: z.number().optional(),
+  rgo: z.number().optional(),
+  resultadoTeste: z.string().optional(),
+  dataAtualizacaoPotencial: z.string().optional(),
+  arquivoBtpPath: z.string().optional(),
+  ehUltimoTeste: z.boolean().optional(),
+  periodicidadeTeste: z.number().optional(),
+  responsavelTeste: z.string().optional(),
+  statusTeste: z.string().optional(),
+  observacoes: z.string().optional(),
+});
+export const insertPlacaOrificioSchema = z.object({
+  equipamentoId: z.number(),
+  numeroSerie: z.string(),
+  campoId: z.number().optional(),
+  instalacaoId: z.number().optional(),
+  pontoInstalacaoId: z.number().optional(),
+  material: z.string().optional(),
+  diametroExterno: z.number().optional(),
+  diametroOrificio20c: z.number().optional(),
+  espessura: z.number().optional(),
+  vazaoMinima: z.number().optional(),
+  vazaoMaxima: z.number().optional(),
+  diametroNominal: z.number().optional(),
+  diametroInternoMedio: z.number().optional(),
+  diametroInternoMedio20c: z.number().optional(),
+  certificadoVigente: z.string().optional(),
+  norma: z.string().optional(),
+  dataInspecao: z.string().optional(),
+  dataInstalacao: z.string().optional(),
+  cartaNumero: z.string().optional(),
+  observacao: z.string().optional(),
+});
+export const insertPlanoColetaSchema = z.object({
+  pontoMedicaoId: z.number(),
+  dataEmbarque: z.string().optional(),
+  dataDesembarque: z.string().optional(),
+  validadoOperacao: z.boolean().optional(),
+  validadoLaboratorio: z.boolean().optional(),
+  cilindrosDisponiveis: z.boolean().optional(),
+  embarqueAgendado: z.boolean().optional(),
+  embarqueRealizado: z.boolean().optional(),
+  coletaRealizada: z.boolean().optional(),
+  resultadoEmitido: z.boolean().optional(),
+  dataRealEmbarque: z.string().optional(),
+  observacoes: z.string().optional(),
+  status: z.string().optional(),
+});
+export const insertAnaliseQuimicaSchema = z.object({
+  laboratorio: z.string().optional(),
+  dataColeta: z.string().optional(),
+  pontoMedicaoId: z.number(),
+  planoColetaId: z.number().optional(),
+  tipoFluido: z.string().optional(),
+  resultados: z.string().optional(),
+  observacoes: z.string().optional(),
+  status: z.string().optional(),
+});
+export const insertValvulaSchema = z.object({
+  numeroSerie: z.string(),
+  tagValvula: z.string().optional(),
+  modelo: z.string().optional(),
+  fabricante: z.string().optional(),
+  tipoValvula: z.string().optional(),
+  statusOperacional: z.string().optional(),
+  dataInstalacao: z.string().optional(),
+  observacoes: z.string().optional(),
+});
+export const insertControleIncertezaSchema = createInsertSchema(controleIncertezas);
+export const insertIncertezaLimiteSchema = createInsertSchema(incertezaLimites);
+export const insertSistemaNotificacaoSchema = z.object({
+  titulo: z.string(),
+  mensagem: z.string(),
+  tipo: z.string(),
+  categoria: z.string(),
+  prioridade: z.string().optional(),
+  entityType: z.string().optional(),
+  entityId: z.number().optional(),
+  status: z.string().optional(),
+  dataLeitura: z.string().optional(),
+  dataExpiracao: z.string().optional(),
+  autoGerada: z.boolean().optional(),
+  repeticao: z.boolean().optional(),
+  intervaloDias: z.number().optional(),
+  dadosAdicionais: z.string().optional(),
+});
+export const insertLacreFisicoSchema = createInsertSchema(lacresFisicos);
+export const insertLacreEletronicoSchema = createInsertSchema(lacresEletronicos);
+export const insertControleLacreSchema = createInsertSchema(controleLacres);
+export const insertCampoSchema = z.object({
+  poloId: z.number(),
+  nome: z.string(),
+  sigla: z.string(),
+  diretoria: z.string().optional(),
+  empresa: z.string().optional(),
+  cnpj: z.string().optional(),
+  status: z.string().optional(),
+});
+export const insertCalendarioCalibracaoSchema = z.object({
+  equipamentoId: z.number(),
+  tagPontoMedicao: z.string().optional(),
+  nomePontoMedicao: z.string().optional(),
+  classificacao: z.string().optional(),
+  tipoCalibracao: z.string().optional(),
+  motivo: z.string().optional(),
+  laboratorio: z.string().optional(),
+  previsaoCalibracao: z.string().optional(), // date as string for forms
+  vencimentoCalibracao: z.string().optional(),
+  solicitacaoFeitaEm: z.string().optional(),
+  envioEquipamentoEm: z.string().optional(),
+  chegouLaboratorioEm: z.string().optional(),
+  calibracaoFinalizadaEm: z.string().optional(),
+  equipamentoRecebidoEmpresaEm: z.string().optional(),
+  dataRetornoUnidade: z.string().optional(),
+  dataInstalacao: z.string().optional(),
+  observacao: z.string().optional(),
+  certificadoPath: z.string().optional(),
+  status: z.string().optional(),
+});
+export const insertHistoricoCalibracaoSchema = createInsertSchema(historicoCalibracoes);
+export const insertCertificadoCalibracaoSchema = createInsertSchema(certificadosCalibração);
+export const insertExecucaoCalibracaoSchema = z.object({
+  equipamentoId: z.number(),
+  aplicabilidade: z.string().optional(),
+  fluido: z.string().optional(),
+  pontoMedicao: z.string().optional(),
+  localCalibracao: z.string().optional(),
+  diasParaAlertar: z.number().optional(),
+  frequenciaCalibracaoMeses: z.number().optional(),
+  
+  // Último certificado - dados básicos
+  numeroUltimoCertificado: z.string().optional(),
+  revisaoUltimoCertificado: z.string().optional(),
+  dataUltimoCertificado: z.string().optional(),
+  dataEmissaoUltimo: z.string().optional(),
+  statusUltimoCertificado: z.string().optional(),
+  certificadoUltimoPath: z.string().optional(),
+  
+  // Último certificado - dados técnicos
+  laboratorioUltimo: z.string().optional(),
+  incertezaCalibracaoUltimo: z.number().optional(),
+  erroMaximoAdmissivelCalibracaoUltimo: z.number().optional(),
+  incertezaLimiteAnpUltimo: z.number().optional(),
+  erroMaximoAdmissivelAnpUltimo: z.number().optional(),
+  observacaoUltimo: z.string().optional(),
+  meterFactorUltimo: z.number().optional(),
+  variacaoMfPercentUltimo: z.number().optional(),
+  kFactorUltimo: z.number().optional(),
+  ajusteUltimo: z.boolean().optional(),
+  erroMaximoAdmissivelUltimo: z.number().optional(),
+  fatorCorrecaoTemperaturaUltimo: z.number().optional(),
+  fatorCorrecaoPressaoUltimo: z.number().optional(),
+  ajusteLinearidadeUltimo: z.number().optional(),
+  repetibilidadeUltimo: z.number().optional(),
+  temperaturaCalibracao1Ultimo: z.number().optional(),
+  temperaturaCalibracao2Ultimo: z.number().optional(),
+  temperaturaCalibracao3Ultimo: z.number().optional(),
+  pressaoCalibracao1Ultimo: z.number().optional(),
+  pressaoCalibracao2Ultimo: z.number().optional(),
+  pressaoCalibracao3Ultimo: z.number().optional(),
+  faixaMedicaoMinimaUltimo: z.number().optional(),
+  faixaMedicaoMaximaUltimo: z.number().optional(),
+  densidadeFluidoUltimo: z.number().optional(),
 
-export const insertInstalacaoSchema = createInsertSchema(instalacoes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+  // Penúltimo certificado - dados básicos
+  numeroPenultimoCertificado: z.string().optional(),
+  revisaoPenultimoCertificado: z.string().optional(),
+  dataPenultimoCertificado: z.string().optional(),
+  dataEmissaoPenultimo: z.string().optional(),
+  statusPenultimoCertificado: z.string().optional(),
+  certificadoPenultimoPath: z.string().optional(),
+  
+  // Penúltimo certificado - dados técnicos
+  laboratorioPenultimo: z.string().optional(),
+  incertezaCalibracaoPenultimo: z.number().optional(),
+  erroMaximoAdmissivelCalibracaoPenultimo: z.number().optional(),
+  incertezaLimiteAnpPenultimo: z.number().optional(),
+  erroMaximoAdmissivelAnpPenultimo: z.number().optional(),
+  observacaoPenultimo: z.string().optional(),
+  meterFactorPenultimo: z.number().optional(),
+  variacaoMfPercentPenultimo: z.number().optional(),
+  kFactorPenultimo: z.number().optional(),
+  ajustePenultimo: z.boolean().optional(),
+  erroMaximoAdmissivelPenultimo: z.number().optional(),
+  fatorCorrecaoTemperaturaPenultimo: z.number().optional(),
+  fatorCorrecaoPressaoPenultimo: z.number().optional(),
+  ajusteLinearidadePenultimo: z.number().optional(),
+  repetibilidadePenultimo: z.number().optional(),
+  temperaturaCalibracao1Penultimo: z.number().optional(),
+  temperaturaCalibracao2Penultimo: z.number().optional(),
+  temperaturaCalibracao3Penultimo: z.number().optional(),
+  pressaoCalibracao1Penultimo: z.number().optional(),
+  pressaoCalibracao2Penultimo: z.number().optional(),
+  pressaoCalibracao3Penultimo: z.number().optional(),
+  faixaMedicaoMinimaPenultimo: z.number().optional(),
+  faixaMedicaoMaximaPenultimo: z.number().optional(),
+  densidadeFluidoPenultimo: z.number().optional(),
 
-export const insertEquipamentoSchema = createInsertSchema(equipamentos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+  // Antepenúltimo certificado - dados básicos
+  numeroAntepenultimoCertificado: z.string().optional(),
+  revisaoAntepenultimoCertificado: z.string().optional(),
+  dataAntepenultimoCertificado: z.string().optional(),
+  dataEmissaoAntepenultimo: z.string().optional(),
+  statusAntepenultimoCertificado: z.string().optional(),
+  certificadoAntepenultimoPath: z.string().optional(),
+  
+  // Antepenúltimo certificado - dados técnicos
+  laboratorioAntepenultimo: z.string().optional(),
+  incertezaCalibracaoAntepenultimo: z.number().optional(),
+  erroMaximoAdmissivelCalibracaoAntepenultimo: z.number().optional(),
+  incertezaLimiteAnpAntepenultimo: z.number().optional(),
+  erroMaximoAdmissivelAnpAntepenultimo: z.number().optional(),
+  observacaoAntepenultimo: z.string().optional(),
+  meterFactorAntepenultimo: z.number().optional(),
+  variacaoMfPercentAntepenultimo: z.number().optional(),
+  kFactorAntepenultimo: z.number().optional(),
+  ajusteAntepenultimo: z.boolean().optional(),
+  erroMaximoAdmissivelAntepenultimo: z.number().optional(),
+  fatorCorrecaoTemperaturaAntepenultimo: z.number().optional(),
+  fatorCorrecaoPressaoAntepenultimo: z.number().optional(),
+  ajusteLinearidadeAntepenultimo: z.number().optional(),
+  repetibilidadeAntepenultimo: z.number().optional(),
+  temperaturaCalibracao1Antepenultimo: z.number().optional(),
+  temperaturaCalibracao2Antepenultimo: z.number().optional(),
+  temperaturaCalibracao3Antepenultimo: z.number().optional(),
+  pressaoCalibracao1Antepenultimo: z.number().optional(),
+  pressaoCalibracao2Antepenultimo: z.number().optional(),
+  pressaoCalibracao3Antepenultimo: z.number().optional(),
+  faixaMedicaoMinimaAntepenultimo: z.number().optional(),
+  faixaMedicaoMaximaAntepenultimo: z.number().optional(),
+  densidadeFluidoAntepenultimo: z.number().optional(),
 
-export const insertPontoMedicaoSchema = createInsertSchema(pontosMedicao).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+  // Periodicidade e observações gerais
+  periodicidadeCalibracao: z.number().optional(),
+  observacoes: z.string().optional(),
 });
-
-export const insertPlanoCalibracaoSchema = createInsertSchema(planoCalibracoes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertCadastroPocoSchema = createInsertSchema(cadastroPocos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertTestePocoSchema = createInsertSchema(testesPocos).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertPlacaOrificioSchema = createInsertSchema(placasOrificio).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertPlanoColetaSchema = createInsertSchema(planoColetas).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertAnaliseQuimicaSchema = createInsertSchema(analisesQuimicas).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertValvulaSchema = createInsertSchema(valvulas).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertControleIncertezaSchema = createInsertSchema(controleIncertezas).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertIncertezaLimiteSchema = createInsertSchema(incertezaLimites).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertSistemaNotificacaoSchema = createInsertSchema(sistemaNotificacoes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertLacreFisicoSchema = createInsertSchema(lacresFisicos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertLacreEletronicoSchema = createInsertSchema(lacresEletronicos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertControleLacreSchema = createInsertSchema(controleLacres).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertCampoSchema = createInsertSchema(campos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertCalendarioCalibracaoSchema = createInsertSchema(calendarioCalibracoes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertHistoricoCalibracaoSchema = createInsertSchema(historicoCalibracoes).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertCertificadoCalibracaoSchema = createInsertSchema(certificadosCalibração).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertExecucaoCalibracaoSchema = createInsertSchema(execucaoCalibracoes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertTrechoRetoSchema = createInsertSchema(trechosRetos).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertGestaoCilindroSchema = createInsertSchema(gestaoCilindros).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertMedidorPrimarioSchema = createInsertSchema(medidoresPrimarios).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertAnaliseFqGenericaSchema = createInsertSchema(analisesFisicoQuimicasGenerica).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertAnaliseCromatografiaSchema = createInsertSchema(analisesCromatografia).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertAnalisePvtSchema = createInsertSchema(analisesPvt).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export const insertTrechoRetoSchema = createInsertSchema(trechosRetos);
+export const insertGestaoCilindroSchema = createInsertSchema(gestaoCilindros);
+export const insertMedidorPrimarioSchema = createInsertSchema(medidoresPrimarios);
+export const insertAnaliseFqGenericaSchema = createInsertSchema(analisesFisicoQuimicasGenerica);
+export const insertAnaliseCromatografiaSchema = createInsertSchema(analisesCromatografia);
+export const insertAnalisePvtSchema = createInsertSchema(analisesPvt);
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -1224,8 +1417,18 @@ export type InsertCalendarioCalibracao = z.infer<typeof insertCalendarioCalibrac
 export type HistoricoCalibracao = typeof historicoCalibracoes.$inferSelect;
 export type InsertHistoricoCalibracao = z.infer<typeof insertHistoricoCalibracaoSchema>;
 export type CertificadoCalibracao = typeof certificadosCalibração.$inferSelect;
+export type CertificadoCalibracaoWithEquipamento = CertificadoCalibracao & {
+  tagEquipamento: string | null;
+  nomeEquipamento: string | null;
+  numeroSerieEquipamento: string | null;
+};
 export type InsertCertificadoCalibracao = z.infer<typeof insertCertificadoCalibracaoSchema>;
 export type ExecucaoCalibracao = typeof execucaoCalibracoes.$inferSelect;
+export type ExecucaoCalibracaoWithEquipamento = ExecucaoCalibracao & {
+  tagEquipamento: string | null;
+  nomeEquipamento: string | null;  
+  numeroSerieEquipamento: string | null;
+};
 export type InsertExecucaoCalibracao = z.infer<typeof insertExecucaoCalibracaoSchema>;
 export type TrechoReto = typeof trechosRetos.$inferSelect;
 export type InsertTrechoReto = z.infer<typeof insertTrechoRetoSchema>;

@@ -20,8 +20,8 @@ import {
   type Valvula, type InsertValvula,
   type ControleIncerteza, type InsertControleIncerteza, type IncertezaLimite,
   type InsertIncertezaLimite, type SistemaNotificacao, type InsertSistemaNotificacao,
-  type CertificadoCalibracao, type InsertCertificadoCalibracao,
-  type ExecucaoCalibracao, type InsertExecucaoCalibracao,
+  type CertificadoCalibracao, type CertificadoCalibracaoWithEquipamento, type InsertCertificadoCalibracao,
+  type ExecucaoCalibracao, type ExecucaoCalibracaoWithEquipamento, type InsertExecucaoCalibracao,
   type LacreFisico, type InsertLacreFisico,
   type LacreEletronico, type InsertLacreEletronico,
   type ControleLacre, type InsertControleLacre
@@ -198,6 +198,47 @@ export interface IStorage {
 
   // Calendar Events
   getCalendarEvents(filters?: { month?: number; year?: number }): Promise<any[]>;
+
+  // Certificados de Calibração
+  getCertificadosCalibração(): Promise<CertificadoCalibracaoWithEquipamento[]>;
+  getCertificadoCalibracao(id: number): Promise<CertificadoCalibracao | undefined>;
+  createCertificadoCalibracao(certificado: InsertCertificadoCalibracao): Promise<CertificadoCalibracao>;
+  updateCertificadoCalibracao(id: number, certificado: Partial<InsertCertificadoCalibracao>): Promise<CertificadoCalibracao>;
+  deleteCertificadoCalibracao(id: number): Promise<void>;
+
+  // Execução de Calibrações
+  getExecucaoCalibracoes(): Promise<ExecucaoCalibracaoWithEquipamento[]>;
+  getExecucaoCalibracao(id: number): Promise<ExecucaoCalibracao | undefined>;
+  createExecucaoCalibracao(execucao: InsertExecucaoCalibracao): Promise<ExecucaoCalibracao>;
+  updateExecucaoCalibracao(id: number, execucao: Partial<InsertExecucaoCalibracao>): Promise<ExecucaoCalibracao>;
+  deleteExecucaoCalibracao(id: number): Promise<void>;
+
+  // Testes de Poços
+  getTestesPocos(pocoId: number): Promise<any[]>;
+  getAllTestesPocos(filters?: { poloId?: number; instalacaoId?: number; pocoId?: number }): Promise<any[]>;
+  getTestePoco(id: number): Promise<any | null>;
+  createTestePoco(teste: any): Promise<any>;
+  updateTestePoco(id: number, teste: any): Promise<any | null>;
+  deleteTestePoco(id: number): Promise<boolean>;
+
+  // Incerteza Limites
+  getIncertezaLimites(): Promise<IncertezaLimite[]>;
+  getIncertezaLimite(id: number): Promise<IncertezaLimite | undefined>;
+  createIncertezaLimite(limite: InsertIncertezaLimite): Promise<IncertezaLimite>;
+  updateIncertezaLimite(id: number, limite: Partial<InsertIncertezaLimite>): Promise<IncertezaLimite>;
+  deleteIncertezaLimite(id: number): Promise<void>;
+
+  // Histórico de Calibrações
+  getHistoricoCalibracoes(equipamentoId?: number): Promise<any[]>;
+  getHistoricoCalibracao(id: number): Promise<any | undefined>;
+  createHistoricoCalibracao(historico: any): Promise<any>;
+  updateHistoricoCalibracao(id: number, historico: any): Promise<any>;
+  deleteHistoricoCalibracao(id: number): Promise<void>;
+
+  // Métodos auxiliares
+  getDashboardStats(): Promise<any>;
+  getCalibrationStats(): Promise<any>;
+  getUnreadNotificationsCount(): Promise<number>;
 }
 
 export class Storage implements IStorage {
@@ -213,7 +254,10 @@ export class Storage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const result = await db.insert(users).values(user).returning();
+    if (!user || typeof user !== 'object') {
+      throw new Error('Invalid user data provided');
+    }
+    const result = await db.insert(users).values(user as any).returning();
     return result[0];
   }
 
@@ -228,7 +272,7 @@ export class Storage implements IStorage {
   }
 
   async createPolo(polo: InsertPolo): Promise<Polo> {
-    const result = await db.insert(polos).values(polo).returning();
+    const result = await db.insert(polos).values(polo as any).returning();
     return result[0];
   }
 
@@ -256,7 +300,7 @@ export class Storage implements IStorage {
   }
 
   async createCampo(campo: InsertCampo): Promise<Campo> {
-    const result = await db.insert(campos).values(campo).returning();
+    const result = await db.insert(campos).values(campo as any).returning();
     return result[0];
   }
 
@@ -284,7 +328,7 @@ export class Storage implements IStorage {
   }
 
   async createInstalacao(instalacao: InsertInstalacao): Promise<Instalacao> {
-    const result = await db.insert(instalacoes).values(instalacao).returning();
+    const result = await db.insert(instalacoes).values(instalacao as any).returning();
     return result[0];
   }
 
@@ -321,7 +365,7 @@ export class Storage implements IStorage {
   }
 
   async createEquipamento(equipamento: InsertEquipamento): Promise<Equipamento> {
-    const result = await db.insert(equipamentos).values(equipamento).returning();
+    const result = await db.insert(equipamentos).values(equipamento as any).returning();
     return result[0];
   }
 
@@ -356,7 +400,7 @@ export class Storage implements IStorage {
   }
 
   async createPontoMedicao(ponto: InsertPontoMedicao): Promise<PontoMedicao> {
-    const result = await db.insert(pontosMedicao).values(ponto).returning();
+    const result = await db.insert(pontosMedicao).values(ponto as any).returning();
     return result[0];
   }
 
@@ -384,7 +428,7 @@ export class Storage implements IStorage {
   }
 
   async createPlanoCalibracão(plano: InsertPlanoCalibracão): Promise<PlanoCalibracão> {
-    const result = await db.insert(planoCalibracoes).values(plano).returning();
+    const result = await db.insert(planoCalibracoes).values(plano as any).returning();
     return result[0];
   }
 
@@ -420,7 +464,7 @@ export class Storage implements IStorage {
   }
 
   async createPoco(poco: InsertCadastroPoço): Promise<CadastroPoço> {
-    const result = await db.insert(cadastroPocos).values(poco).returning();
+    const result = await db.insert(cadastroPocos).values(poco as any).returning();
     return result[0];
   }
 
@@ -456,7 +500,7 @@ export class Storage implements IStorage {
   }
 
   async createPlacaOrificio(placa: InsertPlacaOrificio): Promise<PlacaOrificio> {
-    const result = await db.insert(placasOrificio).values(placa).returning();
+    const result = await db.insert(placasOrificio).values(placa as any).returning();
     return result[0];
   }
 
@@ -484,7 +528,7 @@ export class Storage implements IStorage {
   }
 
   async createPlanoColeta(plano: InsertPlanoColeta): Promise<PlanoColeta> {
-    const result = await db.insert(planoColetas).values(plano).returning();
+    const result = await db.insert(planoColetas).values(plano as any).returning();
     return result[0];
   }
 
@@ -512,7 +556,7 @@ export class Storage implements IStorage {
   }
 
   async createAnaliseQuimica(analise: InsertAnaliseQuimica): Promise<AnaliseQuimica> {
-    const result = await db.insert(analisesQuimicas).values(analise).returning();
+    const result = await db.insert(analisesQuimicas).values(analise as any).returning();
     return result[0];
   }
 
@@ -540,7 +584,7 @@ export class Storage implements IStorage {
   }
 
   async createValvula(valvula: InsertValvula): Promise<Valvula> {
-    const result = await db.insert(valvulas).values(valvula).returning();
+    const result = await db.insert(valvulas).values(valvula as any).returning();
     return result[0];
   }
 
@@ -566,12 +610,12 @@ export class Storage implements IStorage {
   }
 
   async createControleIncerteza(controle: InsertControleIncerteza): Promise<ControleIncerteza> {
-    const result = await db.insert(controleIncertezas).values(controle).returning();
+    const result = await db.insert(controleIncertezas).values(controle as any).returning();
     return result[0];
   }
 
   async updateControleIncerteza(id: number, controle: Partial<InsertControleIncerteza>): Promise<ControleIncerteza> {
-    const result = await db.update(controleIncertezas).set(controle).where(eq(controleIncertezas.id, id)).returning();
+    const result = await db.update(controleIncertezas).set(controle as any).where(eq(controleIncertezas.id, id)).returning();
     return result[0];
   }
 
@@ -594,7 +638,7 @@ export class Storage implements IStorage {
   }
 
   async createNotificacao(notificacao: InsertSistemaNotificacao): Promise<SistemaNotificacao> {
-    const result = await db.insert(sistemaNotificacoes).values(notificacao).returning();
+    const result = await db.insert(sistemaNotificacoes).values(notificacao as any).returning();
     return result[0];
   }
 
@@ -608,7 +652,11 @@ export class Storage implements IStorage {
   }
 
   async markNotificacaoAsRead(id: number): Promise<void> {
-    await db.update(sistemaNotificacoes).set({ status: 'lida' }).where(eq(sistemaNotificacoes.id, id));
+    await db.update(sistemaNotificacoes)
+      .set({
+        [sistemaNotificacoes.status.name]: 'lida'
+      })
+      .where(eq(sistemaNotificacoes.id, id));
   }
 
   // Calendário de Calibrações
@@ -616,8 +664,9 @@ export class Storage implements IStorage {
     let query = db.select().from(calendarioCalibracoes);
     const conditions = [];
 
-    if (filters?.poloId) conditions.push(eq(calendarioCalibracoes.poloId, filters.poloId));
-    if (filters?.instalacaoId) conditions.push(eq(calendarioCalibracoes.instalacaoId, filters.instalacaoId));
+    // Note: poloId and instalacaoId filters removed as these fields don't exist in calendario_calibracoes table
+    // if (filters?.poloId) conditions.push(eq(calendarioCalibracoes.poloId, filters.poloId));
+    // if (filters?.instalacaoId) conditions.push(eq(calendarioCalibracoes.instalacaoId, filters.instalacaoId));
 
     if (conditions.length > 0) {
       query = query.where(and(...conditions)) as any;
@@ -632,7 +681,7 @@ export class Storage implements IStorage {
   }
 
   async createCalendarioCalibracao(calendario: InsertCalendarioCalibracao): Promise<CalendarioCalibracao> {
-    const result = await db.insert(calendarioCalibracoes).values(calendario).returning();
+    const result = await db.insert(calendarioCalibracoes).values(calendario as any).returning();
     return result[0];
   }
 
@@ -666,12 +715,12 @@ export class Storage implements IStorage {
   }
 
   async createTrechoReto(trecho: InsertTrechoReto): Promise<TrechoReto> {
-    const result = await db.insert(trechosRetos).values(trecho).returning();
+    const result = await db.insert(trechosRetos).values(trecho as any).returning();
     return result[0];
   }
 
   async updateTrechoReto(id: number, trecho: Partial<InsertTrechoReto>): Promise<TrechoReto> {
-    const result = await db.update(trechosRetos).set(trecho).where(eq(trechosRetos.id, id)).returning();
+    const result = await db.update(trechosRetos).set(trecho as any).where(eq(trechosRetos.id, id)).returning();
     return result[0];
   }
 
@@ -708,7 +757,7 @@ export class Storage implements IStorage {
   }
 
   async createMedidorPrimario(medidor: any): Promise<any> {
-    const result = await db.insert(medidoresPrimarios).values(medidor).returning();
+    const result = await db.insert(medidoresPrimarios).values(medidor as any).returning();
     return result[0];
   }
 
@@ -736,12 +785,12 @@ export class Storage implements IStorage {
   }
 
   async createGestaoCilindro(cilindro: InsertGestaoCilindro): Promise<GestaoCilindro> {
-    const result = await db.insert(gestaoCilindros).values(cilindro).returning();
+    const result = await db.insert(gestaoCilindros).values(cilindro as any).returning();
     return result[0];
   }
 
   async updateGestaoCilindro(id: number, cilindro: Partial<InsertGestaoCilindro>): Promise<GestaoCilindro> {
-    const result = await db.update(gestaoCilindros).set(cilindro).where(eq(gestaoCilindros.id, id)).returning();
+    const result = await db.update(gestaoCilindros).set(cilindro as any).where(eq(gestaoCilindros.id, id)).returning();
     return result[0];
   }
 
@@ -770,12 +819,12 @@ export class Storage implements IStorage {
   }
 
   async createAnaliseFqGenerica(analise: InsertAnaliseFqGenerica): Promise<AnaliseFqGenerica> {
-    const result = await db.insert(analisesFisicoQuimicasGenerica).values(analise).returning();
+    const result = await db.insert(analisesFisicoQuimicasGenerica).values(analise as any).returning();
     return result[0];
   }
 
   async updateAnaliseFqGenerica(id: number, analise: Partial<InsertAnaliseFqGenerica>): Promise<AnaliseFqGenerica> {
-    const result = await db.update(analisesFisicoQuimicasGenerica).set(analise).where(eq(analisesFisicoQuimicasGenerica.id, id)).returning();
+    const result = await db.update(analisesFisicoQuimicasGenerica).set(analise as any).where(eq(analisesFisicoQuimicasGenerica.id, id)).returning();
     return result[0];
   }
 
@@ -804,12 +853,12 @@ export class Storage implements IStorage {
   }
 
   async createAnaliseCromatografia(analise: InsertAnaliseCromatografia): Promise<AnaliseCromatografia> {
-    const result = await db.insert(analisesCromatografia).values(analise).returning();
+    const result = await db.insert(analisesCromatografia).values(analise as any).returning();
     return result[0];
   }
 
   async updateAnaliseCromatografia(id: number, analise: Partial<InsertAnaliseCromatografia>): Promise<AnaliseCromatografia> {
-    const result = await db.update(analisesCromatografia).set(analise).where(eq(analisesCromatografia.id, id)).returning();
+    const result = await db.update(analisesCromatografia).set(analise as any).where(eq(analisesCromatografia.id, id)).returning();
     return result[0];
   }
 
@@ -838,12 +887,12 @@ export class Storage implements IStorage {
   }
 
   async createAnalisePvt(analise: InsertAnalisePvt): Promise<AnalisePvt> {
-    const result = await db.insert(analisesPvt).values(analise).returning();
+    const result = await db.insert(analisesPvt).values(analise as any).returning();
     return result[0];
   }
 
   async updateAnalisePvt(id: number, analise: Partial<InsertAnalisePvt>): Promise<AnalisePvt> {
-    const result = await db.update(analisesPvt).set(analise).where(eq(analisesPvt.id, id)).returning();
+    const result = await db.update(analisesPvt).set(analise as any).where(eq(analisesPvt.id, id)).returning();
     return result[0];
   }
 
@@ -852,8 +901,34 @@ export class Storage implements IStorage {
   }
 
   // Certificados de Calibração
-  async getCertificadosCalibração(): Promise<CertificadoCalibracao[]> {
-    return await db.select().from(certificadosCalibração).orderBy(desc(certificadosCalibração.dataCertificado));
+  async getCertificadosCalibração(): Promise<CertificadoCalibracaoWithEquipamento[]> {
+    const result = await db.select({
+      id: certificadosCalibração.id,
+      equipamentoId: certificadosCalibração.equipamentoId,
+      numeroCertificado: certificadosCalibração.numeroCertificado,
+      revisaoCertificado: certificadosCalibração.revisaoCertificado,
+      dataCertificado: certificadosCalibração.dataCertificado,
+      statusCertificado: certificadosCalibração.statusCertificado,
+      certificadoPath: certificadosCalibração.certificadoPath,
+      periodicidadeCalibracao: certificadosCalibração.periodicidadeCalibracao,
+      laboratorio: certificadosCalibração.laboratorio,
+      responsavelTecnico: certificadosCalibração.responsavelTecnico,
+      resultadoCalibracao: certificadosCalibração.resultadoCalibracao,
+      incertezaExpandida: certificadosCalibração.incertezaExpandida,
+      analiseCriticaResultados: certificadosCalibração.analiseCriticaResultados,
+      observacoes: certificadosCalibração.observacoes,
+      ordemCertificado: certificadosCalibração.ordemCertificado,
+      createdAt: certificadosCalibração.createdAt,
+      updatedAt: certificadosCalibração.updatedAt,
+      tagEquipamento: equipamentos.tag,
+      nomeEquipamento: equipamentos.nome,
+      numeroSerieEquipamento: equipamentos.numeroSerie
+    })
+    .from(certificadosCalibração)
+    .leftJoin(equipamentos, eq(certificadosCalibração.equipamentoId, equipamentos.id))
+    .orderBy(desc(certificadosCalibração.dataCertificado));
+    
+    return result as CertificadoCalibracaoWithEquipamento[];
   }
 
   async getCertificadoCalibracao(id: number): Promise<CertificadoCalibracao | undefined> {
@@ -862,12 +937,12 @@ export class Storage implements IStorage {
   }
 
   async createCertificadoCalibracao(certificado: InsertCertificadoCalibracao): Promise<CertificadoCalibracao> {
-    const result = await db.insert(certificadosCalibração).values(certificado).returning();
+    const result = await db.insert(certificadosCalibração).values(certificado as any).returning();
     return result[0];
   }
 
   async updateCertificadoCalibracao(id: number, certificado: Partial<InsertCertificadoCalibracao>): Promise<CertificadoCalibracao> {
-    const result = await db.update(certificadosCalibração).set(certificado).where(eq(certificadosCalibração.id, id)).returning();
+    const result = await db.update(certificadosCalibração).set(certificado as any).where(eq(certificadosCalibração.id, id)).returning();
     return result[0];
   }
 
@@ -876,8 +951,57 @@ export class Storage implements IStorage {
   }
 
   // Execução de Calibrações
-  async getExecucaoCalibracoes(): Promise<ExecucaoCalibracao[]> {
-    return await db.select().from(execucaoCalibracoes).orderBy(desc(execucaoCalibracoes.createdAt));
+  async getExecucaoCalibracoes(): Promise<ExecucaoCalibracaoWithEquipamento[]> {
+    const result = await db.select({
+      id: execucaoCalibracoes.id,
+      equipamentoId: execucaoCalibracoes.equipamentoId,
+      aplicabilidade: execucaoCalibracoes.aplicabilidade,
+      fluido: execucaoCalibracoes.fluido,
+      pontoMedicao: execucaoCalibracoes.pontoMedicao,
+      localCalibracao: execucaoCalibracoes.localCalibracao,
+      diasParaAlertar: execucaoCalibracoes.diasParaAlertar,
+      frequenciaCalibracaoMeses: execucaoCalibracoes.frequenciaCalibracaoMeses,
+      numeroUltimoCertificado: execucaoCalibracoes.numeroUltimoCertificado,
+      revisaoUltimoCertificado: execucaoCalibracoes.revisaoUltimoCertificado,
+      dataUltimoCertificado: execucaoCalibracoes.dataUltimoCertificado,
+      dataEmissaoUltimo: execucaoCalibracoes.dataEmissaoUltimo,
+      statusUltimoCertificado: execucaoCalibracoes.statusUltimoCertificado,
+      certificadoUltimoPath: execucaoCalibracoes.certificadoUltimoPath,
+      laboratorioUltimo: execucaoCalibracoes.laboratorioUltimo,
+      incertezaCalibracaoUltimo: execucaoCalibracoes.incertezaCalibracaoUltimo,
+      erroMaximoAdmissivelCalibracaoUltimo: execucaoCalibracoes.erroMaximoAdmissivelCalibracaoUltimo,
+      incertezaLimiteAnpUltimo: execucaoCalibracoes.incertezaLimiteAnpUltimo,
+      erroMaximoAdmissivelAnpUltimo: execucaoCalibracoes.erroMaximoAdmissivelAnpUltimo,
+      observacaoUltimo: execucaoCalibracoes.observacaoUltimo,
+      meterFactorUltimo: execucaoCalibracoes.meterFactorUltimo,
+      variacaoMfPercentUltimo: execucaoCalibracoes.variacaoMfPercentUltimo,
+      kFactorUltimo: execucaoCalibracoes.kFactorUltimo,
+      ajusteUltimo: execucaoCalibracoes.ajusteUltimo,
+      erroMaximoAdmissivelUltimo: execucaoCalibracoes.erroMaximoAdmissivelUltimo,
+      fatorCorrecaoTemperaturaUltimo: execucaoCalibracoes.fatorCorrecaoTemperaturaUltimo,
+      fatorCorrecaoPressaoUltimo: execucaoCalibracoes.fatorCorrecaoPressaoUltimo,
+      ajusteLinearidadeUltimo: execucaoCalibracoes.ajusteLinearidadeUltimo,
+      repetibilidadeUltimo: execucaoCalibracoes.repetibilidadeUltimo,
+      temperaturaCalibracao1Ultimo: execucaoCalibracoes.temperaturaCalibracao1Ultimo,
+      temperaturaCalibracao2Ultimo: execucaoCalibracoes.temperaturaCalibracao2Ultimo,
+      temperaturaCalibracao3Ultimo: execucaoCalibracoes.temperaturaCalibracao3Ultimo,
+      pressaoCalibracao1Ultimo: execucaoCalibracoes.pressaoCalibracao1Ultimo,
+      pressaoCalibracao2Ultimo: execucaoCalibracoes.pressaoCalibracao2Ultimo,
+      pressaoCalibracao3Ultimo: execucaoCalibracoes.pressaoCalibracao3Ultimo,
+      faixaMedicaoMinimaUltimo: execucaoCalibracoes.faixaMedicaoMinimaUltimo,
+      faixaMedicaoMaximaUltimo: execucaoCalibracoes.faixaMedicaoMaximaUltimo,
+      densidadeFluidoUltimo: execucaoCalibracoes.densidadeFluidoUltimo,
+      createdAt: execucaoCalibracoes.createdAt,
+      updatedAt: execucaoCalibracoes.updatedAt,
+      tagEquipamento: equipamentos.tag,
+      nomeEquipamento: equipamentos.nome,
+      numeroSerieEquipamento: equipamentos.numeroSerie
+    })
+    .from(execucaoCalibracoes)
+    .leftJoin(equipamentos, eq(execucaoCalibracoes.equipamentoId, equipamentos.id))
+    .orderBy(desc(execucaoCalibracoes.createdAt));
+    
+    return result as ExecucaoCalibracaoWithEquipamento[];
   }
 
   async getExecucaoCalibracao(id: number): Promise<ExecucaoCalibracao | undefined> {
@@ -889,34 +1013,35 @@ export class Storage implements IStorage {
     // Lógica de rotação de certificados: quando um novo certificado é inserido,
     // mover último -> penúltimo -> antepenúltimo
     const existing = await db.select().from(execucaoCalibracoes)
-      .where(eq(execucaoCalibracoes.equipamentoId, execucao.equipamentoId));
+      .where(eq(execucaoCalibracoes.equipamentoId, (execucao as any).equipamentoId));
     
     if (existing.length > 0) {
       const current = existing[0];
       // Rotacionar certificados: último vira penúltimo, penúltimo vira antepenúltimo
       const updatedData = {
-        ...execucao,
-        numeroPenultimoCertificado: current.numeroUltimoCertificado,
-        revisaoPenultimoCertificado: current.revisaoUltimoCertificado,
-        dataPenultimoCertificado: current.dataUltimoCertificado,
-        statusPenultimoCertificado: current.statusUltimoCertificado,
-        certificadoPenultimoPath: current.certificadoUltimoPath,
+        ...(execucao as any),
+        // Rotacionar certificados (comentado pois as propriedades não existem na tabela)
+        // numeroPenultimoCertificado: current.numeroUltimoCertificado,
+        // revisaoPenultimoCertificado: current.revisaoUltimoCertificado,
+        // dataPenultimoCertificado: current.dataUltimoCertificado,
+        // statusPenultimoCertificado: current.statusUltimoCertificado,
+        // certificadoPenultimoPath: current.certificadoUltimoPath,
         
-        numeroAntepenultimoCertificado: current.numeroPenultimoCertificado,
-        revisaoAntepenultimoCertificado: current.revisaoPenultimoCertificado,
-        dataAntepenultimoCertificado: current.dataPenultimoCertificado,
-        statusAntepenultimoCertificado: current.statusPenultimoCertificado,
-        certificadoAntepenultimoPath: current.certificadoPenultimoPath,
+        // numeroAntepenultimoCertificado: current.numeroPenultimoCertificado,
+        // revisaoAntepenultimoCertificado: current.revisaoPenultimoCertificado,
+        // dataAntepenultimoCertificado: current.dataPenultimoCertificado,
+        // statusAntepenultimoCertificado: current.statusPenultimoCertificado,
+        // certificadoAntepenultimoPath: current.certificadoPenultimoPath,
       };
       
       const result = await db.update(execucaoCalibracoes)
-        .set(updatedData)
-        .where(eq(execucaoCalibracoes.equipamentoId, execucao.equipamentoId))
+        .set(updatedData as any)
+        .where(eq(execucaoCalibracoes.equipamentoId, (execucao as any).equipamentoId))
         .returning();
       return result[0];
     } else {
       // Primeira execução para este equipamento
-      const result = await db.insert(execucaoCalibracoes).values(execucao).returning();
+      const result = await db.insert(execucaoCalibracoes).values(execucao as any).returning();
       return result[0];
     }
   }
@@ -1011,7 +1136,7 @@ export class Storage implements IStorage {
   }
 
   async createTestePoco(teste: any) {
-    const result = await db.insert(testesPocos).values(teste).returning();
+    const result = await db.insert(testesPocos).values(teste as any).returning();
     return result[0];
   }
 
@@ -1036,7 +1161,7 @@ export class Storage implements IStorage {
 
   async updateTestePoco(id: number, teste: any) {
     const result = await db.update(testesPocos)
-      .set({ ...teste, updatedAt: new Date() })
+      .set(teste as any)
       .where(eq(testesPocos.id, id))
       .returning();
     return result[0] || null;
@@ -1057,8 +1182,61 @@ export class Storage implements IStorage {
   }
 
   async createIncertezaLimite(limite: InsertIncertezaLimite) {
-    const result = await db.insert(incertezaLimites).values(limite).returning();
+    const result = await db.insert(incertezaLimites).values(limite as any).returning();
     return result[0];
+  }
+
+  async getIncertezaLimite(id: number) {
+    const [limite] = await db.select().from(incertezaLimites).where(eq(incertezaLimites.id, id));
+    return limite;
+  }
+
+  async updateIncertezaLimite(id: number, limite: Partial<InsertIncertezaLimite>) {
+    const result = await db
+      .update(incertezaLimites)
+      .set(limite as any)
+      .where(eq(incertezaLimites.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteIncertezaLimite(id: number) {
+    await db.delete(incertezaLimites).where(eq(incertezaLimites.id, id));
+  }
+
+  // Histórico de Calibrações
+  async getHistoricoCalibracoes(equipamentoId?: number) {
+    let query = db.select().from(historicoCalibracoes);
+
+    if (equipamentoId) {
+      query = query.where(eq(historicoCalibracoes.equipamentoId, equipamentoId)) as any;
+    }
+
+    return await query.orderBy(desc(historicoCalibracoes.dataCalibracão));
+  }
+
+  async getHistoricoCalibracao(id: number) {
+    const [historico] = await db.select().from(historicoCalibracoes)
+      .where(eq(historicoCalibracoes.id, id));
+    return historico;
+  }
+
+  async createHistoricoCalibracao(historico: any) {
+    const result = await db.insert(historicoCalibracoes).values(historico as any).returning();
+    return result[0];
+  }
+
+  async updateHistoricoCalibracao(id: number, historico: any) {
+    const result = await db
+      .update(historicoCalibracoes)
+      .set(historico as any)
+      .where(eq(historicoCalibracoes.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteHistoricoCalibracao(id: number) {
+    await db.delete(historicoCalibracoes).where(eq(historicoCalibracoes.id, id));
   }
 
   // Lacres Físicos
@@ -1072,14 +1250,14 @@ export class Storage implements IStorage {
   }
 
   async createLacreFisico(lacre: InsertLacreFisico) {
-    const result = await db.insert(lacresFisicos).values(lacre).returning();
+    const result = await db.insert(lacresFisicos).values(lacre as any).returning();
     return result[0];
   }
 
   async updateLacreFisico(id: number, lacre: Partial<InsertLacreFisico>) {
     const result = await db
       .update(lacresFisicos)
-      .set({ ...lacre, updatedAt: new Date() })
+      .set(lacre as any)
       .where(eq(lacresFisicos.id, id))
       .returning();
     return result[0];
@@ -1100,14 +1278,14 @@ export class Storage implements IStorage {
   }
 
   async createLacreEletronico(lacre: InsertLacreEletronico) {
-    const result = await db.insert(lacresEletronicos).values(lacre).returning();
+    const result = await db.insert(lacresEletronicos).values(lacre as any).returning();
     return result[0];
   }
 
   async updateLacreEletronico(id: number, lacre: Partial<InsertLacreEletronico>) {
     const result = await db
       .update(lacresEletronicos)
-      .set({ ...lacre, updatedAt: new Date() })
+      .set(lacre as any)
       .where(eq(lacresEletronicos.id, id))
       .returning();
     return result[0];
@@ -1128,14 +1306,14 @@ export class Storage implements IStorage {
   }
 
   async createControleLacre(controle: InsertControleLacre) {
-    const result = await db.insert(controleLacres).values(controle).returning();
+    const result = await db.insert(controleLacres).values(controle as any).returning();
     return result[0];
   }
 
   async updateControleLacre(id: number, controle: Partial<InsertControleLacre>) {
     const result = await db
       .update(controleLacres)
-      .set({ ...controle, updatedAt: new Date() })
+      .set(controle as any)
       .where(eq(controleLacres.id, id))
       .returning();
     return result[0];
@@ -1172,8 +1350,8 @@ export class Storage implements IStorage {
       const calibrationEvents = await db
         .select({
           id: calendarioCalibracoes.equipamentoId,
-          title: calendarioCalibracoes.tagEquipamento,
-          description: calendarioCalibracoes.nomeEquipamento,
+          title: calendarioCalibracoes.equipamentoId,
+          description: calendarioCalibracoes.observacao,
           date: calendarioCalibracoes.previsaoCalibracao,
           type: sql`'calibracao'`.as('type'),
           status: calendarioCalibracoes.status,

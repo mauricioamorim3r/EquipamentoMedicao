@@ -37,14 +37,9 @@ function CalendarForm({ calendarioCalibracao, polos, instalacoes, equipamentos, 
     resolver: zodResolver(formSchema),
     defaultValues: {
       equipamentoId: calendarioCalibracao?.equipamentoId || 0,
-      poloId: calendarioCalibracao?.poloId || 0,
-      instalacaoId: calendarioCalibracao?.instalacaoId || 0,
       tagPontoMedicao: calendarioCalibracao?.tagPontoMedicao || "",
       nomePontoMedicao: calendarioCalibracao?.nomePontoMedicao || "",
       classificacao: calendarioCalibracao?.classificacao || "",
-      tagEquipamento: calendarioCalibracao?.tagEquipamento || "",
-      nomeEquipamento: calendarioCalibracao?.nomeEquipamento || "",
-      numeroSerie: calendarioCalibracao?.numeroSerie || "",
       tipoCalibracao: calendarioCalibracao?.tipoCalibracao || "",
       motivo: calendarioCalibracao?.motivo || "",
       laboratorio: calendarioCalibracao?.laboratorio || "",
@@ -130,55 +125,6 @@ function CalendarForm({ calendarioCalibracao, polos, instalacoes, equipamentos, 
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="poloId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Polo *</FormLabel>
-                <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o polo" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {polos?.map((polo) => (
-                      <SelectItem key={polo.id} value={polo.id.toString()}>
-                        {polo.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="instalacaoId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Instalação *</FormLabel>
-                <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a instalação" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {instalacoes?.map((inst) => (
-                      <SelectItem key={inst.id} value={inst.id.toString()}>
-                        {inst.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
           <FormField
             control={form.control}
@@ -351,11 +297,10 @@ export default function CalibrationCalendar() {
 
   const filteredCalendarios = calendarios.filter((cal: CalendarioCalibracao) => {
     const matchesSearch =
-      cal.tagEquipamento?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cal.nomeEquipamento?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cal.numeroSerie?.toLowerCase().includes(searchTerm.toLowerCase());
+      cal.tagPontoMedicao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cal.nomePontoMedicao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cal.classificacao?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesPolo = !selectedPolo || selectedPolo === "all" || cal.poloId === parseInt(selectedPolo);
     const matchesStatus = !selectedStatus || selectedStatus === "all" || cal.status === selectedStatus;
 
     let matchesMes = true;
@@ -364,7 +309,7 @@ export default function CalibrationCalendar() {
       matchesMes = mes === parseInt(selectedMes);
     }
 
-    return matchesSearch && matchesPolo && matchesStatus && matchesMes;
+    return matchesSearch && matchesStatus && matchesMes;
   });
 
   const openNewForm = () => {
@@ -609,7 +554,7 @@ export default function CalibrationCalendar() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-4 mb-2">
                           <h3 className="font-semibold text-lg">
-                            {cal.tagEquipamento || 'N/A'}
+                            {cal.tagPontoMedicao || 'N/A'}
                           </h3>
                           <Badge className={statusBadge.className}>
                             <StatusIcon className="w-3 h-3 mr-1" />
@@ -619,8 +564,8 @@ export default function CalibrationCalendar() {
 
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
                           <div>
-                            <p className="font-medium text-foreground">Equipamento: {cal.nomeEquipamento || 'N/A'}</p>
-                            <p>N° Série: {cal.numeroSerie || 'N/A'}</p>
+                            <p className="font-medium text-foreground">Ponto: {cal.nomePontoMedicao || 'N/A'}</p>
+                            <p>Classificação: {cal.classificacao || 'N/A'}</p>
                           </div>
                           <div>
                             <p>Tipo: {cal.tipoCalibracao || 'N/A'}</p>

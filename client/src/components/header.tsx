@@ -41,13 +41,16 @@ export default function Header() {
   return (
     <header className="bg-card border-b border-border p-4" data-testid="header">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-semibold text-foreground" data-testid="page-title">
-            Dashboard Metrológico
+        <div className="flex items-center space-x-2 md:space-x-4 flex-1 min-w-0">
+          <h1 className="text-lg md:text-xl font-semibold text-foreground truncate" data-testid="page-title">
+            <span className="hidden sm:inline">Dashboard Metrológico</span>
+            <span className="sm:hidden">SGM</span>
           </h1>
-          <div className="text-sm text-muted-foreground">
-            <span data-testid="current-date">{formatDate(currentTime)}</span> • 
-            <span data-testid="current-time" className="ml-1">{formatTime(currentTime)}</span>
+          <div className="text-xs md:text-sm text-muted-foreground hidden xs:block">
+            <span data-testid="current-date" className="hidden md:inline">{formatDate(currentTime)}</span>
+            <span className="md:hidden">{formatTime(currentTime)}</span>
+            <span className="hidden md:inline"> • </span>
+            <span data-testid="current-time" className="hidden md:inline ml-1">{formatTime(currentTime)}</span>
           </div>
         </div>
         <div className="flex items-center space-x-3">

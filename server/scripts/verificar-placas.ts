@@ -1,6 +1,6 @@
 import { config } from "dotenv";
-import { db } from "./db";
-import { placasOrificio } from "@shared/schema";
+import { db } from "../db";
+import { placasOrificio } from "../../shared/schema";
 
 config({ path: "../.env" });
 
@@ -19,7 +19,7 @@ async function verificarPlacas() {
   if (todasPlacas.length > 0) {
     console.log("\n📋 Primeiras 3 placas:");
     todasPlacas.slice(0, 3).forEach(placa => {
-      console.log(`  - ${placa.tag} (${placa.numeroSerie}) - Equip ID: ${placa.equipamentoId}`);
+      console.log(`  - ID: ${placa.id} (${placa.numeroSerie}) - Equip ID: ${placa.equipamentoId}`);
     });
   }
 }
