@@ -165,7 +165,7 @@ export default function Equipment() {
   };
 
   return (
-    <div className="p-6">
+    <div className="h-full flex flex-col p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -309,7 +309,7 @@ export default function Equipment() {
       </Card>
 
       {/* Equipment List */}
-      <Card>
+      <Card className="flex-1 flex flex-col overflow-hidden">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>
@@ -323,7 +323,7 @@ export default function Equipment() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 overflow-y-auto">
           {equipmentLoading ? (
             <div className="space-y-4">
               {[1, 2, 3, 4, 5].map((i) => (

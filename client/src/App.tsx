@@ -47,9 +47,9 @@ function Router() {
       <div className="hidden md:block">
         <Sidebar />
       </div>
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col h-screen">
         <Header />
-        <main className="flex-1 overflow-y-auto bg-background px-4 md:px-6">
+        <main className="flex-1 h-full overflow-x-auto overflow-y-hidden bg-background px-4 md:px-6 py-4">
           <Suspense fallback={<LoadingFallback />}>
             <Switch>
               <Route path="/" component={Dashboard} />
