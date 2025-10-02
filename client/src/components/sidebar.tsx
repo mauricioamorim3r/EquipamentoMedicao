@@ -17,33 +17,38 @@ import {
   Building,
   Activity,
   Bell,
-  Shield
+  Shield,
+  HelpCircle
 } from "lucide-react";
+import { useTranslation } from "@/hooks/useLanguage";
 
-const menuItems = [
-  { path: "/", label: "Dashboard", icon: BarChart3 },
-  { path: "/equipamentos", label: "Equipamentos", icon: Wrench },
-  { path: "/calibracoes", label: "Plano de Calibrações", icon: Calendar },
-  { path: "/execucao-calibracoes", label: "Execução de Calibrações", icon: Settings },
-  { path: "/historico-calibracoes", label: "Histórico de Calibrações", icon: FileText },
-  { path: "/campos", label: "Campos", icon: MapPin },
-  { path: "/pocos", label: "Poços", icon: Flame },
-  { path: "/instalacoes", label: "Instalações", icon: Building },
-  { path: "/pontos-medicao", label: "Pontos de Medição", icon: Activity },
-  { path: "/notificacoes", label: "Notificações", icon: Bell },
-  { path: "/placas-orificio", label: "Placas de Orifício", icon: Circle },
-  { path: "/trechos-retos", label: "Trechos Retos", icon: Ruler },
-  { path: "/medidores-primarios", label: "Medidores Primários", icon: Gauge },
-  { path: "/protecao-lacre", label: "Proteção e Lacre", icon: Shield },
-  { path: "/valvulas", label: "Válvulas", icon: Gauge },
-  { path: "/gestao-cilindros", label: "Gestão de Cilindros", icon: Package },
-  { path: "/testes-pocos", label: "Testes de Poços", icon: FlaskConical },
-  { path: "/analises-quimicas", label: "Análises Químicas", icon: FlaskConical },
-  { path: "/controle-incertezas", label: "Controle de Incertezas", icon: AlertCircle },
+const getMenuItems = (t: (key: string) => string) => [
+  { path: "/", label: t("dashboard"), icon: BarChart3 },
+  { path: "/equipamentos", label: t("equipments"), icon: Wrench },
+  { path: "/calibracoes", label: t("calibrations"), icon: Calendar },
+  { path: "/execucao-calibracoes", label: t("calibrationExecution"), icon: Settings },
+  { path: "/historico-calibracoes", label: t("calibrationHistory"), icon: FileText },
+  { path: "/campos", label: t("fields"), icon: MapPin },
+  { path: "/pocos", label: t("wells"), icon: Flame },
+  { path: "/instalacoes", label: t("installations"), icon: Building },
+  { path: "/pontos-medicao", label: t("measurementPoints"), icon: Activity },
+  { path: "/notificacoes", label: t("notifications"), icon: Bell },
+  { path: "/placas-orificio", label: t("orificePlates"), icon: Circle },
+  { path: "/trechos-retos", label: t("straightSections"), icon: Ruler },
+  { path: "/medidores-primarios", label: t("primaryMeters"), icon: Gauge },
+  { path: "/protecao-lacre", label: t("protectionSealing"), icon: Shield },
+  { path: "/valvulas", label: t("valves"), icon: Gauge },
+  { path: "/gestao-cilindros", label: t("cylinderManagement"), icon: Package },
+  { path: "/testes-pocos", label: t("wellTests"), icon: FlaskConical },
+  { path: "/analises-quimicas", label: t("chemicalAnalysis"), icon: FlaskConical },
+  { path: "/controle-incertezas", label: t("uncertaintyControl"), icon: AlertCircle },
+  { path: "/ajuda", label: t("helpCenter"), icon: HelpCircle },
 ];
 
 export default function Sidebar() {
   const [location] = useLocation();
+  const { t } = useTranslation();
+  const menuItems = getMenuItems(t);
   
   // Force refresh - updated at 10:56 PM - 30/09/2025
 

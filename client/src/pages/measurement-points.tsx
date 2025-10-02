@@ -29,12 +29,14 @@ import {
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useLanguage";
 import MeasurementPointForm from "@/components/measurement-point-form";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { PontoMedicao, Polo, Instalacao } from "@shared/schema";
 
 export default function MeasurementPoints() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPolo, setSelectedPolo] = useState<string>("all");
   const [selectedInstalacao, setSelectedInstalacao] = useState<string>("all");
@@ -66,7 +68,7 @@ export default function MeasurementPoints() {
     mutationFn: (id: number) => api.deletePontoMedicao(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/pontos-medicao"] });
-      toast({ title: "Ponto de medição excluído com sucesso!" });
+      toast({ title: `Ponto de medição ${t('deletedSuccessfully')}!` });
     },
     onError: (error) => {
       toast({ 

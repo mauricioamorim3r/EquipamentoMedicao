@@ -13,10 +13,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useImportExport } from "@/hooks/use-import-export";
 import EquipmentForm from "@/components/equipment-form";
 import EquipmentModal from "@/components/equipment-modal";
+import { useTranslation } from "@/hooks/useLanguage";
 import type { Equipamento, Polo, Instalacao } from "@shared/schema";
 import type { EquipmentWithCalibration } from "@/types";
 
 export default function Equipment() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPolo, setSelectedPolo] = useState<string>("");
   const [selectedInstalacao, setSelectedInstalacao] = useState<string>("");
@@ -106,24 +108,24 @@ export default function Equipment() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'em_operacao':
-        return { text: 'Em Operação', className: 'bg-green-100 text-green-800' };
+        return { text: t('operational'), className: 'bg-green-100 text-green-800' };
       case 'fora_operacao':
-        return { text: 'Fora de Operação', className: 'bg-red-100 text-red-800' };
+        return { text: t('nonOperational'), className: 'bg-red-100 text-red-800' };
       case 'em_calibracao':
-        return { text: 'Em Calibração', className: 'bg-blue-100 text-blue-800' };
+        return { text: t('calibrating'), className: 'bg-blue-100 text-blue-800' };
       case 'em_manutencao':
-        return { text: 'Em Manutenção', className: 'bg-yellow-100 text-yellow-800' };
+        return { text: t('maintenance'), className: 'bg-yellow-100 text-yellow-800' };
       case 'fora_uso':
         return { text: 'Fora de Uso', className: 'bg-gray-100 text-gray-800' };
       case 'sobressalente':
         return { text: 'Sobressalente', className: 'bg-purple-100 text-purple-800' };
       // Backward compatibility
       case 'ativo':
-        return { text: 'Ativo', className: 'bg-green-100 text-green-800' };
+        return { text: t('active'), className: 'bg-green-100 text-green-800' };
       case 'inativo':
-        return { text: 'Inativo', className: 'bg-gray-100 text-gray-800' };
+        return { text: t('inactive'), className: 'bg-gray-100 text-gray-800' };
       case 'manutencao':
-        return { text: 'Manutenção', className: 'bg-yellow-100 text-yellow-800' };
+        return { text: t('maintenance'), className: 'bg-yellow-100 text-yellow-800' };
       default:
         return { text: status, className: 'bg-gray-100 text-gray-800' };
     }
@@ -131,18 +133,18 @@ export default function Equipment() {
 
   const getCalibrationStatusBadge = (diasParaVencer?: number) => {
     if (!diasParaVencer && diasParaVencer !== 0) {
-      return { text: 'Sem dados', className: 'bg-gray-100 text-gray-800' };
+      return { text: t('noData'), className: 'bg-gray-100 text-gray-800' };
     }
     if (diasParaVencer <= 0) {
-      return { text: 'Vencido', className: 'bg-red-100 text-red-800' };
+      return { text: t('expired'), className: 'bg-red-100 text-red-800' };
     }
     if (diasParaVencer <= 7) {
-      return { text: 'Crítico', className: 'bg-orange-100 text-orange-800' };
+      return { text: t('critical'), className: 'bg-orange-100 text-orange-800' };
     }
     if (diasParaVencer <= 30) {
-      return { text: 'Alerta', className: 'bg-yellow-100 text-yellow-800' };
+      return { text: t('alert'), className: 'bg-yellow-100 text-yellow-800' };
     }
-    return { text: 'OK', className: 'bg-green-100 text-green-800' };
+    return { text: t('ok'), className: 'bg-green-100 text-green-800' };
   };
 
   const handleEdit = (equipment: Equipamento) => {
@@ -197,7 +199,7 @@ export default function Equipment() {
             data-testid="button-download-template"
           >
             <FileDown className="w-4 h-4 mr-2" />
-            Baixar Template
+            {t('downloadTemplate')}
           </Button>
 
           <Button
@@ -207,7 +209,7 @@ export default function Equipment() {
             data-testid="button-export-data"
           >
             <FileSpreadsheet className="w-4 h-4 mr-2" />
-            Exportar Dados
+            {t('exportData')}
           </Button>
 
           <Button
@@ -217,7 +219,7 @@ export default function Equipment() {
             data-testid="button-import-data"
           >
             <FileUp className="w-4 h-4 mr-2" />
-            Importar Dados
+            {t('importData')}
           </Button>
           <input
             ref={fileInputRef}
@@ -232,13 +234,13 @@ export default function Equipment() {
             <DialogTrigger asChild>
               <Button onClick={openNewEquipmentForm} data-testid="button-new-equipment">
                 <Plus className="w-4 h-4 mr-2" />
-                Novo Equipamento
+                {t('addEquipment')}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
-                  {editingEquipment ? 'Editar Equipamento' : 'Novo Equipamento'}
+                  {editingEquipment ? t('edit') + ' ' + t('equipments').slice(0, -1) : t('addEquipment')}
                 </DialogTitle>
               </DialogHeader>
               <EquipmentForm
@@ -254,14 +256,14 @@ export default function Equipment() {
       {/* Filters */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="text-lg">Filtros</CardTitle>
+          <CardTitle className="text-lg">{t('filter')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por TAG, nome ou fabricante"
+                placeholder={t('search') + ' por TAG, nome ou fabricante'}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -271,10 +273,10 @@ export default function Equipment() {
             
             <Select value={selectedPolo} onValueChange={setSelectedPolo}>
               <SelectTrigger data-testid="filter-polo">
-                <SelectValue placeholder="Todos os Polos" />
+                <SelectValue placeholder={t('allPoles')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os Polos</SelectItem>
+                <SelectItem value="all">{t('allPoles')}</SelectItem>
                 {polos?.map((polo: Polo) => (
                   <SelectItem key={polo.id} value={polo.id.toString()}>
                     {polo.sigla} - {polo.nome}
@@ -285,10 +287,10 @@ export default function Equipment() {
 
             <Select value={selectedInstalacao} onValueChange={setSelectedInstalacao}>
               <SelectTrigger data-testid="filter-instalacao">
-                <SelectValue placeholder="Todas as Instalações" />
+                <SelectValue placeholder={t('allInstallations')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas as Instalações</SelectItem>
+                <SelectItem value="all">{t('allInstallations')}</SelectItem>
                 {instalacoes?.map((instalacao: Instalacao) => (
                   <SelectItem key={instalacao.id} value={instalacao.id.toString()}>
                     {instalacao.sigla} - {instalacao.nome}
@@ -299,14 +301,14 @@ export default function Equipment() {
 
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger data-testid="filter-status">
-                <SelectValue placeholder="Todos os Status" />
+                <SelectValue placeholder={t('allStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="em_operacao">Em Operação</SelectItem>
-                <SelectItem value="fora_operacao">Fora de Operação</SelectItem>
-                <SelectItem value="em_calibracao">Em Calibração</SelectItem>
-                <SelectItem value="em_manutencao">Em Manutenção</SelectItem>
+                <SelectItem value="all">{t('allStatus')}</SelectItem>
+                <SelectItem value="em_operacao">{t('operational')}</SelectItem>
+                <SelectItem value="fora_operacao">{t('nonOperational')}</SelectItem>
+                <SelectItem value="em_calibracao">{t('calibrating')}</SelectItem>
+                <SelectItem value="em_manutencao">{t('maintenance')}</SelectItem>
                 <SelectItem value="fora_uso">Fora de Uso</SelectItem>
                 <SelectItem value="sobressalente">Sobressalente</SelectItem>
               </SelectContent>
@@ -314,7 +316,7 @@ export default function Equipment() {
 
             <Button variant="outline" data-testid="button-export">
               <Download className="w-4 h-4 mr-2" />
-              Exportar
+              {t('export')}
             </Button>
           </div>
         </CardContent>
@@ -325,12 +327,12 @@ export default function Equipment() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>
-              Equipamentos ({filteredEquipments.length})
+              {t('equipments')} ({filteredEquipments.length})
             </CardTitle>
             <div className="flex space-x-2">
               <Button variant="outline" size="sm">
                 <Filter className="w-4 h-4 mr-2" />
-                Filtros Avançados
+                {t('advancedFilters')}
               </Button>
             </div>
           </div>
@@ -345,17 +347,17 @@ export default function Equipment() {
           ) : filteredEquipments.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">Nenhum equipamento encontrado</p>
+              <p className="text-lg font-medium mb-2">{t('noEquipmentFound')}</p>
               <p className="text-sm">
                 {searchTerm || selectedPolo || selectedInstalacao || selectedStatus
-                  ? 'Tente ajustar os filtros de busca'
-                  : 'Adicione o primeiro equipamento para começar'
+                  ? t('adjustSearchFilters')
+                  : t('addFirstEquipment')
                 }
               </p>
               {!searchTerm && !selectedPolo && !selectedInstalacao && !selectedStatus && (
                 <Button className="mt-4" onClick={openNewEquipmentForm}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Equipamento
+                  {t('addEquipment')}
                 </Button>
               )}
             </div>

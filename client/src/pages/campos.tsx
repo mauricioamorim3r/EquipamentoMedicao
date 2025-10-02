@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertCampoSchema, type InsertCampo, type Campo, type Polo } from "@shared/schema";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "@/hooks/useLanguage";
 
 const formSchema = insertCampoSchema;
 type FormValues = z.infer<typeof formSchema>;
@@ -28,6 +29,7 @@ interface CampoFormProps {
 }
 
 function CampoForm({ campo, polos, onClose, onSuccess }: CampoFormProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const isEditing = !!campo;
 
@@ -49,15 +51,15 @@ function CampoForm({ campo, polos, onClose, onSuccess }: CampoFormProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/campos"] });
       toast({
-        title: "Sucesso",
-        description: "Campo criado com sucesso",
+        title: t('success'),
+        description: `${t('fields').slice(0, -1)} ${t('add').toLowerCase()} com sucesso`,
       });
       onSuccess();
     },
     onError: () => {
       toast({
-        title: "Erro",
-        description: "Erro ao criar campo",
+        title: t('error'),
+        description: `Erro ao ${t('add').toLowerCase()} ${t('fields').slice(0, -1).toLowerCase()}`,
         variant: "destructive",
       });
     },
@@ -68,15 +70,15 @@ function CampoForm({ campo, polos, onClose, onSuccess }: CampoFormProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/campos"] });
       toast({
-        title: "Sucesso",
-        description: "Campo atualizado com sucesso",
+        title: t('success'),
+        description: `${t('fields').slice(0, -1)} ${t('edit').toLowerCase()} com sucesso`,
       });
       onSuccess();
     },
     onError: () => {
       toast({
-        title: "Erro",
-        description: "Erro ao atualizar campo",
+        title: t('error'),
+        description: `Erro ao ${t('edit').toLowerCase()} ${t('fields').slice(0, -1).toLowerCase()}`,
         variant: "destructive",
       });
     },
@@ -123,7 +125,7 @@ function CampoForm({ campo, polos, onClose, onSuccess }: CampoFormProps) {
           name="nome"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nome do Campo *</FormLabel>
+              <FormLabel>{t('name')} do {t('fields').slice(0, -1)} *</FormLabel>
               <FormControl>
                 <Input
                   placeholder="Ex: Campo de Produção Norte"
@@ -258,6 +260,7 @@ function CampoForm({ campo, polos, onClose, onSuccess }: CampoFormProps) {
 }
 
 export default function Campos() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPolo, setSelectedPolo] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
@@ -459,7 +462,7 @@ export default function Campos() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>
-              Campos ({filteredCampos.length})
+              {t('fields')} ({filteredCampos.length})
             </CardTitle>
           </div>
         </CardHeader>
@@ -473,17 +476,17 @@ export default function Campos() {
           ) : filteredCampos.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">Nenhum campo encontrado</p>
+              <p className="text-lg font-medium mb-2">Nenhum {t('fields').slice(0, -1).toLowerCase()} encontrado</p>
               <p className="text-sm">
                 {searchTerm || selectedPolo || selectedStatus
-                  ? 'Tente ajustar os filtros de busca'
-                  : 'Adicione o primeiro campo'
+                  ? t('adjustSearchFilters')
+                  : `${t('add')} o primeiro ${t('fields').slice(0, -1).toLowerCase()}`
                 }
               </p>
               {!searchTerm && !selectedPolo && !selectedStatus && (
                 <Button className="mt-4" onClick={openNewCampoForm}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Campo
+                  {t('add')} {t('fields').slice(0, -1)}
                 </Button>
               )}
             </div>

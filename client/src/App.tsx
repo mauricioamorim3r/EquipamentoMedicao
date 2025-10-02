@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Sidebar from "@/components/sidebar";
 import Header from "@/components/header";
+import { LanguageProvider } from "@/hooks/useLanguage";
 
 // Lazy load pages for code splitting
 const Dashboard = lazy(() => import("@/pages/dashboard"));
@@ -31,6 +32,7 @@ const NotificationSettings = lazy(() => import("@/pages/notification-settings"))
 const Notifications = lazy(() => import("@/pages/notifications"));
 const TestesPocos = lazy(() => import("@/pages/testes-pocos"));
 const DashboardCompleto = lazy(() => import("@/pages/dashboard-completo"));
+const Help = lazy(() => import("@/pages/help"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 // Loading component
@@ -74,6 +76,7 @@ function Router() {
               <Route path="/analises-quimicas" component={ChemicalAnalysis} />
               <Route path="/controle-incertezas" component={UncertaintyControl} />
               <Route path="/relatorios" component={Reports} />
+              <Route path="/ajuda" component={Help} />
               <Route component={NotFound} />
             </Switch>
           </Suspense>
@@ -86,10 +89,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <LanguageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

@@ -15,53 +15,54 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/hooks/useLanguage";
 import type { Campo, Instalacao, Polo } from "@shared/schema";
 
-// Schemas de validação
-const lacreEletronicoSchema = z.object({
+// Função para criar schemas com mensagens traduzidas
+const createLacreEletronicoSchema = (t: (key: string) => string) => z.object({
   poloId: z.number().optional(),
   campoId: z.number().optional(),
   instalacaoId: z.number().optional(),
-  localLacre: z.string().min(1, "Local do lacre é obrigatório"),
-  tag: z.string().min(1, "TAG é obrigatória"),
-  tipoAcesso: z.string().min(1, "Tipo de acesso é obrigatório"),
-  login: z.string().min(1, "Login é obrigatório"),
-  senha: z.string().min(1, "Senha é obrigatória"),
+  localLacre: z.string().min(1, `Local do lacre ${t('fieldRequired').toLowerCase()}`),
+  tag: z.string().min(1, `TAG ${t('fieldRequired').toLowerCase()}`),
+  tipoAcesso: z.string().min(1, `Tipo de acesso ${t('fieldRequired').toLowerCase()}`),
+  login: z.string().min(1, `Login ${t('fieldRequired').toLowerCase()}`),
+  senha: z.string().min(1, `Senha ${t('fieldRequired').toLowerCase()}`),
   observacao: z.string().optional(),
-  preenchidoPor: z.string().min(1, "Campo obrigatório"),
-  dataPreenchimento: z.string().min(1, "Data é obrigatória"),
+  preenchidoPor: z.string().min(1, t('fieldRequired')),
+  dataPreenchimento: z.string().min(1, `Data ${t('fieldRequired').toLowerCase()}`),
 });
 
-const lacreFisicoSchema = z.object({
+const createLacreFisicoSchema = (t: (key: string) => string) => z.object({
   poloId: z.number().optional(),
   campoId: z.number().optional(),
   instalacaoId: z.number().optional(),
-  localLacre: z.string().min(1, "Local do lacre é obrigatório"),
-  descricaoLacre: z.string().min(1, "Descrição é obrigatória"),
-  tipoLacre: z.string().min(1, "Tipo de lacre é obrigatório"),
+  localLacre: z.string().min(1, `Local do lacre ${t('fieldRequired').toLowerCase()}`),
+  descricaoLacre: z.string().min(1, `${t('description')} ${t('fieldRequired').toLowerCase()}`),
+  tipoLacre: z.string().min(1, `Tipo de lacre ${t('fieldRequired').toLowerCase()}`),
   observacao: z.string().optional(),
-  preenchidoPor: z.string().min(1, "Campo obrigatório"),
-  dataPreenchimento: z.string().min(1, "Data é obrigatória"),
+  preenchidoPor: z.string().min(1, t('fieldRequired')),
+  dataPreenchimento: z.string().min(1, `Data ${t('fieldRequired').toLowerCase()}`),
 });
 
-const controleLacreSchema = z.object({
+const createControleLacreSchema = (t: (key: string) => string) => z.object({
   poloId: z.number().optional(),
-  campoId: z.number().min(1, "Campo é obrigatório"),
-  instalacaoId: z.number().min(1, "Instalação é obrigatória"),
-  concessionario: z.string().min(1, "Concessionário é obrigatório"),
-  dataAtualizacao: z.string().min(1, "Data é obrigatória"),
-  nome: z.string().min(1, "Nome é obrigatório"),
-  item: z.number().min(1, "Item é obrigatório"),
-  descricaoEquipamento: z.string().min(1, "Descrição é obrigatória"),
-  numeroSerie: z.string().min(1, "Número de série é obrigatório"),
-  lacreNumeracao: z.string().min(1, "Numeração do lacre é obrigatória"),
-  dataLacrado: z.string().min(1, "Data é obrigatória"),
+  campoId: z.number().min(1, `Campo ${t('fieldRequired').toLowerCase()}`),
+  instalacaoId: z.number().min(1, `Instalação ${t('fieldRequired').toLowerCase()}`),
+  concessionario: z.string().min(1, `Concessionário ${t('fieldRequired').toLowerCase()}`),
+  dataAtualizacao: z.string().min(1, `Data ${t('fieldRequired').toLowerCase()}`),
+  nome: z.string().min(1, `Nome ${t('fieldRequired').toLowerCase()}`),
+  item: z.number().min(1, `Item ${t('fieldRequired').toLowerCase()}`),
+  descricaoEquipamento: z.string().min(1, `${t('description')} ${t('fieldRequired').toLowerCase()}`),
+  numeroSerie: z.string().min(1, `Número de série ${t('fieldRequired').toLowerCase()}`),
+  lacreNumeracao: z.string().min(1, `Numeração do lacre ${t('fieldRequired').toLowerCase()}`),
+  dataLacrado: z.string().min(1, `Data ${t('fieldRequired').toLowerCase()}`),
   violado: z.enum(["sim", "nao"]),
   dataViolado: z.string().optional(),
   motivo: z.string().optional(),
   dataNovoLacre: z.string().optional(),
   novoLacreNumeracao: z.string().optional(),
-  lacradoPor: z.string().min(1, "Campo obrigatório"),
+  lacradoPor: z.string().min(1, t('fieldRequired')),
 });
 
 // Opções para dropdowns
@@ -85,12 +86,18 @@ const isValidSelectValue = (value: any) => {
 };
 
 export default function ProtecaoLacre() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("fisico");
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPolo, setSelectedPolo] = useState<number | null>(null);
   const [selectedCampo, setSelectedCampo] = useState<number | null>(null);
   const queryClient = useQueryClient();
+
+  // Schemas com mensagens traduzidas
+  const lacreEletronicoSchema = createLacreEletronicoSchema(t);
+  const lacreFisicoSchema = createLacreFisicoSchema(t);
+  const controleLacreSchema = createControleLacreSchema(t);
 
   // Queries para dropdowns
   const { data: polos = [] } = useQuery<Polo[]>({
@@ -405,10 +412,10 @@ export default function ProtecaoLacre() {
           <CardHeader>
             <CardTitle className="text-red-800 flex items-center gap-2">
               <Shield className="h-5 w-5" />
-              ⚠️ Alertas de Lacres Violados
+              ⚠️ {t('violatedSealsAlert')}
             </CardTitle>
             <CardDescription className="text-red-700">
-              {lacresViolados.length} lacre{lacresViolados.length > 1 ? 's' : ''} violado{lacresViolados.length > 1 ? 's' : ''} detectado{lacresViolados.length > 1 ? 's' : ''}
+              {lacresViolados.length} {t('violatedSealsDetected')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -418,13 +425,13 @@ export default function ProtecaoLacre() {
                   <div>
                     <p className="font-medium text-red-900">{lacre.descricaoEquipamento}</p>
                     <p className="text-sm text-red-700">
-                      Lacre: {lacre.lacreNumeracao} | Série: {lacre.numeroSerie}
+                      {t('violatedSeal')}: {lacre.lacreNumeracao} | {t('serie')}: {lacre.numeroSerie}
                     </p>
                     <p className="text-xs text-red-600">
-                      Violado em: {lacre.dataViolado ? new Date(lacre.dataViolado).toLocaleDateString('pt-BR') : 'Data não informada'}
+                      {t('violatedOn')}: {lacre.dataViolado ? new Date(lacre.dataViolado).toLocaleDateString('pt-BR') : 'Data não informada'}
                     </p>
                   </div>
-                  <Badge variant="destructive">Violado</Badge>
+                  <Badge variant="destructive">{t('violated')}</Badge>
                 </div>
               ))}
               {lacresViolados.length > 3 && (
@@ -439,9 +446,9 @@ export default function ProtecaoLacre() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="fisico">Lacre Físico</TabsTrigger>
-          <TabsTrigger value="eletronico">Lacre Eletrônico</TabsTrigger>
-          <TabsTrigger value="controle">Controle de Lacres</TabsTrigger>
+          <TabsTrigger value="fisico">{t('physicalSeals')}</TabsTrigger>
+          <TabsTrigger value="eletronico">{t('electronicSeals')}</TabsTrigger>
+          <TabsTrigger value="controle">{t('sealControl')}</TabsTrigger>
         </TabsList>
 
         {/* Aba Lacre Físico */}
@@ -450,16 +457,16 @@ export default function ProtecaoLacre() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Plano de Lacre Físico</CardTitle>
+                  <CardTitle>{t('physicalSeals')}</CardTitle>
                   <CardDescription>
-                    Registro e controle de lacres físicos em equipamentos e instalações
+                    {t('physicalSealRegistration')}
                   </CardDescription>
                 </div>
                 <Dialog open={isModalOpen && activeTab === "fisico"} onOpenChange={setIsModalOpen}>
                   <DialogTrigger asChild>
                     <Button>
                       <Plus className="mr-2 h-4 w-4" />
-                      Novo Lacre Físico
+                      {t('addPhysicalSeal')}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl">
@@ -478,7 +485,7 @@ export default function ProtecaoLacre() {
                             name="poloId"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Polo</FormLabel>
+                                <FormLabel>{t('pole')}</FormLabel>
                                 <Select 
                                   onValueChange={(value) => {
                                     const numValue = value ? parseInt(value) : undefined;
@@ -492,7 +499,7 @@ export default function ProtecaoLacre() {
                                 >
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder="Selecione o polo" />
+                                      <SelectValue placeholder={t('selectPole')} />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -512,7 +519,7 @@ export default function ProtecaoLacre() {
                             name="campoId"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Campo</FormLabel>
+                                <FormLabel>{t('field')}</FormLabel>
                                 <Select 
                                   onValueChange={(value) => {
                                     const numValue = value ? parseInt(value) : undefined;
@@ -525,7 +532,7 @@ export default function ProtecaoLacre() {
                                 >
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder="Selecione o campo" />
+                                      <SelectValue placeholder={t('selectField')} />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -603,7 +610,7 @@ export default function ProtecaoLacre() {
                             name="tipoLacre"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Tipo de Lacre</FormLabel>
+                                <FormLabel>{t('sealType')}</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
@@ -765,21 +772,21 @@ export default function ProtecaoLacre() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Plano de Lacre Eletrônico</CardTitle>
+                  <CardTitle>{t('electronicSeals')}</CardTitle>
                   <CardDescription>
-                    Gestão de acessos e credenciais para lacres eletrônicos
+                    {t('electronicSealRegistration')}
                   </CardDescription>
                 </div>
                 <Dialog open={isModalOpen && activeTab === "eletronico"} onOpenChange={setIsModalOpen}>
                   <DialogTrigger asChild>
                     <Button>
                       <Plus className="mr-2 h-4 w-4" />
-                      Novo Lacre Eletrônico
+                      {t('addElectronicSeal')}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                      <DialogTitle>Novo Lacre Eletrônico</DialogTitle>
+                      <DialogTitle>{t('addElectronicSeal')}</DialogTitle>
                       <DialogDescription>
                         Preencha as informações do lacre eletrônico
                       </DialogDescription>
@@ -1088,21 +1095,21 @@ export default function ProtecaoLacre() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Tabela de Controle de Lacres</CardTitle>
+                  <CardTitle>{t('sealControlTable')}</CardTitle>
                   <CardDescription>
-                    Controle completo de lacres, violações e substituições
+                    {t('sealControlDescription')}
                   </CardDescription>
                 </div>
                 <Dialog open={isModalOpen && activeTab === "controle"} onOpenChange={setIsModalOpen}>
                   <DialogTrigger asChild>
                     <Button>
                       <Plus className="mr-2 h-4 w-4" />
-                      Novo Registro
+                      {t('addSealControl')}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>Novo Registro de Controle</DialogTitle>
+                      <DialogTitle>{t('addSealControl')}</DialogTitle>
                       <DialogDescription>
                         Preencha as informações do controle de lacre
                       </DialogDescription>

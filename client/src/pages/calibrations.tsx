@@ -18,12 +18,14 @@ import { insertCalendarioCalibracaoSchema, type InsertCalendarioCalibracao, type
 import { queryClient } from "@/lib/queryClient";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "@/hooks/useLanguage";
 import type { CalibrationStats } from "@/types";
 
 const formSchema = insertCalendarioCalibracaoSchema;
 type FormValues = z.infer<typeof formSchema>;
 
 export default function Calibrations() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("calendar");
   const [selectedPolo, setSelectedPolo] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");

@@ -28,9 +28,11 @@ import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import InstallationForm from "@/components/installation-form";
+import { useTranslation } from "@/hooks/useLanguage";
 import type { Instalacao, Polo, Campo } from "@shared/schema";
 
 export default function Installations() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPolo, setSelectedPolo] = useState<string>("all");
   const [selectedCampo, setSelectedCampo] = useState<string>("all");
@@ -62,7 +64,7 @@ export default function Installations() {
     mutationFn: (id: number) => api.deleteInstalacao(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/instalacoes"] });
-      toast({ title: "Instalação excluída com sucesso!" });
+      toast({ title: `${t('installations').slice(0, -1)} ${t('deletedSuccessfully')}!` });
     },
     onError: (error) => {
       toast({ 
@@ -92,7 +94,7 @@ export default function Installations() {
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Tem certeza que deseja excluir esta instalação?")) {
+    if (confirm(`Tem certeza que deseja excluir esta ${t('installations').slice(0, -1).toLowerCase()}?`)) {
       deleteInstallationMutation.mutate(id);
     }
   };
@@ -135,15 +137,15 @@ export default function Installations() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Unidades de Produção</h1>
+          <h1 className="text-3xl font-bold">{t('installations')}</h1>
           <p className="text-muted-foreground">
-            Gerencie as unidades de produção de petróleo e gás
+            Gerencie as {t('installations').toLowerCase()}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">
             <Download className="w-4 h-4 mr-2" />
-            Exportar
+            {t('export')}
           </Button>
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>

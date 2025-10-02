@@ -4,9 +4,12 @@ import { Settings, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import NotificationPanel from "@/components/notification-panel";
+import { LanguageSelector } from "@/components/language-selector";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export default function Header() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const { t } = useTranslation();
   
   // Query para buscar o número de notificações não lidas
   const { data: unreadCount = 0 } = useQuery({
@@ -43,8 +46,8 @@ export default function Header() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2 md:space-x-4 flex-1 min-w-0">
           <h1 className="text-lg md:text-xl font-semibold text-foreground truncate" data-testid="page-title">
-            <span className="hidden sm:inline">Dashboard Metrológico</span>
-            <span className="sm:hidden">SGM</span>
+            <span className="hidden sm:inline">{t('metrologyDashboard')}</span>
+            <span className="sm:hidden">{t('systemName')}</span>
           </h1>
           <div className="text-xs md:text-sm text-muted-foreground hidden xs:block">
             <span data-testid="current-date" className="hidden md:inline">{formatDate(currentTime)}</span>
@@ -56,6 +59,8 @@ export default function Header() {
         <div className="flex items-center space-x-3">
           {/* Notification Panel */}
           <NotificationPanel unreadCount={unreadCount} />
+          {/* Language Selector */}
+          <LanguageSelector />
           {/* Settings */}
           <Button 
             variant="ghost" 

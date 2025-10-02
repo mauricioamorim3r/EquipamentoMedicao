@@ -13,9 +13,11 @@ import LacresKpiCards from "@/components/lacres-kpi-cards";
 import CertificateAlertsMonitor from "@/components/certificate-alerts-monitor";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useTranslation } from "@/hooks/useLanguage";
 import type { DashboardStats, CalibrationStats, EquipmentWithCalibration } from "@/types";
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [selectedEquipment, setSelectedEquipment] = useState<EquipmentWithCalibration | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [, setLocation] = useLocation();
@@ -46,11 +48,11 @@ export default function Dashboard() {
   };
 
   const getStatusBadge = (diasParaVencer?: number) => {
-    if (!diasParaVencer && diasParaVencer !== 0) return { text: 'Sem dados', className: 'bg-gray-100 text-gray-800' };
-    if (diasParaVencer <= 0) return { text: 'Vencido', className: 'bg-red-100 text-red-800' };
-    if (diasParaVencer <= 7) return { text: 'Crítico', className: 'bg-orange-100 text-orange-800' };
-    if (diasParaVencer <= 30) return { text: 'Alerta', className: 'bg-yellow-100 text-yellow-800' };
-    return { text: 'OK', className: 'bg-green-100 text-green-800' };
+    if (!diasParaVencer && diasParaVencer !== 0) return { text: t('noData'), className: 'bg-gray-100 text-gray-800' };
+    if (diasParaVencer <= 0) return { text: t('expired'), className: 'bg-red-100 text-red-800' };
+    if (diasParaVencer <= 7) return { text: t('critical'), className: 'bg-orange-100 text-orange-800' };
+    if (diasParaVencer <= 30) return { text: t('alert'), className: 'bg-yellow-100 text-yellow-800' };
+    return { text: t('ok'), className: 'bg-green-100 text-green-800' };
   };
 
   const getCalibrationStatusData = (stats: CalibrationStats) => {
@@ -130,9 +132,9 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Status de Calibrações</CardTitle>
+              <CardTitle>{t('calibrationStatus')}</CardTitle>
               <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-                Ver todos <ArrowRight className="ml-1 w-4 h-4" />
+                {t('seeAll')} <ArrowRight className="ml-1 w-4 h-4" />
               </Button>
             </div>
           </CardHeader>
@@ -170,7 +172,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Distribuição por Polos</CardTitle>
+              <CardTitle>{t('poleDistribution')}</CardTitle>
               <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
                 Detalhes <ExternalLink className="ml-1 w-4 h-4" />
               </Button>
@@ -219,7 +221,7 @@ export default function Dashboard() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Equipamentos Críticos</CardTitle>
+                <CardTitle>{t('criticalEquipments')}</CardTitle>
                 <div className="flex space-x-2">
                   <select 
                     className="text-sm border border-border rounded px-2 py-1 bg-background"
@@ -312,7 +314,7 @@ export default function Dashboard() {
         {/* Ações Rápidas */}
         <Card>
           <CardHeader>
-            <CardTitle>Ações Rápidas</CardTitle>
+            <CardTitle>{t('quickActions')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">

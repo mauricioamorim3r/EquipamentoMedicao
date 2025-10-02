@@ -10,10 +10,12 @@ import { Plus, Search, Edit, Trash2, Ruler, CheckCircle, AlertCircle, Calendar, 
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useLanguage";
 import EnhancedStraightSectionForm from "@/components/enhanced-straight-section-form";
 import type { TrechoReto, Equipamento } from "@shared/schema";
 
 export default function TrechosRetos() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -68,7 +70,7 @@ export default function TrechosRetos() {
     mutationFn: (id: number) => api.deleteTrechoReto(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/trechos-retos"] });
-      toast({ title: "Trecho reto excluído com sucesso!" });
+      toast({ title: `Trecho reto ${t('deletedSuccessfully')}!` });
     },
     onError: (error: any) => {
       toast({
