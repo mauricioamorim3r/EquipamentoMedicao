@@ -1196,13 +1196,26 @@ export const insertAnaliseQuimicaSchema = z.object({
 });
 export const insertValvulaSchema = z.object({
   numeroSerie: z.string(),
-  tagValvula: z.string().optional(),
-  modelo: z.string().optional(),
-  fabricante: z.string().optional(),
+  tagValvula: z.string(),
   tipoValvula: z.string().optional(),
+  fabricante: z.string().optional(),
+  modelo: z.string().optional(),
+  poloId: z.number().optional(),
+  instalacaoId: z.number().optional(),
+  pontoInstalacaoId: z.number().optional(),
+  equipamentoId: z.number().optional(),
+  localInstalacao: z.string().optional(),
+  classificacao: z.string().optional(),
+  finalidadeSistema: z.string().optional(),
+  classePressaoDiametro: z.string().optional(),
+  diametroNominal: z.number().optional(),
+  dataUltimoTeste: z.string().optional(),
+  resultadoUltimoTeste: z.string().optional(),
+  periodicidadeTeste: z.number().optional(),
+  dataPrevistaProximoTeste: z.string().optional(),
+  relatorioEstanqueidadePath: z.string().optional(),
   statusOperacional: z.string().optional(),
-  dataInstalacao: z.string().optional(),
-  observacoes: z.string().optional(),
+  observacao: z.string().optional(),
 });
 export const insertControleIncertezaSchema = createInsertSchema(controleIncertezas);
 export const insertIncertezaLimiteSchema = createInsertSchema(incertezaLimites);

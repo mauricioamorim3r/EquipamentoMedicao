@@ -43,7 +43,10 @@ const LoadingFallback = () => (
 function Router() {
   return (
     <div className="flex h-screen">
-      <Sidebar />
+      {/* Desktop Sidebar */}
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-y-auto bg-background px-4 md:px-6">

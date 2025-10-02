@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { polos, campos, instalacoes, equipamentos, pontosMedicao, trechosRetos, placasOrificio } from "../../shared/schema";
+import { polos, campos, instalacoes, equipamentos, pontosMedicao, trechosRetos, placasOrificio, valvulas } from "../../shared/schema";
 
 export async function seedDatabase() {
   console.log("🌱 Inserindo dados de exemplo...");
@@ -228,6 +228,48 @@ export async function seedDatabase() {
     } as any).returning();
 
     console.log(`✅ ${placasOrificioData.length} placas de orifício inseridas`);
+
+    // Inserir Válvulas
+    const valvulasData = await db.insert(valvulas).values([
+      {
+        numeroSerie: "VL001-2024",
+        equipamentoId: equipamentosData[0].id,
+        instalacaoId: instalacoesData[0].id,
+        tag: "VL-GAS-001-BUZ",
+        nome: "Válvula de Bloqueio Gás Principal",
+        tipoValvula: "Bloqueio",
+        fabricante: "Cameron",
+        modelo: "DB-600-DN200",
+        classe: "600",
+        material: "AISI 316L",
+        diametroNominal: 200,
+        diametroEntrada: 200,
+        diametroSaida: 200,
+        coeficienteDescarga: 0.95,
+        observacao: "Válvula principal de bloqueio na linha de gás",
+        status: "ativo"
+      },
+      {
+        numeroSerie: "VL002-2024", 
+        equipamentoId: equipamentosData[2].id,
+        instalacaoId: instalacoesData[1].id,
+        tag: "VL-OIL-001-MAR",
+        nome: "Válvula de Controle Óleo Principal",
+        tipoValvula: "Controle",
+        fabricante: "Fisher",
+        modelo: "ED-900-DN150",
+        classe: "900",
+        material: "AISI 316L",
+        diametroNominal: 150,
+        diametroEntrada: 150,
+        diametroSaida: 150,
+        coeficienteDescarga: 0.92,
+        observacao: "Válvula de controle de fluxo na linha de óleo",
+        status: "ativo"
+      }
+    ] as any).returning();
+
+    console.log(`✅ ${valvulasData.length} válvulas inseridas`);
 
     console.log("🎉 Dados de exemplo inseridos com sucesso!");
 
