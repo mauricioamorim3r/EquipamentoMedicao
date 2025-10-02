@@ -9,13 +9,10 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Configuração SSL para produção (Render) e desenvolvimento (Neon)
-const isProduction = process.env.NODE_ENV === 'production';
-const isRender = process.env.RENDER === 'true' || process.env.DATABASE_URL?.includes('render');
-
+// Configuração para produção com SSL
 const poolConfig = {
   connectionString: process.env.DATABASE_URL,
-  ssl: (isProduction || isRender) ? { rejectUnauthorized: false } : false,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
@@ -24,8 +21,8 @@ const poolConfig = {
 export const pool = new Pool(poolConfig);
 export const db = drizzle(pool, { schema });
 
-// Log de configuração
+// Log da configuração (sem mostrar credenciais)
 console.log(`🗄️ Database configured for ${process.env.NODE_ENV || 'development'} mode`);
-if (poolConfig.ssl) {
-  console.log('🔒 SSL connection enabled');
+if (process.env.NODE_ENV === 'production') {
+  console.log('🔒 SSL connection enabled for production');
 }
