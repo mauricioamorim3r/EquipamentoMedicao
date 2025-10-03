@@ -176,10 +176,6 @@ export default function Calibrations() {
           </p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" data-testid="button-upload-certificate" onClick={handleUploadCertificate}>
-            <Upload className="w-4 h-4 mr-2" />
-            Upload Certificado
-          </Button>
           <Button data-testid="button-schedule-calibration" onClick={handleScheduleCalibration}>
             <Plus className="w-4 h-4 mr-2" />
             Agendar Calibração

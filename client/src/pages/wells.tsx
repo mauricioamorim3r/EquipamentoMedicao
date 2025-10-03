@@ -185,10 +185,6 @@ export default function Wells() {
           </p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" data-testid="button-import-btp">
-            <Upload className="w-4 h-4 mr-2" />
-            Importar BTP
-          </Button>
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
               <Button onClick={openNewWellForm} data-testid="button-new-well">

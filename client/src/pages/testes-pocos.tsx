@@ -229,10 +229,6 @@ export default function TestesPocos() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Upload className="w-4 h-4 mr-2" />
-            Importar BTP
-          </Button>
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -340,7 +336,7 @@ export default function TestesPocos() {
                 <SelectValue placeholder="Todos os Polos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os Polos</SelectItem>
+                <SelectItem value="all">Todos os Polos</SelectItem>
                 {polos.map((polo: any) => (
                   <SelectItem key={polo.id} value={polo.id.toString()}>
                     {polo.sigla} - {polo.nome}
@@ -354,7 +350,7 @@ export default function TestesPocos() {
                 <SelectValue placeholder="Todas as Instalações" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as Instalações</SelectItem>
+                <SelectItem value="all">Todas as Instalações</SelectItem>
                 {instalacoes.map((instalacao: any) => (
                   <SelectItem key={instalacao.id} value={instalacao.id.toString()}>
                     {instalacao.sigla} - {instalacao.nome}
@@ -368,7 +364,7 @@ export default function TestesPocos() {
                 <SelectValue placeholder="Tipo de Teste" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os Tipos</SelectItem>
+                <SelectItem value="all">Todos os Tipos</SelectItem>
                 <SelectItem value="BTP">BTP</SelectItem>
                 <SelectItem value="Produção">Produção</SelectItem>
                 <SelectItem value="Potencial">Potencial</SelectItem>
