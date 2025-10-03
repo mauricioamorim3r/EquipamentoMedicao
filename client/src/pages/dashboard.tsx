@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Plus, Calendar, Upload, FileText, Flame, ExternalLink, Download, BarChart3, TrendingUp } from "lucide-react";
+import { ArrowRight, ExternalLink, Download, Calendar } from "lucide-react";
 import { api } from "@/lib/api";
 import KpiCards from "@/components/kpi-cards";
 import OperationalCards from "@/components/operational-cards";
@@ -111,7 +111,7 @@ export default function Dashboard() {
   ).slice(0, 4) || [];
 
   return (
-    <div className="p-6">
+    <div className="space-y-6">
       {/* KPI Cards */}
       <KpiCards stats={dashboardStats || {} as DashboardStats} isLoading={statsLoading} />
 
@@ -311,122 +311,6 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Ações Rápidas */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('quickActions')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <Button 
-                variant="outline"
-                className="w-full justify-start p-3 h-auto"
-                onClick={() => setLocation('/equipamentos')}
-                data-testid="quick-action-new-equipment"
-              >
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mr-3">
-                    <Plus className="text-primary w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium text-foreground">Novo Equipamento</p>
-                    <p className="text-xs text-muted-foreground">Cadastrar equipamento</p>
-                  </div>
-                </div>
-              </Button>
-
-              <Button 
-                variant="outline"
-                className="w-full justify-start p-3 h-auto"
-                onClick={() => setLocation('/calibracoes')}
-                data-testid="quick-action-schedule-calibration"
-              >
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center mr-3">
-                    <Calendar className="text-orange-500 w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium text-foreground">Agendar Calibração</p>
-                    <p className="text-xs text-muted-foreground">Programar calibração</p>
-                  </div>
-                </div>
-              </Button>
-
-              <Button 
-                variant="outline"
-                className="w-full justify-start p-3 h-auto"
-                onClick={() => alert('Funcionalidade de upload em desenvolvimento')}
-                data-testid="quick-action-upload-certificate"
-              >
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center mr-3">
-                    <Upload className="text-green-500 w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium text-foreground">Upload Certificado</p>
-                    <p className="text-xs text-muted-foreground">Anexar certificação</p>
-                  </div>
-                </div>
-              </Button>
-
-              <Button 
-                variant="outline"
-                className="w-full justify-start p-3 h-auto"
-                data-testid="quick-action-generate-report"
-              >
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mr-3">
-                    <FileText className="text-blue-500 w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium text-foreground">Gerar Relatório</p>
-                    <p className="text-xs text-muted-foreground">Relatórios regulamentares</p>
-                  </div>
-                </div>
-              </Button>
-
-              <Button 
-                variant="outline"
-                className="w-full justify-start p-3 h-auto"
-                data-testid="quick-action-manage-wells"
-              >
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center mr-3">
-                    <Flame className="text-purple-500 w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium text-foreground">Gestão de Poços</p>
-                    <p className="text-xs text-muted-foreground">Controle BTP</p>
-                  </div>
-                </div>
-              </Button>
-            </div>
-            
-            <div className="mt-6 pt-4 border-t border-border space-y-3">
-              <Button 
-                className="w-full"
-                data-testid="dashboard-complete-button"
-                onClick={() => setLocation("/dashboard-completo")}
-              >
-                <BarChart3 className="mr-2 w-4 h-4" />
-                Dashboard Completo
-              </Button>
-              
-              <AdvancedMetricsModal
-                trigger={
-                  <Button 
-                    variant="outline"
-                    className="w-full"
-                    data-testid="advanced-metrics-button"
-                  >
-                    <TrendingUp className="mr-2 w-4 h-4" />
-                    Métricas Avançadas
-                  </Button>
-                }
-              />
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Monitor de Alertas de Certificados */}
