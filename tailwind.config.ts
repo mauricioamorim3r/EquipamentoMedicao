@@ -7,6 +7,9 @@ export default {
     extend: {
       screens: {
         'xs': '475px',
+        'xxl': '1536px',
+        'mobile-h': { 'raw': '(max-height: 800px)' },
+        'mobile-landscape': { 'raw': '(orientation: landscape) and (max-height: 500px)' },
       },
       borderRadius: {
         lg: "var(--radius)",
