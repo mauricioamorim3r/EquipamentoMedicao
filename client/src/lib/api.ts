@@ -228,4 +228,71 @@ export const api = {
   createTestePoco: (data: any) => apiRequest("POST", "/api/testes-pocos", data),
   updateTestePoco: (id: number, data: any) => apiRequest("PUT", `/api/testes-pocos/${id}`, data),
   deleteTestePoco: (id: number) => apiRequest("DELETE", `/api/testes-pocos/${id}`),
+
+  // Reports
+  generateReport: async (type: string, format: string, filters?: any) => {
+    const response = await fetch("/api/reports/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ type, format, filters }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ao gerar relatório: ${response.statusText}`);
+    }
+
+    // Get filename from Content-Disposition header
+    const contentDisposition = response.headers.get('Content-Disposition');
+    const filename = contentDisposition?.match(/filename="([^"]+)"/)?.[1] || `relatorio.${format}`;
+
+    const blob = await response.blob();
+    
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    return { success: true, filename };
+  },
+
+  downloadComplianceReport: (format: 'pdf' | 'excel' | 'csv') => {
+    const url = `/api/reports/compliance/${format}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `relatorio_conformidade.${format === 'excel' ? 'xlsx' : format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  },
+
+  downloadPoloReport: (poloId?: number, format: 'pdf' = 'pdf') => {
+    const url = poloId ? `/api/reports/polo/${format}?poloId=${poloId}` : `/api/reports/polo/${format}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `relatorio_polo.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  },
+
+  downloadANPReport: (format: 'xml' = 'xml') => {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    
+    const url = `/api/reports/anp/monthly-${format}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `anp_mensal_${year}_${month}.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  },
 };

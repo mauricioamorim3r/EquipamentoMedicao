@@ -44,6 +44,7 @@ const getMenuItems = (t: (key: string) => string) => [
   { path: "/testes-pocos", label: t("wellTests"), icon: FlaskConical },
   { path: "/analises-quimicas", label: t("chemicalAnalysis"), icon: FlaskConical },
   { path: "/controle-incertezas", label: t("uncertaintyControl"), icon: AlertCircle },
+  { path: "/relatorios", label: t("reports"), icon: FileText },
   { path: "/ajuda", label: t("helpCenter"), icon: HelpCircle },
 ];
 

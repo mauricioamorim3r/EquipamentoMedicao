@@ -25,6 +25,7 @@ import {
 import { api } from "@/lib/api";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 import type { DashboardStats, CalibrationStats } from "@/types";
 
 export default function Reports() {
@@ -33,6 +34,8 @@ export default function Reports() {
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [reportType, setReportType] = useState<string>("monthly");
+
+  const { toast } = useToast();
 
   // Fetch data for reports
   const { data: dashboardStats, isLoading: statsLoading } = useQuery({
@@ -55,10 +58,28 @@ export default function Reports() {
     queryFn: api.getPolos,
   });
 
-  const generateReport = (type: string, format: string) => {
-    // In a real application, this would call an API endpoint to generate the report
-    console.log(`Generating ${type} report in ${format} format`);
-    // For now, we'll just show a toast
+  const generateReport = async (type: string, format: string) => {
+    try {
+      const filters = {
+        poloId: selectedPolo ? parseInt(selectedPolo) : undefined,
+        startDate,
+        endDate,
+      };
+
+      await api.generateReport(type, format, filters);
+      
+      toast({
+        title: "Relatório gerado com sucesso",
+        description: `Relatório ${type} em formato ${format} foi baixado.`,
+      });
+    } catch (error) {
+      console.error("Error generating report:", error);
+      toast({
+        title: "Erro ao gerar relatório",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    }
   };
 
   const getComplianceStats = () => {
@@ -97,7 +118,10 @@ export default function Reports() {
             <Send className="w-4 h-4 mr-2" />
             Agendar Envios
           </Button>
-          <Button data-testid="button-quick-export">
+          <Button 
+            onClick={() => generateReport('compliance', 'pdf')}
+            data-testid="button-quick-export"
+          >
             <Download className="w-4 h-4 mr-2" />
             Exportação Rápida
           </Button>

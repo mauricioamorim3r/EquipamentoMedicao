@@ -20,6 +20,7 @@ export const translations = {
     wellTests: 'Testes de Poços',
     chemicalAnalysis: 'Análises Químicas',
     uncertaintyControl: 'Controle de Incertezas',
+    reports: 'Relatórios',
     helpCenter: 'Central de Ajuda',
 
     // Common terms
@@ -218,6 +219,7 @@ export const translations = {
     wellTests: 'Well Tests',
     chemicalAnalysis: 'Chemical Analysis',
     uncertaintyControl: 'Uncertainty Control',
+    reports: 'Reports',
     helpCenter: 'Help Center',
 
     // Protection and Sealing specific

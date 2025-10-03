@@ -10,6 +10,7 @@ import {
   exportDashboardStats,
 } from "./exportUtils";
 import { TEMPLATES, generateTemplate, parseImportedFile } from "./templateUtils";
+import { ReportGenerator } from "./reportGenerator";
 import {
   insertPoloSchema, insertInstalacaoSchema, insertEquipamentoSchema,
   insertPontoMedicaoSchema, insertPlanoCalibracaoSchema, insertCadastroPocoSchema,
@@ -2181,6 +2182,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error checking old lacres:", error);
       res.status(500).json({ error: "Erro ao verificar lacres antigos" });
+    }
+  });
+
+  // Report Generation Endpoints
+  const reportGenerator = new ReportGenerator(storage);
+
+  // Compliance Reports
+  app.get("/api/reports/compliance/pdf", async (req, res) => {
+    try {
+      const pdfBuffer = await reportGenerator.generateCompliancePDF();
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="relatorio_conformidade.pdf"');
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating compliance PDF:", error);
+      res.status(500).json({ error: "Erro ao gerar relatório PDF" });
+    }
+  });
+
+  app.get("/api/reports/compliance/excel", async (req, res) => {
+    try {
+      const excelBuffer = await reportGenerator.generateComplianceExcel();
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename="relatorio_conformidade.xlsx"');
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error("Error generating compliance Excel:", error);
+      res.status(500).json({ error: "Erro ao gerar relatório Excel" });
+    }
+  });
+
+  app.get("/api/reports/compliance/csv", async (req, res) => {
+    try {
+      const csvData = await reportGenerator.generateComplianceCSV();
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="relatorio_conformidade.csv"');
+      res.send('\ufeff' + csvData); // UTF-8 BOM for Excel compatibility
+    } catch (error) {
+      console.error("Error generating compliance CSV:", error);
+      res.status(500).json({ error: "Erro ao gerar relatório CSV" });
+    }
+  });
+
+  // Polo Reports
+  app.get("/api/reports/polo/pdf", async (req, res) => {
+    try {
+      const poloId = req.query.poloId ? parseInt(req.query.poloId as string) : undefined;
+      const pdfBuffer = await reportGenerator.generatePoloReportPDF(poloId);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="relatorio_polo.pdf"');
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating polo PDF:", error);
+      res.status(500).json({ error: "Erro ao gerar relatório de polo PDF" });
+    }
+  });
+
+  // ANP Reports
+  app.get("/api/reports/anp/monthly-xml", async (req, res) => {
+    try {
+      const xmlData = await reportGenerator.generateANPMonthlyXML();
+      res.setHeader('Content-Type', 'application/xml');
+      res.setHeader('Content-Disposition', `attachment; filename="anp_mensal_${new Date().getFullYear()}_${(new Date().getMonth() + 1).toString().padStart(2, '0')}.xml"`);
+      res.send(xmlData);
+    } catch (error) {
+      console.error("Error generating ANP XML:", error);
+      res.status(500).json({ error: "Erro ao gerar relatório ANP XML" });
+    }
+  });
+
+  // Generic report endpoint
+  app.post("/api/reports/generate", async (req, res) => {
+    try {
+      const { type, format, filters } = req.body;
+      
+      switch (type) {
+        case 'compliance':
+          switch (format) {
+            case 'pdf':
+              const pdfBuffer = await reportGenerator.generateCompliancePDF();
+              res.setHeader('Content-Type', 'application/pdf');
+              res.setHeader('Content-Disposition', 'attachment; filename="relatorio_conformidade.pdf"');
+              return res.send(pdfBuffer);
+            case 'excel':
+              const excelBuffer = await reportGenerator.generateComplianceExcel();
+              res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+              res.setHeader('Content-Disposition', 'attachment; filename="relatorio_conformidade.xlsx"');
+              return res.send(excelBuffer);
+            case 'csv':
+              const csvData = await reportGenerator.generateComplianceCSV();
+              res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+              res.setHeader('Content-Disposition', 'attachment; filename="relatorio_conformidade.csv"');
+              return res.send('\ufeff' + csvData);
+          }
+          break;
+        case 'polo':
+          if (format === 'pdf') {
+            const pdfBuffer = await reportGenerator.generatePoloReportPDF(filters?.poloId);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename="relatorio_polo.pdf"');
+            return res.send(pdfBuffer);
+          }
+          break;
+        case 'anp-monthly':
+          if (format === 'xml') {
+            const xmlData = await reportGenerator.generateANPMonthlyXML();
+            res.setHeader('Content-Type', 'application/xml');
+            res.setHeader('Content-Disposition', `attachment; filename="anp_mensal_${new Date().getFullYear()}_${(new Date().getMonth() + 1).toString().padStart(2, '0')}.xml"`);
+            return res.send(xmlData);
+          }
+          break;
+      }
+      
+      res.status(400).json({ error: "Tipo ou formato de relatório não suportado" });
+    } catch (error) {
+      console.error("Error generating report:", error);
+      res.status(500).json({ error: "Erro ao gerar relatório" });
     }
   });
 
