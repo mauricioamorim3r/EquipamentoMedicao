@@ -6,7 +6,6 @@ import {
   Cylinder, 
   Gauge, 
   TestTube, 
-  Ship, 
   Calendar, 
   AlertCircle,
   TrendingUp,
@@ -15,53 +14,149 @@ import {
   MapPin
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 interface OperationalCardsProps {
   isLoading?: boolean;
 }
 
-// Mock data - in real application this would come from props or API calls
-const operationalData = {
-  proximosTestesPocos: {
-    total: 12,
-    proximos7dias: 3,
-    proximos30dias: 5,
-    atrasados: 1,
-    proximoTeste: { poco: "POC-001", data: "2025-10-05", instalacao: "FPSO-RJ" }
-  },
-  cilindros: {
-    totalAtivo: 45,
-    aguardandoTeste: 8,
-    prontos: 32,
-    manutencao: 5,
-    distribuicao: [
-      { instalacao: "FPSO-RJ", quantidade: 15 },
-      { instalacao: "FPSO-ES", quantidade: 12 },
-      { instalacao: "FPSO-BA", quantidade: 18 }
-    ]
-  },
-  proximasValvulas: {
-    total: 28,
-    criticas: 4,
-    proximas: 8,
-    proximaValvula: { tag: "PSV-001", data: "2025-10-03", tipo: "Pressão" }
-  },
-  cromatografias: {
-    ultimasRecebidas: 15,
-    pendentesAnalise: 3,
-    proximaColeta: "2025-10-07",
-    ultimaData: "2025-09-28"
-  },
-  janelasEmbarque: {
-    proximaJanela: "2025-10-08",
-    destino: "FPSO-RJ",
-    coletasPendentes: 6,
-    diasRestantes: 8
-  }
-};
+
 
 export default function OperationalCards({ isLoading = false }: OperationalCardsProps) {
   const [, setLocation] = useLocation();
+
+  // Query real data from APIs
+  const { data: testesPocos = [] } = useQuery({
+    queryKey: ["/api/testes-pocos"],
+    queryFn: () => api.getTestesPocos(),
+  });
+
+  const { data: cilindros = [] } = useQuery({
+    queryKey: ["/api/gestao-cilindros"],
+    queryFn: () => api.getGestaoCilindros(),
+  });
+
+  const { data: valvulas = [] } = useQuery({
+    queryKey: ["/api/valvulas"],
+    queryFn: () => api.getValvulas(),
+  });
+
+  const { data: planosColeta = [] } = useQuery({
+    queryKey: ["/api/planos-coleta"],
+    queryFn: () => api.getPlanosColeta(),
+  });
+
+  const { data: trechosRetos = [] } = useQuery({
+    queryKey: ["/api/trechos-retos"],
+    queryFn: () => api.getTrechosRetos(),
+  });
+
+  const { data: placasOrificio = [] } = useQuery({
+    queryKey: ["/api/placas-orificio"],
+    queryFn: () => api.getPlacasOrificio(),
+  });
+
+  // Calculate real operational data from queries
+  const operationalData = {
+    proximosTestesPocos: {
+      total: testesPocos.length,
+      proximos7dias: testesPocos.filter((t: any) => {
+        if (!t.dataProximoTeste) return false;
+        const proxima = new Date(t.dataProximoTeste);
+        const hoje = new Date();
+        const diff = Math.ceil((proxima.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+        return diff >= 0 && diff <= 7;
+      }).length,
+      proximos30dias: testesPocos.filter((t: any) => {
+        if (!t.dataProximoTeste) return false;
+        const proxima = new Date(t.dataProximoTeste);
+        const hoje = new Date();
+        const diff = Math.ceil((proxima.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+        return diff >= 0 && diff <= 30;
+      }).length,
+      atrasados: testesPocos.filter((t: any) => {
+        if (!t.dataProximoTeste) return false;
+        const proxima = new Date(t.dataProximoTeste);
+        const hoje = new Date();
+        return proxima < hoje;
+      }).length,
+      proximoTeste: testesPocos.length > 0 ? {
+        poco: testesPocos[0].pocoId || 'N/A',
+        data: testesPocos[0].dataProximoTeste || 'N/A',
+        instalacao: 'N/A'
+      } : null
+    },
+    cilindros: {
+      totalAtivo: cilindros.length,
+      aguardandoTeste: cilindros.filter((c: any) => c.status === 'aguardando_teste').length,
+      prontos: cilindros.filter((c: any) => c.status === 'pronto').length,
+      manutencao: cilindros.filter((c: any) => c.status === 'manutencao').length,
+      distribuicao: []
+    },
+    proximasValvulas: {
+      total: valvulas.length,
+      criticas: valvulas.filter((v: any) => {
+        if (!v.proximaCalibracao) return false;
+        const proxima = new Date(v.proximaCalibracao);
+        const hoje = new Date();
+        const diff = Math.ceil((proxima.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+        return diff <= 7;
+      }).length,
+      proximas: valvulas.filter((v: any) => {
+        if (!v.proximaCalibracao) return false;
+        const proxima = new Date(v.proximaCalibracao);
+        const hoje = new Date();
+        const diff = Math.ceil((proxima.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+        return diff > 7 && diff <= 30;
+      }).length,
+      proximaValvula: valvulas.length > 0 ? {
+        tag: valvulas[0].tag || 'N/A',
+        data: valvulas[0].proximaCalibracao || 'N/A',
+        tipo: valvulas[0].tipoValvula || 'N/A'
+      } : null
+    },
+    cromatografias: {
+      ultimasRecebidas: planosColeta.filter((p: any) => p.status === 'concluido').length,
+      pendentesAnalise: planosColeta.filter((p: any) => p.status === 'laboratorio').length,
+      proximaColeta: planosColeta.find((p: any) => p.status === 'agendado')?.dataColeta || null,
+      ultimaData: planosColeta.filter((p: any) => p.status === 'concluido').sort((a: any, b: any) => 
+        new Date(b.dataColeta || 0).getTime() - new Date(a.dataColeta || 0).getTime()
+      )[0]?.dataColeta || null
+    },
+    trechosRetos: {
+      total: trechosRetos.length,
+      ativos: trechosRetos.filter((tr: any) => tr.status !== 'inativo').length,
+      aguardandoInspecao: trechosRetos.filter((tr: any) => {
+        if (!tr.dataInspecao) return false;
+        const inspecao = new Date(tr.dataInspecao);
+        const hoje = new Date();
+        const diff = Math.ceil((hoje.getTime() - inspecao.getTime()) / (1000 * 60 * 60 * 24));
+        return diff > 365; // Mais de 1 ano desde última inspeção
+      }).length,
+      proximoTrecho: trechosRetos.length > 0 ? {
+        numeroSerie: trechosRetos[0].numeroSerie || 'N/A',
+        dataInspecao: trechosRetos[0].dataInspecao || 'N/A',
+        classe: trechosRetos[0].classe || 'N/A'
+      } : null
+    },
+    placasOrificio: {
+      total: placasOrificio.length,
+      ativas: placasOrificio.filter((po: any) => po.status !== 'inativa').length,
+      aguardandoInspecao: placasOrificio.filter((po: any) => {
+        if (!po.dataInspecao) return false;
+        const inspecao = new Date(po.dataInspecao);
+        const hoje = new Date();
+        const diff = Math.ceil((hoje.getTime() - inspecao.getTime()) / (1000 * 60 * 60 * 24));
+        return diff > 180; // Mais de 6 meses desde última inspeção
+      }).length,
+      proximaPlaca: placasOrificio.length > 0 ? {
+        numeroSerie: placasOrificio[0].numeroSerie || 'N/A',
+        dataInspecao: placasOrificio[0].dataInspecao || 'N/A',
+        diametroOrificio: placasOrificio[0].diametroOrificio20c || 'N/A'
+      } : null
+    }
+  };
 
   if (isLoading) {
     return (
@@ -116,15 +211,21 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
                   </Badge>
                 </div>
                 
-                <div className="bg-blue-50 p-2 rounded-md">
-                  <p className="text-xs font-medium text-blue-800">Próximo:</p>
-                  <p className="text-sm text-blue-700">
-                    {operationalData.proximosTestesPocos.proximoTeste.poco} - {operationalData.proximosTestesPocos.proximoTeste.data}
-                  </p>
-                  <p className="text-xs text-blue-600">
-                    {operationalData.proximosTestesPocos.proximoTeste.instalacao}
-                  </p>
-                </div>
+                {operationalData.proximosTestesPocos.proximoTeste ? (
+                  <div className="bg-blue-50 p-2 rounded-md">
+                    <p className="text-xs font-medium text-blue-800">Próximo:</p>
+                    <p className="text-sm text-blue-700">
+                      {operationalData.proximosTestesPocos.proximoTeste.poco} - {operationalData.proximosTestesPocos.proximoTeste.data}
+                    </p>
+                    <p className="text-xs text-blue-600">
+                      {operationalData.proximosTestesPocos.proximoTeste.instalacao}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-2 rounded-md">
+                    <p className="text-xs text-gray-600">Nenhum teste programado</p>
+                  </div>
+                )}
                 
                 {operationalData.proximosTestesPocos.atrasados > 0 && (
                   <div className="flex items-center text-xs text-orange-700">
@@ -178,12 +279,16 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
                 </div>
                 
                 <div className="space-y-1">
-                  {operationalData.cilindros.distribuicao.slice(0, 2).map((dist, index) => (
-                    <div key={index} className="flex justify-between items-center text-xs">
-                      <span className="text-muted-foreground">{dist.instalacao}</span>
-                      <Badge variant="outline" className="text-green-700">{dist.quantidade}</Badge>
-                    </div>
-                  ))}
+                  {operationalData.cilindros && operationalData.cilindros.distribuicao ? 
+                    operationalData.cilindros.distribuicao.slice(0, 2).map((dist, index) => (
+                      <div key={index} className="flex justify-between items-center text-xs">
+                        <span className="text-muted-foreground">{dist.instalacao}</span>
+                        <Badge variant="outline" className="text-green-700">{dist.quantidade}</Badge>
+                      </div>
+                    )) : (
+                      <p className="text-xs text-muted-foreground">Aguardando dados...</p>
+                    )
+                  }
                 </div>
               </div>
             </CardContent>
@@ -218,15 +323,21 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
                   </Badge>
                 </div>
                 
-                <div className="bg-purple-50 p-2 rounded-md">
-                  <p className="text-xs font-medium text-purple-800">Próxima:</p>
-                  <p className="text-sm text-purple-700">
-                    {operationalData.proximasValvulas.proximaValvula.tag} - {operationalData.proximasValvulas.proximaValvula.data}
-                  </p>
-                  <p className="text-xs text-purple-600">
-                    Válvula de {operationalData.proximasValvulas.proximaValvula.tipo}
-                  </p>
-                </div>
+                {operationalData.proximasValvulas.proximaValvula ? (
+                  <div className="bg-purple-50 p-2 rounded-md">
+                    <p className="text-xs font-medium text-purple-800">Próxima:</p>
+                    <p className="text-sm text-purple-700">
+                      {operationalData.proximasValvulas.proximaValvula.tag} - {operationalData.proximasValvulas.proximaValvula.data}
+                    </p>
+                    <p className="text-xs text-purple-600">
+                      Válvula de {operationalData.proximasValvulas.proximaValvula.tipo}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-2 rounded-md">
+                    <p className="text-xs text-gray-600">Nenhuma válvula programada</p>
+                  </div>
+                )}
                 
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Próx. 30 dias:</span>
@@ -297,18 +408,20 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
             </CardContent>
           </Card>
 
-          {/* Card: Janela de Embarque */}
+
+
+          {/* Card: Trechos Retos */}
           <Card 
-            className="border-l-4 border-l-orange-500 hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => alert('Funcionalidade de embarque em desenvolvimento')}
+            className="border-l-4 border-l-violet-500 hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => setLocation('/trechos-retos')}
           >
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-orange-700">
-                  Próxima Janela de Embarque
+                <CardTitle className="text-sm font-medium text-violet-700">
+                  Trechos Retos
                 </CardTitle>
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Ship className="w-5 h-5 text-orange-700" />
+                <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
+                  <Gauge className="w-5 h-5 text-violet-600" />
                 </div>
               </div>
             </CardHeader>
@@ -316,35 +429,93 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
               <div className="space-y-3">
                 <div className="flex items-end justify-between">
                   <div>
-                    <p className="text-2xl font-bold text-orange-700">
-                      {operationalData.janelasEmbarque.diasRestantes}
+                    <p className="text-2xl font-bold text-violet-600">
+                      {operationalData.trechosRetos.total}
                     </p>
-                    <p className="text-xs text-muted-foreground">dias restantes</p>
+                    <p className="text-xs text-muted-foreground">total instalados</p>
                   </div>
-                  <Badge variant="outline" className="text-orange-700 border-orange-200">
-                    {operationalData.janelasEmbarque.coletasPendentes} coletas
+                  <Badge variant="outline" className="text-violet-600 border-violet-200">
+                    {operationalData.trechosRetos.ativos} ativos
                   </Badge>
                 </div>
                 
-                <div className="bg-orange-50 p-2 rounded-md">
-                  <div className="flex items-center mb-1">
-                    <Calendar className="w-3 h-3 text-orange-700 mr-1" />
-                    <p className="text-xs font-medium text-orange-800">
-                      {operationalData.janelasEmbarque.proximaJanela}
+                {operationalData.trechosRetos.proximoTrecho ? (
+                  <div className="bg-violet-50 p-2 rounded-md">
+                    <p className="text-xs font-medium text-violet-800">Próxima Inspeção:</p>
+                    <p className="text-sm text-violet-700">
+                      {operationalData.trechosRetos.proximoTrecho.numeroSerie} - Classe {operationalData.trechosRetos.proximoTrecho.classe}
+                    </p>
+                    <p className="text-xs text-violet-600">
+                      Última: {operationalData.trechosRetos.proximoTrecho.dataInspecao}
                     </p>
                   </div>
-                  <div className="flex items-center">
-                    <MapPin className="w-3 h-3 text-orange-700 mr-1" />
-                    <p className="text-xs text-orange-700">
-                      Destino: {operationalData.janelasEmbarque.destino}
-                    </p>
+                ) : (
+                  <div className="bg-gray-50 p-2 rounded-md">
+                    <p className="text-xs text-gray-600">Nenhum trecho cadastrado</p>
                   </div>
+                )}
+                
+                {operationalData.trechosRetos.aguardandoInspecao > 0 && (
+                  <div className="flex items-center text-xs text-orange-700">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    {operationalData.trechosRetos.aguardandoInspecao} aguardando inspeção
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card: Placas de Orifício */}
+          <Card 
+            className="border-l-4 border-l-pink-500 hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => setLocation('/placas-orificio')}
+          >
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-pink-700">
+                  Placas de Orifício
+                </CardTitle>
+                <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-pink-600" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-2xl font-bold text-pink-600">
+                      {operationalData.placasOrificio.total}
+                    </p>
+                    <p className="text-xs text-muted-foreground">placas instaladas</p>
+                  </div>
+                  <Badge variant="outline" className="text-pink-600 border-pink-200">
+                    {operationalData.placasOrificio.ativas} ativas
+                  </Badge>
                 </div>
                 
-                <div className="flex items-center text-xs text-orange-700">
-                  <Clock className="w-3 h-3 mr-1" />
-                  Preparar documentação e amostras
-                </div>
+                {operationalData.placasOrificio.proximaPlaca ? (
+                  <div className="bg-pink-50 p-2 rounded-md">
+                    <p className="text-xs font-medium text-pink-800">Próxima Verificação:</p>
+                    <p className="text-sm text-pink-700">
+                      {operationalData.placasOrificio.proximaPlaca.numeroSerie}
+                    </p>
+                    <p className="text-xs text-pink-600">
+                      Ø {operationalData.placasOrificio.proximaPlaca.diametroOrificio}mm - {operationalData.placasOrificio.proximaPlaca.dataInspecao}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-2 rounded-md">
+                    <p className="text-xs text-gray-600">Nenhuma placa cadastrada</p>
+                  </div>
+                )}
+                
+                {operationalData.placasOrificio.aguardandoInspecao > 0 && (
+                  <div className="flex items-center text-xs text-orange-700">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    {operationalData.placasOrificio.aguardandoInspecao} aguardando verificação
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

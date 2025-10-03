@@ -124,12 +124,12 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    overflow-y: hidden; /* Remove scroll vertical global */
+    overflow-y: scroll; /* Mantém barra de rolagem vertical sempre visível */
   }
 
   html, body, #root {
     height: 100vh;
     overflow-x: auto; /* Permite scroll horizontal se necessário */
-    overflow-y: hidden; /* Remove scroll vertical */
+    overflow-y: scroll; /* Mantém barra de rolagem vertical sempre visível */
   }
 }

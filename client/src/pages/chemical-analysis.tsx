@@ -12,6 +12,7 @@ import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import CollectionPlanForm from "@/components/collection-plan-form";
+import CalendarioDashboard from "@/components/calendario-dashboard";
 import type { PlanoColeta, AnaliseQuimica } from "@shared/schema";
 
 export default function ChemicalAnalysis() {
@@ -256,7 +257,7 @@ export default function ChemicalAnalysis() {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="collection-plans" data-testid="tab-collection-plans">
             <FlaskConical className="w-4 h-4 mr-2" />
             Planos de Coleta
@@ -264,6 +265,10 @@ export default function ChemicalAnalysis() {
           <TabsTrigger value="analyses" data-testid="tab-analyses">
             <FlaskConical className="w-4 h-4 mr-2" />
             Análises Químicas
+          </TabsTrigger>
+          <TabsTrigger value="calendar" data-testid="tab-calendar">
+            <Calendar className="w-4 h-4 mr-2" />
+            Calendário
           </TabsTrigger>
           <TabsTrigger value="cylinders" data-testid="tab-cylinders">
             <Beaker className="w-4 h-4 mr-2" />
@@ -550,6 +555,25 @@ export default function ChemicalAnalysis() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="calendar" className="mt-6">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Calendário de Atividades
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Visualize todas as atividades planejadas de coleta e análises químicas em um calendário.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <CalendarioDashboard />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="cylinders" className="mt-6">

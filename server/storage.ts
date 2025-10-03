@@ -1064,18 +1064,41 @@ export class Storage implements IStorage {
       const [equipamentosCount] = await db.select({ count: count() }).from(equipamentos);
       console.log('Equipamentos count:', equipamentosCount.count);
       
-      console.log('Fetching calibracoes count...');
-      const [calibracoesCount] = await db.select({ count: count() }).from(planoCalibracoes);
-      console.log('Calibracoes count:', calibracoesCount.count);
-      
-      console.log('Fetching pocos count...');
-      const [pocosCount] = await db.select({ count: count() }).from(cadastroPocos);
-      console.log('Pocos count:', pocosCount.count);
-      
-      console.log('Fetching placas count...');
-      const [placasCount] = await db.select({ count: count() }).from(placasOrificio);
-      console.log('Placas count:', placasCount.count);
+      // Get equipment calibration data to calculate critical and expired
+      console.log('Fetching equipment calibration data...');
+      const equipamentosWithCalibration = await db
+        .select({
+          id: equipamentos.id,
+          proximaCalibracao: planoCalibracoes.dataProximaCalibracão,
+        })
+        .from(equipamentos)
+        .leftJoin(planoCalibracoes, eq(equipamentos.id, planoCalibracoes.equipamentoId));
 
+      const hoje = new Date();
+      let calibracoesVencidas = 0;
+      let criticos = 0;
+      let conformidade = 0;
+
+      equipamentosWithCalibration.forEach(equip => {
+        if (equip.proximaCalibracao) {
+          const proximaData = new Date(equip.proximaCalibracao);
+          const diasParaVencer = Math.ceil((proximaData.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (diasParaVencer < 0) {
+            calibracoesVencidas++;
+          } else if (diasParaVencer <= 7) {
+            criticos++;
+          } else {
+            conformidade++;
+          }
+        } else {
+          // Equipment without calibration plan counts as expired
+          calibracoesVencidas++;
+        }
+      });
+
+      console.log('Calibration status:', { vencidas: calibracoesVencidas, criticos, conformidade });
+      
       // Get distribution by polos with equipment counts
       console.log('Fetching polos distribution...');
       const polosWithCounts = await db
@@ -1093,9 +1116,9 @@ export class Storage implements IStorage {
 
       const result = {
         totalEquipamentos: equipamentosCount.count,
-        totalCalibracoes: calibracoesCount.count,
-        totalPocos: pocosCount.count,
-        totalPlacas: placasCount.count,
+        calibracoesVencidas,
+        criticos,
+        conformidade,
         polosDistribution: polosWithCounts,
       };
       

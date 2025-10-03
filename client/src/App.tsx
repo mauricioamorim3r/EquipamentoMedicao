@@ -51,7 +51,7 @@ function Router() {
       </div>
       <div className="flex-1 flex flex-col h-screen">
         <Header />
-        <main className="flex-1 h-full overflow-x-auto overflow-y-hidden bg-background px-4 md:px-6 py-4">
+        <main className="flex-1 h-full overflow-x-auto overflow-y-auto bg-background px-4 md:px-6 py-4">
           <Suspense fallback={<LoadingFallback />}>
             <Switch>
               <Route path="/" component={Dashboard} />
@@ -61,6 +61,7 @@ function Router() {
               <Route path="/execucao-calibracoes" component={ExecutionCalibrations} />
               <Route path="/historico-calibracoes" component={CalibrationHistory} />
               <Route path="/campos" component={Campos} />
+              <Route path="/wells" component={Wells} />
               <Route path="/pocos" component={Wells} />
               <Route path="/placas-orificio" component={OrificePlates} />
               <Route path="/trechos-retos" component={TrechosRetos} />
@@ -73,6 +74,7 @@ function Router() {
               <Route path="/testes-pocos" component={TestesPocos} />
               <Route path="/notificacoes" component={Notifications} />
               <Route path="/configuracoes-notificacoes" component={NotificationSettings} />
+              <Route path="/chemical-analysis" component={ChemicalAnalysis} />
               <Route path="/analises-quimicas" component={ChemicalAnalysis} />
               <Route path="/controle-incertezas" component={UncertaintyControl} />
               <Route path="/relatorios" component={Reports} />

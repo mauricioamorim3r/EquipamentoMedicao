@@ -1,22 +1,10 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Settings, Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
-import NotificationPanel from "@/components/notification-panel";
 import { LanguageSelector } from "@/components/language-selector";
 import { useTranslation } from "@/hooks/useLanguage";
 
 export default function Header() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { t } = useTranslation();
-  
-  // Query para buscar o número de notificações não lidas
-  const { data: unreadCount = 0 } = useQuery({
-    queryKey: ["/api/notificacoes/unread-count"],
-    queryFn: () => api.getUnreadNotificationsCount(),
-    refetchInterval: 30000, // Atualiza a cada 30 segundos
-  });
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -57,19 +45,8 @@ export default function Header() {
           </div>
         </div>
         <div className="flex items-center space-x-3">
-          {/* Notification Panel */}
-          <NotificationPanel unreadCount={unreadCount} />
           {/* Language Selector */}
           <LanguageSelector />
-          {/* Settings */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="p-2"
-            data-testid="settings-button"
-          >
-            <Settings className="h-5 w-5" />
-          </Button>
         </div>
       </div>
     </header>
