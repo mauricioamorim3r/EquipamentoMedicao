@@ -98,9 +98,9 @@ export default function Sidebar() {
   }, [isResizing, handleMouseMove, handleMouseUp]);
 
   return (
-    <div 
+    <div
       ref={sidebarRef}
-      className="bg-card border-r border-border p-4 flex flex-col relative"
+      className="bg-card border-r border-border p-4 flex flex-col relative h-screen"
       style={{ width: `${sidebarWidth}px` }}
       data-testid="sidebar"
     >

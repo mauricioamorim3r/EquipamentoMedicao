@@ -30,6 +30,30 @@
     background: #94a3b8;
   }
 
+  /* Custom scrollbar for main content */
+  .overflow-y-auto {
+    scroll-behavior: smooth;
+    scrollbar-width: auto;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 5px;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
   /* Dark mode scrollbars */
   .dark .scrollbar-thin {
     scrollbar-color: #475569 #1e293b;
@@ -44,6 +68,23 @@
   }
 
   .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+
+  /* Dark mode for main content scrollbar */
+  .dark .overflow-y-auto {
+    scrollbar-color: #475569 #1e293b;
+  }
+
+  .dark .overflow-y-auto::-webkit-scrollbar-track {
+    background: #1e293b;
+  }
+
+  .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #475569;
+  }
+
+  .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
     background: #64748b;
   }
 
@@ -212,13 +253,38 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    overflow: hidden; /* Remove barras de rolagem do body */
   }
 
   html, body, #root {
     height: 100vh;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Remove todas as barras de rolagem do root */
+    overflow: hidden;
+  }
+
+  /* Modal/Dialog mobile optimizations */
+  @media (max-width: 640px) {
+    /* Ensure modals are touch-friendly */
+    [role="dialog"], [role="alertdialog"] {
+      max-width: calc(100vw - 2rem) !important;
+    }
+
+    /* Better button spacing in modals on mobile */
+    [role="dialog"] button, [role="alertdialog"] button {
+      min-height: 44px; /* Apple's recommended touch target size */
+      padding: 0.75rem 1rem;
+    }
+
+    /* Form inputs in modals */
+    [role="dialog"] input,
+    [role="dialog"] textarea,
+    [role="dialog"] select {
+      font-size: 16px; /* Prevent zoom on iOS */
+    }
+  }
+
+  /* Smooth scroll for modal content */
+  [data-radix-scroll-area-viewport] {
+    scrollbar-width: thin;
   }
 }

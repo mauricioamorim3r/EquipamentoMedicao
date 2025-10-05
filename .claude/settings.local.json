@@ -9,7 +9,13 @@
       "Bash(tee:*)",
       "Bash(for:*)",
       "Bash(do echo \"=== $file ===\")",
-      "Bash(done)"
+      "Bash(done)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl:*)",
+      "Bash(node:*)",
+      "Bash(tsx server/scripts/limpar-e-popular-equipamentos.ts:*)",
+      "Bash(npx tsx:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

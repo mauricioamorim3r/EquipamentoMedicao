@@ -81,6 +81,18 @@ export default function ValveForm({ valve, onClose, onSuccess }: ValveFormProps)
   const selectedEquipamentoId = form.watch("equipamentoId");
   const { data: autoFillData } = useEquipmentAutoFill(selectedEquipamentoId);
 
+  // Fetch equipamentos
+  const { data: equipamentos } = useQuery({
+    queryKey: ["/api/equipamentos"],
+    queryFn: () => api.getEquipamentos(),
+  });
+
+  // Filter equipamentos for valves
+  const valveEquipamentos = equipamentos?.filter((eq: any) =>
+    eq.tipo?.toLowerCase().includes("válvula") ||
+    eq.tipo?.toLowerCase().includes("valvula")
+  ) || [];
+
   // Autopreencher dados quando equipamento é selecionado
   useEffect(() => {
     if (autoFillData?.equipamento && !isEditing) {
@@ -150,6 +162,54 @@ export default function ValveForm({ valve, onClose, onSuccess }: ValveFormProps)
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Identificação</h3>
 
+            {!isEditing && (
+              <FormField
+                control={form.control}
+                name="equipamentoId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Selecionar Equipamento (Válvula)</FormLabel>
+                    <Select
+                      value={field.value?.toString() || ""}
+                      onValueChange={(value) => {
+                        const equipamento = equipamentos?.find((eq: any) => eq.id.toString() === value);
+                        if (equipamento) {
+                          field.onChange(Number(value));
+                          form.setValue("numeroSerie", equipamento.numeroSerie || "");
+                          form.setValue("tagValvula", equipamento.tag || "");
+                        }
+                      }}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o número de série da válvula..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {valveEquipamentos.length > 0 ? (
+                          valveEquipamentos.map((equipamento: any) => (
+                            <SelectItem key={equipamento.id} value={equipamento.id.toString()}>
+                              <div className="flex flex-col">
+                                <span className="font-medium">N/S: {equipamento.numeroSerie}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  TAG: {equipamento.tag} | {equipamento.nome}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="none" disabled>
+                            Nenhuma válvula cadastrada
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="numeroSerie"
@@ -162,6 +222,8 @@ export default function ValveForm({ valve, onClose, onSuccess }: ValveFormProps)
                       data-testid="input-numero-serie"
                       {...field}
                       value={field.value || ""}
+                      disabled={!isEditing && !!form.watch("equipamentoId")}
+                      className={!isEditing && !!form.watch("equipamentoId") ? "bg-muted" : ""}
                     />
                   </FormControl>
                   <FormMessage />

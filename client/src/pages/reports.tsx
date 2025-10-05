@@ -177,8 +177,8 @@ export default function Reports() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Melhoria Mensal</p>
-                  <p className="text-3xl font-bold text-blue-600">+2.3%</p>
+                  <p className="text-sm font-medium text-muted-foreground">Equipamentos em Dia</p>
+                  <p className="text-3xl font-bold text-blue-600">{complianceStats.compliant}</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
                   <TrendingUp className="text-blue-500 w-6 h-6" />
@@ -349,8 +349,8 @@ export default function Reports() {
                         <p className="font-medium">{polo.sigla}</p>
                         <p className="text-sm text-muted-foreground">{polo.equipCount} equipamentos</p>
                       </div>
-                      <Badge className="bg-green-100 text-green-800">
-                        {(Math.random() * 10 + 90).toFixed(1)}%
+                      <Badge className="bg-blue-100 text-blue-800">
+                        {polo.equipCount} equip.
                       </Badge>
                     </div>
                   ))}
@@ -435,9 +435,9 @@ export default function Reports() {
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-muted/50 rounded">
-                    <span>Dentro dos Limites</span>
+                    <span>Equipamentos Conformes</span>
                     <Badge className="bg-green-100 text-green-800">
-                      95.2%
+                      {complianceStats?.compliant || 0}
                     </Badge>
                   </div>
                 </div>

@@ -237,7 +237,7 @@ export default function Equipment() {
                 {t('addEquipment')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
+            <DialogContent size="4xl">
               <DialogHeader>
                 <DialogTitle>
                   {editingEquipment ? t('edit') + ' ' + t('equipments').slice(0, -1) : t('addEquipment')}

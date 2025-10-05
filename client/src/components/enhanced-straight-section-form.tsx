@@ -63,14 +63,13 @@ interface EnhancedStraightSectionFormProps {
   onSuccess: () => void;
 }
 
-export default function EnhancedStraightSectionForm({ 
-  trechoReto, 
-  onClose, 
-  onSuccess 
+export default function EnhancedStraightSectionForm({
+  trechoReto,
+  onClose,
+  onSuccess
 }: EnhancedStraightSectionFormProps) {
   const { toast } = useToast();
   const [selectedEquipment, setSelectedEquipment] = useState<Equipamento | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const isEditing = !!trechoReto;
 
   const form = useForm<FormValues>({
@@ -128,19 +127,11 @@ export default function EnhancedStraightSectionForm({
   const selectedEquipamentoId = form.watch("equipamentoId");
   const { data: equipmentData } = useEquipmentAutoFill(selectedEquipamentoId);
 
-  // Filter equipamentos for straight sections (tipo containing "trecho" or "reto")
-  const straightSectionEquipments = equipamentos?.filter((eq: Equipamento) => 
-    eq.tipo?.toLowerCase().includes("trecho") || 
+  // Filter ONLY equipment registered as straight sections in /equipamentos
+  const straightSectionEquipments = equipamentos?.filter((eq: Equipamento) =>
+    eq.tipo?.toLowerCase().includes("trecho") ||
     eq.tipo?.toLowerCase().includes("reto")
   ) || [];
-
-  // Filter equipamentos based on search term
-  const filteredEquipments = straightSectionEquipments.filter((eq: Equipamento) =>
-    !searchTerm ||
-    eq.numeroSerie.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    eq.tag.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    eq.nome.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   // Auto-fill when equipment changes
   useEffect(() => {
@@ -220,6 +211,7 @@ export default function EnhancedStraightSectionForm({
     const equipment = equipamentos?.find((eq: Equipamento) => eq.id === equipamentoId);
     setSelectedEquipment(equipment || null);
     form.setValue("equipamentoId", equipamentoId);
+    // Auto-fill numeroSerie from equipment - it's the same serial number
     form.setValue("numeroSerie", equipment?.numeroSerie || "");
   };
 
@@ -232,64 +224,54 @@ export default function EnhancedStraightSectionForm({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Search className="w-5 h-5" />
-              Selecionar Equipamento (Trecho Reto)
+              <Ruler className="w-5 h-5" />
+              Selecionar Trecho Reto (Cadastrado em Equipamentos)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Buscar por número de série, TAG ou nome..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-            </div>
-            
-            {searchTerm && (
-              <div className="max-h-48 overflow-y-auto border rounded-lg">
-                {filteredEquipments.length > 0 ? (
-                  <div className="p-2 space-y-2">
-                    {filteredEquipments.map((equipment: Equipamento) => (
-                      <div
-                        key={equipment.id}
-                        className={`p-3 border rounded cursor-pointer hover:bg-gray-50 ${
-                          selectedEquipment?.id === equipment.id ? 'bg-blue-50 border-blue-300' : ''
-                        }`}
-                        onClick={() => handleEquipmentSelect(equipment.id)}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium">{equipment.tag}</p>
-                            <p className="text-sm text-gray-600">{equipment.nome}</p>
-                            <p className="text-sm text-gray-500">N/S: {equipment.numeroSerie}</p>
-                          </div>
-                          <Badge variant="outline">{equipment.tipo}</Badge>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Número de Série *</label>
+              <Select
+                value={selectedEquipment?.id.toString() || ""}
+                onValueChange={(value) => handleEquipmentSelect(Number(value))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione o trecho reto cadastrado em /equipamentos..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {straightSectionEquipments.length > 0 ? (
+                    straightSectionEquipments.map((equipment: Equipamento) => (
+                      <SelectItem key={equipment.id} value={equipment.id.toString()}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">N/S: {equipment.numeroSerie}</span>
+                          <span className="text-xs text-muted-foreground">
+                            TAG: {equipment.tag} | {equipment.nome}
+                          </span>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 text-center text-gray-500">
-                    <AlertCircle className="w-8 h-8 mx-auto mb-2" />
-                    Nenhum trecho reto encontrado
-                  </div>
-                )}
-              </div>
-            )}
-            
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>
+                      Nenhum trecho reto cadastrado em /equipamentos
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Cadastre trechos retos em /equipamentos primeiro. Esta tela serve apenas para detalhar dados técnicos específicos.
+              </p>
+            </div>
+
             {selectedEquipment && (
-              <Card className="bg-blue-50">
+              <Card className="bg-green-50 border-green-200">
                 <CardContent className="p-4">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="font-medium text-blue-900">Equipamento Selecionado:</p>
-                      <p className="text-blue-800">{selectedEquipment.tag} - {selectedEquipment.nome}</p>
-                      <p className="text-sm text-blue-600">N/S: {selectedEquipment.numeroSerie}</p>
+                      <p className="font-medium text-green-900">Equipamento Selecionado:</p>
+                      <p className="text-green-800 font-semibold">N/S: {selectedEquipment.numeroSerie}</p>
+                      <p className="text-sm text-green-700">TAG: {selectedEquipment.tag} - {selectedEquipment.nome}</p>
                     </div>
-                    <Badge className="bg-blue-100 text-blue-800">{selectedEquipment.tipo}</Badge>
+                    <Badge className="bg-green-600 text-white">{selectedEquipment.tipo}</Badge>
                   </div>
                 </CardContent>
               </Card>

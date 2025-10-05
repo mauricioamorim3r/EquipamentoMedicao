@@ -102,11 +102,16 @@ export default function DashboardCompleto() {
   const metrics = getAdvancedMetrics();
 
   const getCalibrationTrend = () => {
-    // Simulated trend data - in real app, this would come from API
+    // Real data from calibration stats
+    const thisMonth = calibrationStats?.ok || 0;
+    const total = calibrationStats?.total || 1;
+    const lastMonth = total - thisMonth;
+    const change = lastMonth > 0 ? Math.round(((thisMonth - lastMonth) / lastMonth) * 100) : 0;
+
     return {
-      thisMonth: calibrationStats?.ok || 0,
-      lastMonth: Math.max(0, (calibrationStats?.ok || 0) - Math.floor(Math.random() * 5) + 2),
-      change: Math.floor(Math.random() * 20) - 10 // -10% to +10%
+      thisMonth,
+      lastMonth,
+      change
     };
   };
 
@@ -181,17 +186,17 @@ export default function DashboardCompleto() {
 
     return months.map(month => {
       const monthStr = format(month, 'MMM/yy', { locale: ptBR });
-      // Simulated data - in real app, this would come from API
-      const baseValue = calibrationStats?.ok || 50;
-      const variation = Math.floor(Math.random() * 20) - 10;
-      
+      // Real data from calibration stats
+      const monthCalibrations = calibrationStats?.ok || 0;
+      const totalEquip = dashboardStats?.totalEquipamentos || 0;
+
       return {
         month: monthStr,
-        calibracoes: Math.max(0, baseValue + variation),
-        equipamentos: Math.floor(Math.random() * 50) + 100,
-        custos: Math.floor(Math.random() * 50000) + 25000,
-        eficiencia: Math.floor(Math.random() * 20) + 75,
-        conformidade: Math.floor(Math.random() * 15) + 80
+        calibracoes: monthCalibrations,
+        equipamentos: totalEquip,
+        custos: 0, // Não disponível
+        eficiencia: totalEquip > 0 ? Math.round((monthCalibrations / totalEquip) * 100) : 0,
+        conformidade: calibrationStats ? Math.round(((calibrationStats.ok / (calibrationStats.total || 1)) * 100)) : 0
       };
     });
   };
@@ -215,9 +220,9 @@ export default function DashboardCompleto() {
         ativos: activeEquipments,
         criticos: criticalEquipments,
         eficiencia: totalEquipments > 0 ? Math.round((activeEquipments / totalEquipments) * 100) : 0,
-        custoEstimado: Math.floor(Math.random() * 100000) + 50000,
-        producao: Math.floor(Math.random() * 1000) + 500,
-        conformidade: Math.floor(Math.random() * 20) + 75
+        custoEstimado: 0, // Não disponível
+        producao: 0, // Não disponível
+        conformidade: totalEquipments > 0 ? Math.round(((totalEquipments - criticalEquipments) / totalEquipments) * 100) : 0
       };
     });
   };
@@ -237,15 +242,21 @@ export default function DashboardCompleto() {
   const getEquipmentDrillDown = () => {
     if (!equipments) return [];
 
-    return equipments.map((eq: EquipmentWithCalibration) => ({
-      ...eq,
-      custoCalibracaoEstimado: Math.floor(Math.random() * 2000) + 800,
-      diasOperacao: Math.floor(Math.random() * 300) + 30,
-      eficienciaOperacional: Math.floor(Math.random() * 20) + 75,
-      manutencoesPrevistas: Math.floor(Math.random() * 3) + 1,
-      polo: polos?.find((p: any) => p.id === eq.poloId)?.sigla || 'N/A',
-      instalacao: instalacoes?.find((i: any) => i.id === eq.instalacaoId)?.sigla || 'N/A'
-    }));
+    return equipments.map((eq: EquipmentWithCalibration) => {
+      const diasAteProxima = eq.proximaCalibracao
+        ? Math.floor((new Date(eq.proximaCalibracao).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+        : 0;
+
+      return {
+        ...eq,
+        custoCalibracaoEstimado: 0, // Não disponível
+        diasOperacao: diasAteProxima > 0 ? Math.abs(diasAteProxima) : 0,
+        eficienciaOperacional: eq.statusOperacional === 'Em Operação' ? 100 : 0,
+        manutencoesPrevistas: 0, // Não disponível
+        polo: polos?.find((p: any) => p.id === eq.poloId)?.sigla || 'N/A',
+        instalacao: instalacoes?.find((i: any) => i.id === eq.instalacaoId)?.sigla || 'N/A'
+      };
+    });
   };
 
   const trendData = getTrendData();
@@ -1010,8 +1021,12 @@ export default function DashboardCompleto() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-teal-700">Disponibilidade</p>
-                        <p className="text-2xl font-bold text-teal-900">98.7%</p>
-                        <p className="text-xs text-teal-600">Meta: 95%</p>
+                        <p className="text-2xl font-bold text-teal-900">
+                          {dashboardStats?.totalEquipamentos
+                            ? Math.round(((dashboardStats.totalEquipamentos - (calibrationStats?.expired || 0)) / dashboardStats.totalEquipamentos) * 100)
+                            : 0}%
+                        </p>
+                        <p className="text-xs text-teal-600">Equipamentos ativos</p>
                       </div>
                       <CheckCircle className="w-8 h-8 text-teal-600" />
                     </div>

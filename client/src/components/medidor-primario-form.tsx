@@ -99,13 +99,12 @@ const TIPOS_MEDIDOR = [
   { value: "V_CONE", label: "Medidor V-Cone" },
 ];
 
-export default function MedidorPrimarioForm({ 
-  medidor, 
-  onSuccess, 
-  onCancel 
+export default function MedidorPrimarioForm({
+  medidor,
+  onSuccess,
+  onCancel
 }: MedidorPrimarioFormProps) {
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedTipoMedidor, setSelectedTipoMedidor] = useState<string>("");
   const isEditing = !!medidor;
 
@@ -248,11 +247,15 @@ export default function MedidorPrimarioForm({
     }
   };
 
-  // Filter equipamentos for search
-  const filteredEquipamentos = equipamentos?.filter((eq: any) =>
-    eq.tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    eq.numeroSerie?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    eq.nome?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter equipamentos for flow meters (medidores de vazão)
+  const medidorEquipamentos = equipamentos?.filter((eq: any) =>
+    eq.tipo?.toLowerCase().includes("medidor") ||
+    eq.tipo?.toLowerCase().includes("vazão") ||
+    eq.tipo?.toLowerCase().includes("vazao") ||
+    eq.tipo?.toLowerCase().includes("coriolis") ||
+    eq.tipo?.toLowerCase().includes("ultrassônico") ||
+    eq.tipo?.toLowerCase().includes("ultrassonico") ||
+    eq.tipo?.toLowerCase().includes("turbina")
   ) || [];
 
   return (
@@ -264,74 +267,68 @@ export default function MedidorPrimarioForm({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Gauge className="h-5 w-5" />
-              Seleção de Equipamento
+              Selecionar Número de Série (Medidor Primário)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <FormField
-                  control={form.control}
-                  name="equipamentoId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Equipamento *</FormLabel>
-                      <Select 
-                        value={field.value ? field.value.toString() : ""} 
-                        onValueChange={(value) => {
-                          const equipamento = equipamentos?.find((eq: any) => eq.id.toString() === value);
-                          if (equipamento) {
-                            field.onChange(equipamento.id);
-                            form.setValue("numeroSerie", equipamento.numeroSerie || "");
-                          }
-                        }}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um equipamento" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {filteredEquipamentos.map((equipamento: any) => (
-                            <SelectItem key={equipamento.id} value={equipamento.id.toString()}>
-                              {equipamento.tag} - {equipamento.nome}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="flex-1">
-                <FormField
-                  control={form.control}
-                  name="numeroSerie"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Número de Série *</FormLabel>
-                      <FormControl>
-                        <Input {...field} value={field.value || ""} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+            <FormField
+              control={form.control}
+              name="equipamentoId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Número de Série *</FormLabel>
+                  <Select
+                    value={field.value ? field.value.toString() : ""}
+                    onValueChange={(value) => {
+                      const equipamento = equipamentos?.find((eq: any) => eq.id.toString() === value);
+                      if (equipamento) {
+                        field.onChange(equipamento.id);
+                        form.setValue("numeroSerie", equipamento.numeroSerie || "");
+                      }
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o número de série do medidor..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {medidorEquipamentos.length > 0 ? (
+                        medidorEquipamentos.map((equipamento: any) => (
+                          <SelectItem key={equipamento.id} value={equipamento.id.toString()}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">N/S: {equipamento.numeroSerie}</span>
+                              <span className="text-xs text-muted-foreground">
+                                TAG: {equipamento.tag} | {equipamento.nome}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="none" disabled>
+                          Nenhum medidor cadastrado
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            {/* Search equipment */}
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar equipamento por TAG, nome ou número de série..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="numeroSerie"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Número de Série (auto-preenchido)</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value || ""} disabled className="bg-muted" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
 
