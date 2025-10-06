@@ -20,9 +20,19 @@ export default function ChemicalAnalysis() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<PlanoColeta | null>(null);
   const [editingAnalise, setEditingAnalise] = useState<AnaliseQuimica | null>(null);
-  
+
+  // Advanced filters
+  const [selectedInstalacao, setSelectedInstalacao] = useState<string>("");
+  const [selectedCampo, setSelectedCampo] = useState<string>("");
+  const [selectedPoco, setSelectedPoco] = useState<string>("");
+  const [selectedTipoAmostra, setSelectedTipoAmostra] = useState<string>("");
+  const [selectedTipoAnalise, setSelectedTipoAnalise] = useState<string>("");
+  const [selectedAplicabilidade, setSelectedAplicabilidade] = useState<string>("");
+  const [selectedPeriodicidade, setSelectedPeriodicidade] = useState<string>("");
+
   const { toast } = useToast();
 
   // Fetch data
@@ -41,14 +51,40 @@ export default function ChemicalAnalysis() {
     queryFn: () => api.getPontosMedicao(),
   });
 
+  const { data: instalacoes } = useQuery({
+    queryKey: ["/api/instalacoes"],
+    queryFn: () => api.getInstalacoes(),
+  });
+
+  const { data: campos } = useQuery({
+    queryKey: ["/api/campos"],
+    queryFn: () => api.getCampos(),
+  });
+
+  const { data: pocos } = useQuery({
+    queryKey: ["/api/wells"],
+    queryFn: () => api.getWells(),
+  });
+
   // Filter collection plans based on search and filters
   const filteredPlans = planosColeta?.filter((plan: PlanoColeta) => {
-    const matchesSearch = !searchTerm || 
-      plan.pontoMedicaoId.toString().includes(searchTerm);
-    
+    const matchesSearch = !searchTerm ||
+      plan.pontoMedicaoId.toString().includes(searchTerm) ||
+      plan.tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      plan.pontoAmostragem?.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesStatus = !selectedStatus || plan.status === selectedStatus;
-    
-    return matchesSearch && matchesStatus;
+    const matchesInstalacao = !selectedInstalacao || plan.instalacaoId?.toString() === selectedInstalacao;
+    const matchesCampo = !selectedCampo || plan.campoId?.toString() === selectedCampo;
+    const matchesPoco = !selectedPoco || plan.pocoId?.toString() === selectedPoco;
+    const matchesTipoAmostra = !selectedTipoAmostra || plan.tipoAmostra === selectedTipoAmostra;
+    const matchesTipoAnalise = !selectedTipoAnalise || plan.tipoAnalise === selectedTipoAnalise;
+    const matchesAplicabilidade = !selectedAplicabilidade || plan.aplicabilidade === selectedAplicabilidade;
+    const matchesPeriodicidade = !selectedPeriodicidade || plan.periodicidade === selectedPeriodicidade;
+
+    return matchesSearch && matchesStatus && matchesInstalacao && matchesCampo &&
+           matchesPoco && matchesTipoAmostra && matchesTipoAnalise &&
+           matchesAplicabilidade && matchesPeriodicidade;
   }) || [];
 
   // Calculate summary statistics
@@ -134,6 +170,26 @@ export default function ChemicalAnalysis() {
     }
   };
 
+  const clearAdvancedFilters = () => {
+    setSelectedInstalacao("");
+    setSelectedCampo("");
+    setSelectedPoco("");
+    setSelectedTipoAmostra("");
+    setSelectedTipoAnalise("");
+    setSelectedAplicabilidade("");
+    setSelectedPeriodicidade("");
+  };
+
+  const hasActiveAdvancedFilters = !!(
+    selectedInstalacao ||
+    selectedCampo ||
+    selectedPoco ||
+    selectedTipoAmostra ||
+    selectedTipoAnalise ||
+    selectedAplicabilidade ||
+    selectedPeriodicidade
+  );
+
   // Calculate summary statistics using status field
   const stats = {
     pending: filteredPlans.filter((p: any) => p.status === 'pendente').length,
@@ -155,10 +211,6 @@ export default function ChemicalAnalysis() {
           </p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" data-testid="button-cylinder-management">
-            <Beaker className="w-4 h-4 mr-2" />
-            Gestão de Cilindros
-          </Button>
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
               <Button onClick={openNewPlanForm} data-testid="button-new-collection">
@@ -312,15 +364,167 @@ export default function ChemicalAnalysis() {
                   </SelectContent>
                 </Select>
 
-                <Button variant="outline">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Mais Filtros
-                </Button>
+                <Dialog open={isAdvancedFiltersOpen} onOpenChange={setIsAdvancedFiltersOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="relative">
+                      <Filter className="w-4 h-4 mr-2" />
+                      Filtros Avançados
+                      {hasActiveAdvancedFilters && (
+                        <Badge className="ml-2 bg-primary text-white px-1.5 py-0.5 text-xs">
+                          ✓
+                        </Badge>
+                      )}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Filtros Avançados</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Instalação</label>
+                        <Select value={selectedInstalacao} onValueChange={setSelectedInstalacao}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todas as instalações" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Todas</SelectItem>
+                            {instalacoes?.map((inst: any) => (
+                              <SelectItem key={inst.id} value={inst.id.toString()}>
+                                {inst.sigla} - {inst.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                <Button variant="outline" data-testid="button-export">
-                  <Download className="w-4 h-4 mr-2" />
-                  Exportar
-                </Button>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Campo</label>
+                        <Select value={selectedCampo} onValueChange={setSelectedCampo}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todos os campos" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Todos</SelectItem>
+                            {campos?.map((campo: any) => (
+                              <SelectItem key={campo.id} value={campo.id.toString()}>
+                                {campo.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Poço</label>
+                        <Select value={selectedPoco} onValueChange={setSelectedPoco}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todos os poços" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Todos</SelectItem>
+                            {pocos?.map((poco: any) => (
+                              <SelectItem key={poco.id} value={poco.id.toString()}>
+                                {poco.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Tipo de Amostra</label>
+                        <Select value={selectedTipoAmostra} onValueChange={setSelectedTipoAmostra}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todos os tipos" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Todos</SelectItem>
+                            <SelectItem value="gas-natural">Gás Natural</SelectItem>
+                            <SelectItem value="oleo-cru">Óleo Cru</SelectItem>
+                            <SelectItem value="condensado">Condensado</SelectItem>
+                            <SelectItem value="agua-producao">Água de Produção</SelectItem>
+                            <SelectItem value="glp">GLP</SelectItem>
+                            <SelectItem value="outro">Outro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Tipo de Análise</label>
+                        <Select value={selectedTipoAnalise} onValueChange={setSelectedTipoAnalise}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todos os tipos" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Todos</SelectItem>
+                            <SelectItem value="pvt">PVT</SelectItem>
+                            <SelectItem value="cromatografia">Cromatografia</SelectItem>
+                            <SelectItem value="bsw">BSW</SelectItem>
+                            <SelectItem value="teor-enxofre">Teor de Enxofre</SelectItem>
+                            <SelectItem value="grau-api">Grau °API</SelectItem>
+                            <SelectItem value="outro">Outro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Aplicabilidade</label>
+                        <Select value={selectedAplicabilidade} onValueChange={setSelectedAplicabilidade}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todas" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Todas</SelectItem>
+                            <SelectItem value="fiscal">Fiscal</SelectItem>
+                            <SelectItem value="apropriacao">Apropriação</SelectItem>
+                            <SelectItem value="transferencia-custodia">Transferência de Custódia</SelectItem>
+                            <SelectItem value="operacional">Operacional</SelectItem>
+                            <SelectItem value="analise-tecnica">Análise Técnica</SelectItem>
+                            <SelectItem value="outro">Outro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Periodicidade</label>
+                        <Select value={selectedPeriodicidade} onValueChange={setSelectedPeriodicidade}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todas" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Todas</SelectItem>
+                            <SelectItem value="diaria">Diária</SelectItem>
+                            <SelectItem value="semanal">Semanal</SelectItem>
+                            <SelectItem value="quinzenal">Quinzenal</SelectItem>
+                            <SelectItem value="mensal">Mensal</SelectItem>
+                            <SelectItem value="bimestral">Bimestral</SelectItem>
+                            <SelectItem value="trimestral">Trimestral</SelectItem>
+                            <SelectItem value="semestral">Semestral</SelectItem>
+                            <SelectItem value="anual">Anual</SelectItem>
+                            <SelectItem value="sob-demanda">Sob Demanda</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-4 border-t">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={clearAdvancedFilters}
+                      >
+                        Limpar Filtros
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setIsAdvancedFiltersOpen(false)}
+                      >
+                        Aplicar Filtros
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>
@@ -360,8 +564,8 @@ export default function ChemicalAnalysis() {
                 <div className="space-y-4">
                   {filteredPlans.map((plan: PlanoColeta) => {
                     const statusBadge = getCollectionStatusBadge(plan);
-                    const priorityBadge = getPriorityBadge(plan.dataEmbarque || undefined);
-                    
+                    const pontoMedicao = pontosMedicao?.find((p: any) => p.id === plan.pontoMedicaoId);
+
                     return (
                       <div
                         key={plan.id}
@@ -372,49 +576,45 @@ export default function ChemicalAnalysis() {
                           <div className="flex-1">
                             <div className="flex items-center space-x-4 mb-2">
                               <h3 className="font-semibold text-lg">
-                                Ponto: {plan.pontoMedicaoId}
+                                {pontoMedicao ? `${pontoMedicao.tag} - ${pontoMedicao.nome}` : `Ponto ID: ${plan.pontoMedicaoId}`}
                               </h3>
                               <Badge className={statusBadge.className}>
                                 {statusBadge.text}
                               </Badge>
-                              <Badge className={priorityBadge.className}>
-                                {priorityBadge.text}
-                              </Badge>
                             </div>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
                               <div>
-                                <p>Data Embarque: {plan.dataEmbarque ? new Date(plan.dataEmbarque).toLocaleDateString('pt-BR') : 'N/A'}</p>
-                                <p>Data Desembarque: {plan.dataDesembarque ? new Date(plan.dataDesembarque).toLocaleDateString('pt-BR') : 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="flex items-center">
-                                  <CheckCircle className={`w-3 h-3 mr-1 ${plan.validadoOperacao ? 'text-green-500' : 'text-gray-300'}`} />
-                                  Validado Operação
+                                <p className="mb-1">
+                                  <strong>TAG:</strong> {plan.tag || 'N/A'}
                                 </p>
-                                <p className="flex items-center">
-                                  <CheckCircle className={`w-3 h-3 mr-1 ${plan.validadoLaboratorio ? 'text-green-500' : 'text-gray-300'}`} />
-                                  Validado Laboratório
+                                <p className="mb-1">
+                                  <strong>Instalação:</strong> {plan.instalacaoId ? instalacoes?.find(i => i.id === plan.instalacaoId)?.sigla || `ID ${plan.instalacaoId}` : 'N/A'}
+                                </p>
+                                <p className="mb-1">
+                                  <strong>Campo:</strong> {plan.campoId ? campos?.find(c => c.id === plan.campoId)?.nome || `ID ${plan.campoId}` : 'N/A'}
                                 </p>
                               </div>
                               <div>
-                                <p className="flex items-center">
-                                  <CheckCircle className={`w-3 h-3 mr-1 ${plan.cilindrosDisponiveis ? 'text-green-500' : 'text-gray-300'}`} />
-                                  Cilindros Disponíveis
+                                <p className="mb-1">
+                                  <strong>Tipo de Amostra:</strong> {plan.tipoAmostra || 'N/A'}
                                 </p>
-                                <p className="flex items-center">
-                                  <CheckCircle className={`w-3 h-3 mr-1 ${plan.embarqueAgendado ? 'text-green-500' : 'text-gray-300'}`} />
-                                  Embarque Agendado
+                                <p className="mb-1">
+                                  <strong>Tipo de Análise:</strong> {plan.tipoAnalise || 'N/A'}
+                                </p>
+                                <p className="mb-1">
+                                  <strong>Aplicabilidade:</strong> {plan.aplicabilidade || 'N/A'}
                                 </p>
                               </div>
                               <div>
-                                <p className="flex items-center">
-                                  <CheckCircle className={`w-3 h-3 mr-1 ${plan.coletaRealizada ? 'text-green-500' : 'text-gray-300'}`} />
-                                  Coleta Realizada
+                                <p className="mb-1">
+                                  <strong>Ponto de Amostragem:</strong> {plan.pontoAmostragem || 'N/A'}
                                 </p>
-                                <p className="flex items-center">
-                                  <CheckCircle className={`w-3 h-3 mr-1 ${plan.resultadoEmitido ? 'text-green-500' : 'text-gray-300'}`} />
-                                  Resultado Emitido
+                                <p className="mb-1">
+                                  <strong>Periodicidade:</strong> {plan.periodicidade || 'N/A'}
+                                </p>
+                                <p className="mb-1">
+                                  <strong>Poço:</strong> {plan.pocoId ? pocos?.find(p => p.id === plan.pocoId)?.nome || `ID ${plan.pocoId}` : 'N/A'}
                                 </p>
                               </div>
                             </div>

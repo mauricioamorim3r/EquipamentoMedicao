@@ -521,9 +521,9 @@ export default function OperationalCards({ isLoading = false }: OperationalCards
           </Card>
 
           {/* Card: Status Geral das Operações */}
-          <Card 
+          <Card
             className="border-l-4 border-l-indigo-500 hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => setLocation('/reports')}
+            onClick={() => setLocation('/relatorios')}
           >
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">

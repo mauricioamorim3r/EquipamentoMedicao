@@ -2,16 +2,17 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, AlertTriangle, Clock, CheckCircle } from "lucide-react";
 import type { EquipmentWithCalibration } from "@/types";
 import type { CalendarioCalibracao } from "@shared/schema";
 
 interface CalibrationCalendarProps {
   equipamentos: EquipmentWithCalibration[];
+  calendarios?: CalendarioCalibracao[];
   onDateClick?: (date: Date, calibrations?: CalendarioCalibracao[]) => void;
 }
 
-export default function CalibrationCalendar({ equipamentos, onDateClick }: CalibrationCalendarProps) {
+export default function CalibrationCalendar({ equipamentos, calendarios = [], onDateClick }: CalibrationCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const getCurrentMonthDates = () => {
@@ -20,60 +21,121 @@ export default function CalibrationCalendar({ equipamentos, onDateClick }: Calib
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const startDate = new Date(firstDay);
-    
+
     // Start from Sunday of the week containing the first day
     startDate.setDate(startDate.getDate() - startDate.getDay());
-    
+
     const dates = [];
     const current = new Date(startDate);
-    
+
     // Generate 42 days (6 weeks) to fill the calendar grid
     for (let i = 0; i < 42; i++) {
       dates.push(new Date(current));
       current.setDate(current.getDate() + 1);
     }
-    
+
     return dates;
+  };
+
+  const isSameDate = (date1: Date, date2: Date) => {
+    return (
+      date1.getDate() === date2.getDate() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getFullYear() === date2.getFullYear()
+    );
   };
 
   const getEquipmentsForDate = (date: Date) => {
     return equipamentos.filter(eq => {
       if (!eq.dataProximaCalibracão) return false;
       const calibrationDate = new Date(eq.dataProximaCalibracão);
-      return (
-        calibrationDate.getDate() === date.getDate() &&
-        calibrationDate.getMonth() === date.getMonth() &&
-        calibrationDate.getFullYear() === date.getFullYear()
-      );
+      return isSameDate(calibrationDate, date);
+    });
+  };
+
+  const getCalendariosForDate = (date: Date) => {
+    return calendarios.filter(cal => {
+      if (!cal.previsaoCalibracao) return false;
+      const previsaoDate = new Date(cal.previsaoCalibracao);
+      return isSameDate(previsaoDate, date);
     });
   };
 
   const getDateStatus = (date: Date) => {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const equipmentsOnDate = getEquipmentsForDate(date);
-    
-    if (equipmentsOnDate.length === 0) return null;
-    
+    const calendariosOnDate = getCalendariosForDate(date);
+
+    const totalItems = equipmentsOnDate.length + calendariosOnDate.length;
+
+    if (totalItems === 0) return null;
+
+    // Calcular dias até a data
+    const dateCopy = new Date(date);
+    dateCopy.setHours(0, 0, 0, 0);
+    const daysUntil = Math.floor((dateCopy.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
     // Determine the most critical status for this date
     const hasExpired = equipmentsOnDate.some(eq => {
       if (!eq.diasParaVencer && eq.diasParaVencer !== 0) return false;
       return eq.diasParaVencer <= 0;
-    });
-    
+    }) || daysUntil < 0;
+
     const hasCritical = equipmentsOnDate.some(eq => {
       if (!eq.diasParaVencer && eq.diasParaVencer !== 0) return false;
       return eq.diasParaVencer > 0 && eq.diasParaVencer <= 7;
-    });
-    
+    }) || (daysUntil >= 0 && daysUntil <= 7);
+
     const hasAlert = equipmentsOnDate.some(eq => {
       if (!eq.diasParaVencer && eq.diasParaVencer !== 0) return false;
       return eq.diasParaVencer > 7 && eq.diasParaVencer <= 30;
-    });
+    }) || (daysUntil > 7 && daysUntil <= 30);
 
-    if (hasExpired) return { status: 'expired', color: 'bg-red-500', count: equipmentsOnDate.length };
-    if (hasCritical) return { status: 'critical', color: 'bg-orange-500', count: equipmentsOnDate.length };
-    if (hasAlert) return { status: 'alert', color: 'bg-yellow-500', count: equipmentsOnDate.length };
-    return { status: 'ok', color: 'bg-green-500', count: equipmentsOnDate.length };
+    // Priorizar status mais crítico
+    if (hasExpired) {
+      return {
+        status: 'vencido',
+        color: 'bg-red-500',
+        textColor: 'text-red-700',
+        bgColor: 'bg-red-50',
+        borderColor: 'border-red-300',
+        count: totalItems,
+        icon: AlertTriangle
+      };
+    }
+    if (hasCritical) {
+      return {
+        status: 'crítico',
+        color: 'bg-orange-500',
+        textColor: 'text-orange-700',
+        bgColor: 'bg-orange-50',
+        borderColor: 'border-orange-300',
+        count: totalItems,
+        icon: AlertTriangle
+      };
+    }
+    if (hasAlert) {
+      return {
+        status: 'alerta',
+        color: 'bg-yellow-500',
+        textColor: 'text-yellow-700',
+        bgColor: 'bg-yellow-50',
+        borderColor: 'border-yellow-300',
+        count: totalItems,
+        icon: Clock
+      };
+    }
+    return {
+      status: 'ok',
+      color: 'bg-green-500',
+      textColor: 'text-green-700',
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-300',
+      count: totalItems,
+      icon: CheckCircle
+    };
   };
 
   const isCurrentMonth = (date: Date) => {
@@ -82,11 +144,7 @@ export default function CalibrationCalendar({ equipamentos, onDateClick }: Calib
 
   const isToday = (date: Date) => {
     const today = new Date();
-    return (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    );
+    return isSameDate(date, today);
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -118,30 +176,50 @@ export default function CalibrationCalendar({ equipamentos, onDateClick }: Calib
           {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
         </h3>
         <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => navigateMonth('prev')}
             data-testid="button-prev-month"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setCurrentDate(new Date())}
             data-testid="button-today"
           >
             Hoje
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => navigateMonth('next')}
             data-testid="button-next-month"
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap gap-4 text-xs">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-red-500"></div>
+          <span className="text-muted-foreground">Vencido</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+          <span className="text-muted-foreground">Crítico (≤ 7 dias)</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+          <span className="text-muted-foreground">Alerta (8-30 dias)</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          <span className="text-muted-foreground">OK (&gt; 30 dias)</span>
         </div>
       </div>
 
@@ -155,86 +233,105 @@ export default function CalibrationCalendar({ equipamentos, onDateClick }: Calib
                 {day}
               </div>
             ))}
-            
+
             {/* Calendar Days */}
             {dates.map((date, index) => {
               const dateStatus = getDateStatus(date);
               const equipmentsOnDate = getEquipmentsForDate(date);
-              
+              const calendariosOnDate = getCalendariosForDate(date);
+              const allItems = [...equipmentsOnDate, ...calendariosOnDate];
+
               return (
                 <div
                   key={index}
                   className={`
-                    relative p-2 h-20 border border-border rounded-lg transition-colors cursor-pointer
+                    relative p-2 min-h-24 border rounded-lg transition-all cursor-pointer
                     ${isCurrentMonth(date) ? 'bg-background' : 'bg-muted/30'}
-                    ${isToday(date) ? 'ring-2 ring-primary' : ''}
-                    hover:bg-accent
+                    ${isToday(date) ? 'ring-2 ring-primary shadow-md' : ''}
+                    ${dateStatus ? `${dateStatus.borderColor} ${dateStatus.bgColor}` : 'border-border'}
+                    hover:shadow-lg hover:scale-105
                   `}
                   data-testid={`calendar-day-${date.getDate()}`}
-                  title={equipmentsOnDate.length > 0 
-                    ? `${equipmentsOnDate.length} calibração(ões): ${equipmentsOnDate.map(eq => eq.tag).join(', ')}`
+                  title={allItems.length > 0
+                    ? `${allItems.length} calibração(ões) - ${dateStatus?.status.toUpperCase()}\n${
+                        equipmentsOnDate.map(eq => `• ${eq.tag}`).join('\n')
+                      }${
+                        calendariosOnDate.length > 0 ? '\n' + calendariosOnDate.map(cal => `• ${cal.tagPontoMedicao}`).join('\n') : ''
+                      }`
                     : undefined
                   }
-                  onClick={() => onDateClick?.(date)}
+                  onClick={() => onDateClick?.(date, calendariosOnDate)}
                 >
-                  <div className="flex items-start justify-between">
-                    <span className={`text-sm ${
+                  <div className="flex items-start justify-between mb-1">
+                    <span className={`text-sm font-medium ${
                       isCurrentMonth(date) ? 'text-foreground' : 'text-muted-foreground'
-                    }`}>
+                    } ${isToday(date) ? 'text-primary font-bold' : ''}`}>
                       {date.getDate()}
                     </span>
                     {dateStatus && (
-                      <div className={`w-2 h-2 rounded-full ${dateStatus.color}`}></div>
+                      <div className="flex items-center gap-1">
+                        <dateStatus.icon className={`w-3 h-3 ${dateStatus.textColor}`} />
+                        <div className={`w-2 h-2 rounded-full ${dateStatus.color} animate-pulse`}></div>
+                      </div>
                     )}
                   </div>
-                  
+
+                  {/* Show equipment calibrations */}
                   {equipmentsOnDate.length > 0 && (
-                    <div className="mt-1 space-y-1">
+                    <div className="space-y-1">
                       {equipmentsOnDate.slice(0, 2).map((eq) => (
                         <div
                           key={eq.id}
-                          className="text-xs p-1 rounded text-white truncate bg-primary"
+                          className={`text-xs px-1.5 py-0.5 rounded font-medium truncate shadow-sm
+                            ${eq.diasParaVencer !== undefined && eq.diasParaVencer <= 0
+                              ? 'bg-red-600 text-white'
+                              : eq.diasParaVencer !== undefined && eq.diasParaVencer <= 7
+                              ? 'bg-orange-600 text-white'
+                              : eq.diasParaVencer !== undefined && eq.diasParaVencer <= 30
+                              ? 'bg-yellow-600 text-white'
+                              : 'bg-primary text-white'
+                            }`}
                         >
                           {eq.tag}
                         </div>
                       ))}
-                      {equipmentsOnDate.length > 2 && (
-                        <div className="text-xs text-muted-foreground text-center">
-                          +{equipmentsOnDate.length - 2} mais
+                    </div>
+                  )}
+
+                  {/* Show scheduled calibrations */}
+                  {calendariosOnDate.length > 0 && (
+                    <div className="space-y-1 mt-1">
+                      {calendariosOnDate.slice(0, 2).map((cal) => (
+                        <div
+                          key={cal.id}
+                          className={`text-xs px-1.5 py-0.5 rounded font-medium truncate shadow-sm border
+                            ${cal.status === 'concluido'
+                              ? 'bg-green-100 text-green-800 border-green-300'
+                              : cal.status === 'em_andamento'
+                              ? 'bg-blue-100 text-blue-800 border-blue-300'
+                              : cal.status === 'agendado'
+                              ? 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                              : 'bg-gray-100 text-gray-800 border-gray-300'
+                            }`}
+                        >
+                          <Calendar className="w-2.5 h-2.5 inline mr-0.5" />
+                          {cal.tagPontoMedicao}
                         </div>
-                      )}
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Show count if more items */}
+                  {allItems.length > 4 && (
+                    <div className="mt-1">
+                      <Badge variant="secondary" className="text-xs py-0 px-1.5">
+                        +{allItems.length - 4} mais
+                      </Badge>
                     </div>
                   )}
                 </div>
               );
             })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Legend */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <h4 className="font-medium">Legenda:</h4>
-            <div className="flex items-center space-x-6 text-sm">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span>Vencido</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                <span>Crítico (≤7 dias)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <span>Alerta (8-30 dias)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span>OK ({'>'}30 dias)</span>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>

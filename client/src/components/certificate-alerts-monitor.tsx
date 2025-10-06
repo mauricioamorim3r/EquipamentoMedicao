@@ -376,40 +376,6 @@ export default function CertificateAlertsMonitor() {
         </CardContent>
       </Card>
 
-      {/* Card de ações rápidas */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Ações Rápidas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button 
-              variant="outline" 
-              className="h-auto py-4 flex flex-col items-center gap-2"
-              onClick={() => setLocation('/calibrations')}
-            >
-              <Calendar className="w-6 h-6" />
-              <span>Agendar Calibrações</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-auto py-4 flex flex-col items-center gap-2"
-              onClick={() => setLocation('/equipment')}
-            >
-              <Settings className="w-6 h-6" />
-              <span>Gerenciar Equipamentos</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-auto py-4 flex flex-col items-center gap-2"
-              onClick={() => setLocation('/reports')}
-            >
-              <FileText className="w-6 h-6" />
-              <span>Relatórios</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

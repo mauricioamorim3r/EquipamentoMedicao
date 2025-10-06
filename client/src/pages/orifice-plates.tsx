@@ -11,14 +11,21 @@ import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import EnhancedOrificePlateForm from "@/components/enhanced-orifice-plate-form";
+import AdvancedFiltersDialog from "@/components/advanced-filters-dialog";
 import type { PlacaOrificio } from "@shared/schema";
 
 export default function OrificePlates() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [editingPlate, setEditingPlate] = useState<PlacaOrificio | null>(null);
-  
+
+  // Advanced filters
+  const [selectedDiametro, setSelectedDiametro] = useState<string>("");
+  const [selectedMaterial, setSelectedMaterial] = useState<string>("");
+  const [selectedTipoPlaca, setSelectedTipoPlaca] = useState<string>("");
+
   const { toast } = useToast();
 
   // Fetch data
@@ -34,14 +41,26 @@ export default function OrificePlates() {
 
   // Filter plates based on search
   const filteredPlacas = placas?.filter((placa: PlacaOrificio) => {
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       placa.cartaNumero?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      placa.material?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+      placa.material?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      placa.numeroSerie?.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesEquipment = !selectedEquipment || placa.equipamentoId.toString() === selectedEquipment;
-    
-    return matchesSearch && matchesEquipment;
+    const matchesDiametro = !selectedDiametro || placa.diametroInterno?.toString() === selectedDiametro;
+    const matchesMaterial = !selectedMaterial || placa.material === selectedMaterial;
+    const matchesTipo = !selectedTipoPlaca || placa.tipo === selectedTipoPlaca;
+
+    return matchesSearch && matchesEquipment && matchesDiametro && matchesMaterial && matchesTipo;
   }) || [];
+
+  const clearAdvancedFilters = () => {
+    setSelectedDiametro("");
+    setSelectedMaterial("");
+    setSelectedTipoPlaca("");
+  };
+
+  const hasActiveAdvancedFilters = !!(selectedDiametro || selectedMaterial || selectedTipoPlaca);
 
   const getInspectionStatusBadge = (dataInspecao?: string) => {
     if (!dataInspecao) {
@@ -243,15 +262,65 @@ export default function OrificePlates() {
               </SelectContent>
             </Select>
 
-            <Button variant="outline">
-              <Filter className="w-4 h-4 mr-2" />
-              Mais Filtros
-            </Button>
+            <AdvancedFiltersDialog
+              open={isAdvancedFiltersOpen}
+              onOpenChange={setIsAdvancedFiltersOpen}
+              hasActiveFilters={hasActiveAdvancedFilters}
+              onClearFilters={clearAdvancedFilters}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Diâmetro Interno (mm)</label>
+                  <Select value={selectedDiametro} onValueChange={setSelectedDiametro}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os diâmetros" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="50">50mm</SelectItem>
+                      <SelectItem value="75">75mm</SelectItem>
+                      <SelectItem value="100">100mm</SelectItem>
+                      <SelectItem value="150">150mm</SelectItem>
+                      <SelectItem value="200">200mm</SelectItem>
+                      <SelectItem value="250">250mm</SelectItem>
+                      <SelectItem value="300">300mm</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <Button variant="outline" data-testid="button-export">
-              <Download className="w-4 h-4 mr-2" />
-              Exportar
-            </Button>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Material</label>
+                  <Select value={selectedMaterial} onValueChange={setSelectedMaterial}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os materiais" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="aco-inox-304">Aço Inox 304</SelectItem>
+                      <SelectItem value="aco-inox-316">Aço Inox 316</SelectItem>
+                      <SelectItem value="aco-carbono">Aço Carbono</SelectItem>
+                      <SelectItem value="monel">Monel</SelectItem>
+                      <SelectItem value="hastelloy">Hastelloy</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Tipo de Placa</label>
+                  <Select value={selectedTipoPlaca} onValueChange={setSelectedTipoPlaca}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os tipos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="concentrica">Concêntrica</SelectItem>
+                      <SelectItem value="excentrica">Excêntrica</SelectItem>
+                      <SelectItem value="segmental">Segmental</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </AdvancedFiltersDialog>
           </div>
         </CardContent>
       </Card>

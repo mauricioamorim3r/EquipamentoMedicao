@@ -100,7 +100,7 @@ export default function UncertaintyControl() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Controle de Incertezas</h1>
+          <h1 className="text-2xl font-semibold text-foreground" data-testid="page-title">Controle de Incertezas</h1>
           <p className="text-gray-600">Gestão de incertezas de medição conforme GUM e ANP</p>
         </div>
         <NovaAnaliseIncerteza />

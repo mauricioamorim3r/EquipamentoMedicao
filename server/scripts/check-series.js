@@ -1,0 +1,10 @@
+const fs = require('fs');
+const data = fs.readFileSync(0, 'utf-8');
+const json = JSON.parse(data);
+const semSerie = json.filter(e => !e.numeroSerie || e.numeroSerie === '');
+console.log('Total:', json.length);
+console.log('SEM numeroSerie:', semSerie.length);
+console.log('\nEquipamentos SEM numeroSerie:');
+semSerie.forEach(e => console.log('  ID:', e.id, '- Nome:', e.nome, '- Tipo:', e.tipo));
+console.log('\nEquipamentos COM numeroSerie:');
+json.filter(e => e.numeroSerie && e.numeroSerie !== '').forEach(e => console.log('  ID:', e.id, '- Serie:', e.numeroSerie, '- Nome:', e.nome));

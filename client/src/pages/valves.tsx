@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import ValveForm from "@/components/valve-form";
+import AdvancedFiltersDialog from "@/components/advanced-filters-dialog";
 import type { Valvula, Polo } from "@shared/schema";
 
 export default function Valves() {
@@ -18,7 +19,14 @@ export default function Valves() {
   const [selectedPolo, setSelectedPolo] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [editingValve, setEditingValve] = useState<Valvula | null>(null);
+
+  // Advanced filters
+  const [selectedTipo, setSelectedTipo] = useState<string>("");
+  const [selectedClassePressao, setSelectedClassePressao] = useState<string>("");
+  const [selectedDiametroNominal, setSelectedDiametroNominal] = useState<string>("");
+
   const { toast } = useToast();
 
   // Fetch data
@@ -59,9 +67,20 @@ export default function Valves() {
       valve.finalidadeSistema?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = !selectedStatus || selectedStatus === "all" || valve.statusOperacional === selectedStatus;
+    const matchesTipo = !selectedTipo || valve.tipoValvula === selectedTipo;
+    const matchesClasse = !selectedClassePressao || valve.classePressaoDiametro === selectedClassePressao;
+    const matchesDiametro = !selectedDiametroNominal || valve.diametroNominal === selectedDiametroNominal;
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesTipo && matchesClasse && matchesDiametro;
   });
+
+  const clearAdvancedFilters = () => {
+    setSelectedTipo("");
+    setSelectedClassePressao("");
+    setSelectedDiametroNominal("");
+  };
+
+  const hasActiveAdvancedFilters = !!(selectedTipo || selectedClassePressao || selectedDiametroNominal);
 
   // Status functions
   const getStatusBadge = (status: string) => {
@@ -229,7 +248,7 @@ export default function Valves() {
           <CardTitle className="text-lg">Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -253,15 +272,69 @@ export default function Valves() {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" className="w-full">
-              <Filter className="w-4 h-4 mr-2" />
-              Mais Filtros
-            </Button>
+            <AdvancedFiltersDialog
+              open={isAdvancedFiltersOpen}
+              onOpenChange={setIsAdvancedFiltersOpen}
+              hasActiveFilters={hasActiveAdvancedFilters}
+              onClearFilters={clearAdvancedFilters}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Tipo de Válvula</label>
+                  <Select value={selectedTipo} onValueChange={setSelectedTipo}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os tipos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="gaveta">Gaveta</SelectItem>
+                      <SelectItem value="esfera">Esfera</SelectItem>
+                      <SelectItem value="globo">Globo</SelectItem>
+                      <SelectItem value="borboleta">Borboleta</SelectItem>
+                      <SelectItem value="retencao">Retenção</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <Button variant="outline" className="w-full">
-              <Download className="w-4 h-4 mr-2" />
-              Exportar
-            </Button>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Classe de Pressão</label>
+                  <Select value={selectedClassePressao} onValueChange={setSelectedClassePressao}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas as classes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todas</SelectItem>
+                      <SelectItem value="150">150</SelectItem>
+                      <SelectItem value="300">300</SelectItem>
+                      <SelectItem value="600">600</SelectItem>
+                      <SelectItem value="900">900</SelectItem>
+                      <SelectItem value="1500">1500</SelectItem>
+                      <SelectItem value="2500">2500</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Diâmetro Nominal</label>
+                  <Select value={selectedDiametroNominal} onValueChange={setSelectedDiametroNominal}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os diâmetros" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="50mm">50mm</SelectItem>
+                      <SelectItem value="75mm">75mm</SelectItem>
+                      <SelectItem value="100mm">100mm</SelectItem>
+                      <SelectItem value="150mm">150mm</SelectItem>
+                      <SelectItem value="200mm">200mm</SelectItem>
+                      <SelectItem value="250mm">250mm</SelectItem>
+                      <SelectItem value="300mm">300mm</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </AdvancedFiltersDialog>
           </div>
         </CardContent>
       </Card>

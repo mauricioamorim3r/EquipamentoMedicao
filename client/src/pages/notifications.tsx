@@ -122,7 +122,7 @@ export default function Notifications() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Notificações</h1>
+          <h1 className="text-2xl font-semibold text-foreground" data-testid="page-title">Notificações</h1>
           <p className="text-muted-foreground">
             Gerencie e acompanhe todas as suas notificações do sistema
           </p>

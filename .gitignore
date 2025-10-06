@@ -52,3 +52,14 @@ Thumbs.db
 
 # Render specific
 render.yaml.backup
+
+# JDK installations
+oracleJdk-25/
+jdk*/
+
+# Temporary files
+temp-equip.json
+clear-cache.html
+
+# Claude settings
+.claude/

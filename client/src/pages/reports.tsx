@@ -114,10 +114,6 @@ export default function Reports() {
           </p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" data-testid="button-schedule-reports">
-            <Send className="w-4 h-4 mr-2" />
-            Agendar Envios
-          </Button>
           <Button 
             onClick={() => generateReport('compliance', 'pdf')}
             data-testid="button-quick-export"

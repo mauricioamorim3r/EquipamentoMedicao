@@ -934,7 +934,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create sample notifications for testing
+  // Create sample notifications for testing - DESABILITADO (dados mock removidos)
+  // Para usar em desenvolvimento, descomente este endpoint
+  /*
   app.post("/api/notificacoes/create-samples", async (req, res) => {
     try {
       const sampleNotifications = [
@@ -992,6 +994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Internal server error" });
     }
   });
+  */
 
   // Dashboard Calendar Events
   app.get("/api/dashboard/calendar-events", async (req, res) => {

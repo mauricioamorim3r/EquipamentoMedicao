@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, Filter, Download, Edit, Trash2, Eye, MapPin, Calendar, Settings, Upload, FileDown, FileUp, FileSpreadsheet } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Plus, Search, Download, Edit, Trash2, Eye, MapPin, Calendar, Settings, Upload, FileDown, FileUp, FileSpreadsheet } from "lucide-react";
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -14,11 +14,13 @@ import { useImportExport } from "@/hooks/use-import-export";
 import EquipmentForm from "@/components/equipment-form";
 import EquipmentModal from "@/components/equipment-modal";
 import { useTranslation } from "@/hooks/useLanguage";
+import { useLocation } from "wouter";
 import type { Equipamento, Polo, Instalacao } from "@shared/schema";
 import type { EquipmentWithCalibration } from "@/types";
 
 export default function Equipment() {
   const { t } = useTranslation();
+  const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPolo, setSelectedPolo] = useState<string>("");
   const [selectedInstalacao, setSelectedInstalacao] = useState<string>("");
@@ -179,7 +181,7 @@ export default function Equipment() {
   };
 
   return (
-    <div className="h-full flex flex-col p-6">
+    <div className="p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -313,11 +315,6 @@ export default function Equipment() {
                 <SelectItem value="sobressalente">Sobressalente</SelectItem>
               </SelectContent>
             </Select>
-
-            <Button variant="outline" data-testid="button-export">
-              <Download className="w-4 h-4 mr-2" />
-              {t('export')}
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -325,17 +322,9 @@ export default function Equipment() {
       {/* Equipment List */}
       <Card className="flex-1 flex flex-col overflow-hidden">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>
-              {t('equipments')} ({filteredEquipments.length})
-            </CardTitle>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4 mr-2" />
-                {t('advancedFilters')}
-              </Button>
-            </div>
-          </div>
+          <CardTitle>
+            {t('equipments')} ({filteredEquipments.length})
+          </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto">
           {equipmentLoading ? (
@@ -377,6 +366,11 @@ export default function Equipment() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-4 mb-2">
                           <h3 className="font-semibold text-lg font-mono">{equipment.tag}</h3>
+                          {equipment.numeroSerie && (
+                            <span className="text-sm font-mono text-primary bg-primary/10 px-2 py-1 rounded">
+                              S/N: {equipment.numeroSerie}
+                            </span>
+                          )}
                           <Badge className={statusBadge.className}>
                             {statusBadge.text}
                           </Badge>
@@ -384,12 +378,12 @@ export default function Equipment() {
                             {calibrationBadge.text}
                           </Badge>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
                           <div>
                             <p className="font-medium text-foreground">{equipment.nome}</p>
                             <p>
-                              {equipment.fabricante && equipment.modelo 
+                              {equipment.fabricante && equipment.modelo
                                 ? `${equipment.fabricante} - ${equipment.modelo}`
                                 : equipment.fabricante || equipment.modelo || 'N/A'
                               }
@@ -470,11 +464,8 @@ export default function Equipment() {
           handleEdit(eq as Equipamento);
         }}
         onScheduleCalibration={(eq) => {
-          // TODO: Implement calibration scheduling
-          toast({
-            title: "Em desenvolvimento",
-            description: "Funcionalidade de agendamento em desenvolvimento",
-          });
+          closeDetails();
+          navigate("/calibracoes");
         }}
       />
     </div>

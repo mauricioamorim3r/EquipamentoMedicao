@@ -223,7 +223,7 @@ export default function TestesPocos() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Testes de Poços</h1>
+          <h1 className="text-2xl font-semibold text-foreground" data-testid="page-title">Testes de Poços</h1>
           <p className="text-muted-foreground">
             Gerencie e acompanhe todos os testes BTP dos poços de produção
           </p>

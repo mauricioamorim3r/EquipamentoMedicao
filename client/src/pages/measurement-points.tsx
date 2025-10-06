@@ -8,15 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Download, 
-  Edit, 
-  Trash2, 
-  MapPin, 
-  Settings, 
+import {
+  Plus,
+  Search,
+  Filter,
+  Download,
+  Edit,
+  Trash2,
+  MapPin,
+  Settings,
   Activity,
   Gauge,
   Thermometer,
@@ -31,6 +31,7 @@ import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useLanguage";
 import MeasurementPointForm from "@/components/measurement-point-form";
+import AdvancedFiltersDialog from "@/components/advanced-filters-dialog";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { PontoMedicao, Polo, Instalacao } from "@shared/schema";
@@ -42,9 +43,14 @@ export default function MeasurementPoints() {
   const [selectedInstalacao, setSelectedInstalacao] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [editingPoint, setEditingPoint] = useState<PontoMedicao | null>(null);
   const [activeTab, setActiveTab] = useState("list");
-  
+
+  // Advanced filters
+  const [selectedClassificacao, setSelectedClassificacao] = useState<string>("");
+  const [selectedTipoMedicao, setSelectedTipoMedicao] = useState<string>("");
+
   const { toast } = useToast();
 
   // Fetch data
@@ -81,16 +87,25 @@ export default function MeasurementPoints() {
 
   // Filter measurement points
   const filteredPoints = measurementPoints?.filter((point: PontoMedicao) => {
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       point.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       point.tag?.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
     const matchesPolo = !selectedPolo || selectedPolo === 'all' || point.poloId === parseInt(selectedPolo);
     const matchesInstalacao = !selectedInstalacao || selectedInstalacao === 'all' || point.instalacaoId === parseInt(selectedInstalacao);
     const matchesStatus = !selectedStatus || selectedStatus === 'all' || point.status === selectedStatus;
-    
-    return matchesSearch && matchesPolo && matchesInstalacao && matchesStatus;
+    const matchesClassificacao = !selectedClassificacao || point.classificacao === selectedClassificacao;
+    const matchesTipoMedicao = !selectedTipoMedicao || point.tipoMedidorPrimario === selectedTipoMedicao;
+
+    return matchesSearch && matchesPolo && matchesInstalacao && matchesStatus && matchesClassificacao && matchesTipoMedicao;
   }) || [];
+
+  const clearAdvancedFilters = () => {
+    setSelectedClassificacao("");
+    setSelectedTipoMedicao("");
+  };
+
+  const hasActiveAdvancedFilters = !!(selectedClassificacao || selectedTipoMedicao);
 
   const handleEdit = (point: PontoMedicao) => {
     setEditingPoint(point);
@@ -154,16 +169,12 @@ export default function MeasurementPoints() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Pontos de Medição</h1>
+          <h1 className="text-2xl font-semibold text-foreground" data-testid="page-title">Pontos de Medição</h1>
           <p className="text-muted-foreground">
             Gerencie os pontos de medição e seus equipamentos associados
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            Exportar
-          </Button>
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
               <Button onClick={() => setEditingPoint(null)}>
@@ -251,7 +262,7 @@ export default function MeasurementPoints() {
                 className="pl-10"
               />
             </div>
-            
+
             <Select value={selectedPolo} onValueChange={setSelectedPolo}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos os Polos" />
@@ -265,7 +276,7 @@ export default function MeasurementPoints() {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Select value={selectedInstalacao} onValueChange={setSelectedInstalacao}>
               <SelectTrigger>
                 <SelectValue placeholder="Todas as Instalações" />
@@ -279,7 +290,7 @@ export default function MeasurementPoints() {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos os Status" />
@@ -292,11 +303,47 @@ export default function MeasurementPoints() {
                 <SelectItem value="calibracao">Calibração</SelectItem>
               </SelectContent>
             </Select>
-            
-            <Button variant="outline" className="w-full">
-              <Filter className="w-4 h-4 mr-2" />
-              Filtros Avançados
-            </Button>
+
+            <AdvancedFiltersDialog
+              open={isAdvancedFiltersOpen}
+              onOpenChange={setIsAdvancedFiltersOpen}
+              hasActiveFilters={hasActiveAdvancedFilters}
+              onClearFilters={clearAdvancedFilters}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Classificação</label>
+                  <Select value={selectedClassificacao} onValueChange={setSelectedClassificacao}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas as classificações" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todas</SelectItem>
+                      <SelectItem value="fiscal">Fiscal</SelectItem>
+                      <SelectItem value="apropriacao">Apropriação</SelectItem>
+                      <SelectItem value="operacional">Operacional</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Tipo de Medição</label>
+                  <Select value={selectedTipoMedicao} onValueChange={setSelectedTipoMedicao}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os tipos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="vazao">Vazão</SelectItem>
+                      <SelectItem value="pressao">Pressão</SelectItem>
+                      <SelectItem value="temperatura">Temperatura</SelectItem>
+                      <SelectItem value="densidade">Densidade</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </AdvancedFiltersDialog>
           </div>
         </CardContent>
       </Card>

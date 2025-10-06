@@ -1,8 +1,12 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Edit, History, QrCode, MapPin, Settings, FileText } from "lucide-react";
 import type { EquipmentWithCalibration } from "@/types";
+import type { HistoricoCalibracao } from "@shared/schema";
+import CalibrationHistoryDialog from "./calibration-history-dialog";
+import QRCodeDialog from "./qrcode-dialog";
 
 interface EquipmentModalProps {
   equipment: EquipmentWithCalibration | null;
@@ -12,14 +16,36 @@ interface EquipmentModalProps {
   onScheduleCalibration?: (equipment: EquipmentWithCalibration) => void;
 }
 
-export default function EquipmentModal({ 
-  equipment, 
-  isOpen, 
+export default function EquipmentModal({
+  equipment,
+  isOpen,
   onClose,
   onEdit,
-  onScheduleCalibration 
+  onScheduleCalibration
 }: EquipmentModalProps) {
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [historico, setHistorico] = useState<HistoricoCalibracao[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isQRCodeOpen, setIsQRCodeOpen] = useState(false);
+
   if (!equipment) return null;
+
+  const handleViewHistory = async () => {
+    if (!equipment.id) return;
+
+    setIsLoadingHistory(true);
+    try {
+      const response = await fetch(`/api/historico-calibracoes?equipamentoId=${equipment.id}`);
+      if (!response.ok) throw new Error('Failed to fetch history');
+      const data = await response.json();
+      setHistorico(data);
+      setIsHistoryOpen(true);
+    } catch (error) {
+      console.error('Error fetching calibration history:', error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
 
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -73,6 +99,9 @@ export default function EquipmentModal({
               </Badge>
             </div>
           </DialogTitle>
+          <DialogDescription>
+            Informações completas sobre o equipamento {equipment.tag} - {equipment.nome}
+          </DialogDescription>
         </DialogHeader>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -211,16 +240,19 @@ export default function EquipmentModal({
             <Calendar className="w-4 h-4" />
             Agendar Calibração
           </Button>
-          <Button 
+          <Button
             variant="outline"
+            onClick={handleViewHistory}
+            disabled={isLoadingHistory}
             className="flex items-center gap-2"
             data-testid="button-view-history"
           >
             <History className="w-4 h-4" />
-            Histórico
+            {isLoadingHistory ? 'Carregando...' : 'Histórico'}
           </Button>
-          <Button 
+          <Button
             variant="outline"
+            onClick={() => setIsQRCodeOpen(true)}
             className="flex items-center gap-2"
             data-testid="button-generate-qr"
           >
@@ -229,6 +261,19 @@ export default function EquipmentModal({
           </Button>
         </div>
       </DialogContent>
+
+      <CalibrationHistoryDialog
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        historico={historico}
+        equipmentTag={equipment.tag}
+      />
+
+      <QRCodeDialog
+        isOpen={isQRCodeOpen}
+        onClose={() => setIsQRCodeOpen(false)}
+        equipment={equipment}
+      />
     </Dialog>
   );
 }

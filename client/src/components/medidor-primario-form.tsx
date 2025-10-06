@@ -247,16 +247,24 @@ export default function MedidorPrimarioForm({
     }
   };
 
-  // Filter equipamentos for flow meters (medidores de vazão)
-  const medidorEquipamentos = equipamentos?.filter((eq: any) =>
-    eq.tipo?.toLowerCase().includes("medidor") ||
-    eq.tipo?.toLowerCase().includes("vazão") ||
-    eq.tipo?.toLowerCase().includes("vazao") ||
-    eq.tipo?.toLowerCase().includes("coriolis") ||
-    eq.tipo?.toLowerCase().includes("ultrassônico") ||
-    eq.tipo?.toLowerCase().includes("ultrassonico") ||
-    eq.tipo?.toLowerCase().includes("turbina")
-  ) || [];
+  // Filter equipamentos for primary flow meters
+  // Tipos elegíveis: Coriolis, Ultrassônico, Turbina, Deslocamento Positivo, Vortex, Venturi, V-Cone
+  const medidorEquipamentos = equipamentos?.filter((eq: any) => {
+    const tipo = eq.tipo?.toLowerCase() || "";
+    return (
+      tipo.includes("coriolis") ||
+      tipo.includes("ultrassônico") ||
+      tipo.includes("ultrassonico") ||
+      tipo.includes("turbina") ||
+      tipo.includes("deslocamento positivo") ||
+      tipo.includes("deslocamento-positivo") ||
+      tipo.includes("vortex") ||
+      tipo.includes("venturi") ||
+      tipo.includes("v-cone") ||
+      tipo.includes("v cone") ||
+      tipo.includes("vcone")
+    );
+  }) || [];
 
   return (
     <Form {...form}>

@@ -12,6 +12,7 @@ import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useLanguage";
 import EnhancedStraightSectionForm from "@/components/enhanced-straight-section-form";
+import AdvancedFiltersDialog from "@/components/advanced-filters-dialog";
 import type { TrechoReto, Equipamento } from "@shared/schema";
 
 export default function TrechosRetos() {
@@ -19,8 +20,14 @@ export default function TrechosRetos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [editingTrechoReto, setEditingTrechoReto] = useState<TrechoReto | null>(null);
-  
+
+  // Advanced filters
+  const [selectedDiametroNominal, setSelectedDiametroNominal] = useState<string>("");
+  const [selectedMaterial, setSelectedMaterial] = useState<string>("");
+  const [selectedComprimento, setSelectedComprimento] = useState<string>("");
+
   const { toast } = useToast();
 
   // Fetch data
@@ -36,15 +43,26 @@ export default function TrechosRetos() {
 
   // Filter straight sections based on search
   const filteredTrechos = trechosRetos?.filter((trecho: TrechoReto) => {
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       trecho.cartaNumero?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       trecho.numeroSerie.toLowerCase().includes(searchTerm.toLowerCase()) ||
       trecho.tipoAco?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesEquipment = !selectedEquipment || trecho.equipamentoId.toString() === selectedEquipment;
-    
-    return matchesSearch && matchesEquipment;
+    const matchesDiametro = !selectedDiametroNominal || trecho.diametroNominal?.toString() === selectedDiametroNominal;
+    const matchesMaterial = !selectedMaterial || trecho.tipoAco === selectedMaterial;
+    const matchesComprimento = !selectedComprimento || trecho.comprimentoMontante === selectedComprimento;
+
+    return matchesSearch && matchesEquipment && matchesDiametro && matchesMaterial && matchesComprimento;
   }) || [];
+
+  const clearAdvancedFilters = () => {
+    setSelectedDiametroNominal("");
+    setSelectedMaterial("");
+    setSelectedComprimento("");
+  };
+
+  const hasActiveAdvancedFilters = !!(selectedDiametroNominal || selectedMaterial || selectedComprimento);
 
   const getInspectionStatusBadge = (dataInspecao?: string) => {
     if (!dataInspecao) {
@@ -107,7 +125,7 @@ export default function TrechosRetos() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Trechos Retos</h1>
+          <h1 className="text-2xl font-semibold text-foreground" data-testid="page-title">Trechos Retos</h1>
           <p className="text-muted-foreground">
             Gerencie os trechos retos dos equipamentos de medição
           </p>
@@ -215,7 +233,7 @@ export default function TrechosRetos() {
           <CardTitle className="text-lg">Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -226,7 +244,7 @@ export default function TrechosRetos() {
                 data-testid="search-input"
               />
             </div>
-            
+
             <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
               <SelectTrigger data-testid="filter-equipment">
                 <SelectValue placeholder="Todos os Equipamentos" />
@@ -241,15 +259,67 @@ export default function TrechosRetos() {
               </SelectContent>
             </Select>
 
-            <Button variant="outline">
-              <Filter className="w-4 h-4 mr-2" />
-              Mais Filtros
-            </Button>
+            <AdvancedFiltersDialog
+              open={isAdvancedFiltersOpen}
+              onOpenChange={setIsAdvancedFiltersOpen}
+              hasActiveFilters={hasActiveAdvancedFilters}
+              onClearFilters={clearAdvancedFilters}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Diâmetro Nominal</label>
+                  <Select value={selectedDiametroNominal} onValueChange={setSelectedDiametroNominal}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os diâmetros" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="50">50mm</SelectItem>
+                      <SelectItem value="75">75mm</SelectItem>
+                      <SelectItem value="100">100mm</SelectItem>
+                      <SelectItem value="150">150mm</SelectItem>
+                      <SelectItem value="200">200mm</SelectItem>
+                      <SelectItem value="250">250mm</SelectItem>
+                      <SelectItem value="300">300mm</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <Button variant="outline" data-testid="button-export">
-              <Download className="w-4 h-4 mr-2" />
-              Exportar
-            </Button>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Material</label>
+                  <Select value={selectedMaterial} onValueChange={setSelectedMaterial}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os materiais" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="Aço Carbono">Aço Carbono</SelectItem>
+                      <SelectItem value="Aço Inox 304">Aço Inox 304</SelectItem>
+                      <SelectItem value="Aço Inox 316">Aço Inox 316</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Comprimento</label>
+                  <Select value={selectedComprimento} onValueChange={setSelectedComprimento}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os comprimentos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="5D">5D</SelectItem>
+                      <SelectItem value="10D">10D</SelectItem>
+                      <SelectItem value="15D">15D</SelectItem>
+                      <SelectItem value="20D">20D</SelectItem>
+                      <SelectItem value="30D">30D</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </AdvancedFiltersDialog>
           </div>
         </CardContent>
       </Card>

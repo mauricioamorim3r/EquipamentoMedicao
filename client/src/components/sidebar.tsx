@@ -120,18 +120,18 @@ export default function Sidebar() {
         {menuItems.map(({ path, label, icon: Icon }) => {
           const isActive = location === path;
           return (
-            <Link key={path} href={path}>
-              <a
-                className={`flex items-center p-3 rounded-lg transition-all ${
-                  isActive 
-                    ? "sidebar-active" 
-                    : "hover:bg-accent hover:text-accent-foreground"
-                }`}
-                data-testid={`nav-${label.toLowerCase().replace(/\s+/g, '-')}`}
-              >
-                <Icon className="mr-3 w-5 h-5" />
-                <span>{label}</span>
-              </a>
+            <Link
+              key={path}
+              href={path}
+              className={`flex items-center p-3 rounded-lg transition-all ${
+                isActive
+                  ? "sidebar-active"
+                  : "hover:bg-accent hover:text-accent-foreground"
+              }`}
+              data-testid={`nav-${label.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              <Icon className="mr-3 w-5 h-5" />
+              <span>{label}</span>
             </Link>
           );
         })}

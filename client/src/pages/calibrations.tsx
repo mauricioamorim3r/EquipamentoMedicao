@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Calendar, CalendarDays, Clock, AlertCircle, CheckCircle, XCircle, Plus, Filter, Download, Upload, Edit } from "lucide-react";
 import { api } from "@/lib/api";
@@ -32,6 +32,7 @@ export default function Calibrations() {
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [selectedCalibration, setSelectedCalibration] = useState<CalendarioCalibracao | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
   const { toast } = useToast();
 
   const { data: calibrationStats, isLoading: statsLoading } = useQuery({
@@ -62,6 +63,11 @@ export default function Calibrations() {
   const { data: equipamentosCompletos } = useQuery({
     queryKey: ["/api/equipamentos"],
     queryFn: () => api.getEquipamentos(),
+  });
+
+  const { data: calendarioCalibracoes } = useQuery({
+    queryKey: ["/api/calendario-calibracoes"],
+    queryFn: () => api.getCalendarioCalibracoes(),
   });
 
   const getStatusData = (stats: CalibrationStats) => [
@@ -108,7 +114,7 @@ export default function Calibrations() {
   ];
 
   const filteredEquipments = equipamentos?.filter((eq: any) => {
-    const matchesPolo = selectedPolo === "all" || eq.poloId.toString() === selectedPolo;
+    const matchesPolo = selectedPolo === "all" || eq.poloId?.toString() === selectedPolo;
     const matchesStatus = selectedStatus === "all" || (
       selectedStatus === 'vencido' ? (eq.diasParaVencer !== undefined && eq.diasParaVencer <= 0) :
       selectedStatus === 'critico' ? (eq.diasParaVencer !== undefined && eq.diasParaVencer > 0 && eq.diasParaVencer <= 7) :
@@ -116,6 +122,7 @@ export default function Calibrations() {
       selectedStatus === 'proximo' ? (eq.diasParaVencer !== undefined && eq.diasParaVencer > 30 && eq.diasParaVencer <= 90) :
       selectedStatus === 'ok' ? (eq.diasParaVencer !== undefined && eq.diasParaVencer > 90) : true
     );
+
     return matchesPolo && matchesStatus;
   }) || [];
 
@@ -238,10 +245,11 @@ export default function Calibrations() {
               <CardTitle>Calendário de Calibrações</CardTitle>
             </CardHeader>
             <CardContent>
-                      <CalibrationCalendar 
-          equipamentos={equipamentos?.data || []} 
-          onDateClick={handleDateClick}
-        />
+              <CalibrationCalendar
+                equipamentos={equipamentos || []}
+                calendarios={calendarioCalibracoes || []}
+                onDateClick={handleDateClick}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -281,16 +289,6 @@ export default function Calibrations() {
                     <SelectItem value="ok">OK ({'>'} 90 dias)</SelectItem>
                   </SelectContent>
                 </Select>
-
-                <Button variant="outline">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Mais Filtros
-                </Button>
-
-                <Button variant="outline">
-                  <Download className="w-4 h-4 mr-2" />
-                  Exportar
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -462,6 +460,12 @@ export default function Calibrations() {
                 : 'Agendar Nova Calibração'
               }
             </DialogTitle>
+            <DialogDescription>
+              {selectedCalibration
+                ? 'Atualize as informações da calibração agendada'
+                : 'Preencha os dados para agendar uma nova calibração de equipamento'
+              }
+            </DialogDescription>
           </DialogHeader>
           
           <CalibrationForm 

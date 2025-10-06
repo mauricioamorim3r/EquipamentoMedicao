@@ -8,15 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Download, 
-  Edit, 
-  Trash2, 
-  MapPin, 
-  Building2, 
+import {
+  Plus,
+  Search,
+  Filter,
+  Download,
+  Edit,
+  Trash2,
+  MapPin,
+  Building2,
   Activity,
   BarChart3,
   Users,
@@ -28,6 +28,7 @@ import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import InstallationForm from "@/components/installation-form";
+import AdvancedFiltersDialog from "@/components/advanced-filters-dialog";
 import { useTranslation } from "@/hooks/useLanguage";
 import type { Instalacao, Polo, Campo } from "@shared/schema";
 
@@ -38,9 +39,13 @@ export default function Installations() {
   const [selectedCampo, setSelectedCampo] = useState<string>("all");
   const [selectedTipo, setSelectedTipo] = useState<string>("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [editingInstallation, setEditingInstallation] = useState<Instalacao | null>(null);
   const [activeTab, setActiveTab] = useState("list");
-  
+
+  // Advanced filters
+  const [selectedTipoInstalacao, setSelectedTipoInstalacao] = useState<string>("");
+
   const { toast } = useToast();
 
   // Fetch data
@@ -77,16 +82,23 @@ export default function Installations() {
 
   // Filter installations
   const filteredInstallations = installations?.filter((installation: Instalacao) => {
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       installation.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       installation.sigla?.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
     const matchesPolo = !selectedPolo || selectedPolo === 'all' || installation.poloId === parseInt(selectedPolo);
     const matchesCampo = !selectedCampo || selectedCampo === 'all' || installation.campoId === parseInt(selectedCampo);
     const matchesTipo = !selectedTipo || selectedTipo === 'all' || installation.tipo === selectedTipo;
-    
-    return matchesSearch && matchesPolo && matchesCampo && matchesTipo;
+    const matchesTipoInstalacao = !selectedTipoInstalacao || installation.tipo === selectedTipoInstalacao;
+
+    return matchesSearch && matchesPolo && matchesCampo && matchesTipo && matchesTipoInstalacao;
   }) || [];
+
+  const clearAdvancedFilters = () => {
+    setSelectedTipoInstalacao("");
+  };
+
+  const hasActiveAdvancedFilters = !!selectedTipoInstalacao;
 
   const handleEdit = (installation: Instalacao) => {
     setEditingInstallation(installation);
@@ -137,16 +149,12 @@ export default function Installations() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">{t('installations')}</h1>
+          <h1 className="text-2xl font-semibold text-foreground" data-testid="page-title">{t('installations')}</h1>
           <p className="text-muted-foreground">
             Gerencie as {t('installations').toLowerCase()}
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            {t('export')}
-          </Button>
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
               <Button onClick={() => setEditingInstallation(null)}>
@@ -235,7 +243,7 @@ export default function Installations() {
                 className="pl-10"
               />
             </div>
-            
+
             <Select value={selectedPolo} onValueChange={setSelectedPolo}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos os Polos" />
@@ -249,7 +257,7 @@ export default function Installations() {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Select value={selectedCampo} onValueChange={setSelectedCampo}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos os Campos" />
@@ -263,7 +271,7 @@ export default function Installations() {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Select value={selectedTipo} onValueChange={setSelectedTipo}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos os Tipos" />
@@ -277,11 +285,49 @@ export default function Installations() {
                 <SelectItem value="UEP">UEP</SelectItem>
               </SelectContent>
             </Select>
-            
-            <Button variant="outline" className="w-full">
-              <Filter className="w-4 h-4 mr-2" />
-              Filtros Avançados
-            </Button>
+
+            <AdvancedFiltersDialog
+              open={isAdvancedFiltersOpen}
+              onOpenChange={setIsAdvancedFiltersOpen}
+              hasActiveFilters={hasActiveAdvancedFilters}
+              onClearFilters={clearAdvancedFilters}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Tipo de Instalação</label>
+                  <Select value={selectedTipoInstalacao} onValueChange={setSelectedTipoInstalacao}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os tipos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="plataforma">Plataforma</SelectItem>
+                      <SelectItem value="fpso">FPSO</SelectItem>
+                      <SelectItem value="manifold">Manifold</SelectItem>
+                      <SelectItem value="estacao">Estação</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Campo</label>
+                  <Select value={selectedCampo} onValueChange={setSelectedCampo}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os campos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {campos?.map((campo: Campo) => (
+                        <SelectItem key={campo.id} value={campo.id.toString()}>
+                          {campo.sigla} - {campo.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </AdvancedFiltersDialog>
           </div>
         </CardContent>
       </Card>

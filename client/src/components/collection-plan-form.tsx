@@ -6,20 +6,26 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { insertPlanoColetaSchema, type InsertPlanoColeta, type PlanoColeta, type PontoMedicao } from "@shared/schema";
 import { z } from "zod";
+import { useEffect, useState } from "react";
 
-const formSchema = insertPlanoColetaSchema.extend({
-  dataEmbarque: z.string().optional(),
-  dataDesembarque: z.string().optional(),
-  dataRealEmbarque: z.string().optional(),
-}).refine((data) => data.pontoMedicaoId && data.pontoMedicaoId > 0, {
-  message: "Ponto de medição é obrigatório",
-  path: ["pontoMedicaoId"],
+const formSchema = z.object({
+  pontoMedicaoId: z.number().min(1, "Ponto de medição é obrigatório"),
+  tag: z.string().optional(),
+  pocoId: z.number().optional().nullable(),
+  instalacaoId: z.number().optional().nullable(),
+  campoId: z.number().optional().nullable(),
+  tipoAmostra: z.string().min(1, "Tipo da amostra é obrigatório"),
+  tipoAnalise: z.string().min(1, "Tipo de análise é obrigatório"),
+  aplicabilidade: z.string().min(1, "Aplicabilidade é obrigatória"),
+  pontoAmostragem: z.string().min(1, "Ponto de amostragem é obrigatório"),
+  periodicidade: z.string().min(1, "Periodicidade é obrigatória"),
+  observacoes: z.string().optional(),
+  status: z.string().default("pendente"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -33,21 +39,21 @@ interface CollectionPlanFormProps {
 export default function CollectionPlanForm({ plan, onClose, onSuccess }: CollectionPlanFormProps) {
   const { toast } = useToast();
   const isEditing = !!plan;
+  const [selectedPontoMedicao, setSelectedPontoMedicao] = useState<PontoMedicao | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       pontoMedicaoId: plan?.pontoMedicaoId || undefined,
-      dataEmbarque: plan?.dataEmbarque?.toString() || "",
-      dataDesembarque: plan?.dataDesembarque?.toString() || "",
-      validadoOperacao: plan?.validadoOperacao || false,
-      validadoLaboratorio: plan?.validadoLaboratorio || false,
-      cilindrosDisponiveis: plan?.cilindrosDisponiveis || false,
-      embarqueAgendado: plan?.embarqueAgendado || false,
-      embarqueRealizado: plan?.embarqueRealizado || false,
-      coletaRealizada: plan?.coletaRealizada || false,
-      resultadoEmitido: plan?.resultadoEmitido || false,
-      dataRealEmbarque: plan?.dataRealEmbarque?.toString() || "",
+      tag: plan?.tag || "",
+      pocoId: plan?.pocoId || null,
+      instalacaoId: plan?.instalacaoId || null,
+      campoId: plan?.campoId || null,
+      tipoAmostra: plan?.tipoAmostra || "",
+      tipoAnalise: plan?.tipoAnalise || "",
+      aplicabilidade: plan?.aplicabilidade || "",
+      pontoAmostragem: plan?.pontoAmostragem || "",
+      periodicidade: plan?.periodicidade || "",
       observacoes: plan?.observacoes || "",
       status: plan?.status || "pendente",
     },
@@ -58,10 +64,32 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
     queryFn: () => api.getPontosMedicao(),
   });
 
+  const { data: pocos } = useQuery({
+    queryKey: ["/api/wells"],
+    queryFn: () => api.getWells(),
+  });
+
+  const { data: instalacoes } = useQuery({
+    queryKey: ["/api/instalacoes"],
+    queryFn: () => api.getInstalacoes(),
+  });
+
+  const { data: campos } = useQuery({
+    queryKey: ["/api/campos"],
+    queryFn: () => api.getCampos(),
+  });
+
+  // Auto-preencher TAG quando seleciona ponto de medição
+  useEffect(() => {
+    if (selectedPontoMedicao) {
+      form.setValue("tag", selectedPontoMedicao.tag || "");
+      form.setValue("instalacaoId", selectedPontoMedicao.instalacaoId || null);
+    }
+  }, [selectedPontoMedicao, form]);
+
   const createMutation = useMutation({
-    mutationFn: (data: InsertPlanoColeta) => api.createPlanoColeta(data),
+    mutationFn: (data: any) => api.createPlanoColeta(data),
     onSuccess: () => {
-      // Force refetch to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ["/api/planos-coleta"] });
       queryClient.refetchQueries({ queryKey: ["/api/planos-coleta"] });
       toast({
@@ -80,10 +108,9 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<InsertPlanoColeta> }) => 
+    mutationFn: ({ id, data }: { id: number; data: any }) =>
       api.updatePlanoColeta(id, data),
     onSuccess: () => {
-      // Force refetch to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ["/api/planos-coleta"] });
       queryClient.refetchQueries({ queryKey: ["/api/planos-coleta"] });
       toast({
@@ -102,17 +129,10 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
   });
 
   const onSubmit = (data: FormValues) => {
-    const submitData = {
-      ...data,
-      dataEmbarque: data.dataEmbarque ? data.dataEmbarque : null,
-      dataDesembarque: data.dataDesembarque ? data.dataDesembarque : null,
-      dataRealEmbarque: data.dataRealEmbarque ? data.dataRealEmbarque : null,
-    };
-    
     if (isEditing && plan) {
-      updateMutation.mutate({ id: plan.id, data: submitData });
+      updateMutation.mutate({ id: plan.id, data });
     } else {
-      createMutation.mutate(submitData as InsertPlanoColeta);
+      createMutation.mutate(data);
     }
   };
 
@@ -120,19 +140,27 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Informações Básicas */}
+          {/* Coluna 1: Identificação */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold border-b pb-2">Informações Básicas</h3>
-            
+            <h3 className="text-lg font-semibold border-b pb-2">Identificação</h3>
+
             <FormField
               control={form.control}
               name="pontoMedicaoId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ponto de Medição *</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                  <Select
+                    onValueChange={(value) => {
+                      const id = parseInt(value);
+                      field.onChange(id);
+                      const ponto = pontosMedicao?.find((p: PontoMedicao) => p.id === id);
+                      setSelectedPontoMedicao(ponto || null);
+                    }}
+                    value={field.value?.toString()}
+                  >
                     <FormControl>
-                      <SelectTrigger data-testid="select-measurement-point" aria-label="Selecionar ponto de medição">
+                      <SelectTrigger data-testid="select-measurement-point">
                         <SelectValue placeholder="Selecionar ponto de medição" />
                       </SelectTrigger>
                     </FormControl>
@@ -151,16 +179,18 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
 
             <FormField
               control={form.control}
-              name="dataEmbarque"
+              name="tag"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Data de Embarque</FormLabel>
+                  <FormLabel>TAG do Ponto de Medição</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="date" 
-                      {...field} 
-                      data-testid="input-embark-date"
-                      aria-label="Data de embarque"
+                    <Input
+                      {...field}
+                      value={field.value || ""}
+                      readOnly
+                      disabled
+                      placeholder="Selecionado automaticamente"
+                      className="bg-muted"
                     />
                   </FormControl>
                   <FormMessage />
@@ -170,59 +200,84 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
 
             <FormField
               control={form.control}
-              name="dataDesembarque"
+              name="pocoId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Data de Desembarque</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="date" 
-                      {...field} 
-                      data-testid="input-disembark-date"
-                      aria-label="Data de desembarque"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="dataRealEmbarque"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Data Real de Embarque</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="date" 
-                      {...field} 
-                      data-testid="input-real-embark-date"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormLabel>Poço (se aplicável)</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === "null" ? null : parseInt(value))}
+                    value={field.value?.toString() || "null"}
+                  >
                     <FormControl>
-                      <SelectTrigger data-testid="select-status" aria-label="Status do plano de coleta">
-                        <SelectValue />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar poço (opcional)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="pendente">Pendente</SelectItem>
-                      <SelectItem value="agendado">Agendado</SelectItem>
-                      <SelectItem value="em-andamento">Em Andamento</SelectItem>
-                      <SelectItem value="concluido">Concluído</SelectItem>
-                      <SelectItem value="cancelado">Cancelado</SelectItem>
+                      <SelectItem value="null">Nenhum</SelectItem>
+                      {pocos?.map((poco: any) => (
+                        <SelectItem key={poco.id} value={poco.id.toString()}>
+                          {poco.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="instalacaoId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Instalação</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === "null" ? null : parseInt(value))}
+                    value={field.value?.toString() || "null"}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar instalação" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="null">Nenhuma</SelectItem>
+                      {instalacoes?.map((inst: any) => (
+                        <SelectItem key={inst.id} value={inst.id.toString()}>
+                          {inst.sigla} - {inst.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="campoId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Campo</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === "null" ? null : parseInt(value))}
+                    value={field.value?.toString() || "null"}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar campo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="null">Nenhum</SelectItem>
+                      {campos?.map((campo: any) => (
+                        <SelectItem key={campo.id} value={campo.id.toString()}>
+                          {campo.nome}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -231,139 +286,130 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
             />
           </div>
 
-          {/* Checklist de Validações */}
+          {/* Coluna 2: Características da Coleta */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold border-b pb-2">Checklist de Validações</h3>
-            
+            <h3 className="text-lg font-semibold border-b pb-2">Características da Coleta</h3>
+
             <FormField
               control={form.control}
-              name="validadoOperacao"
+              name="tipoAmostra"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value || false}
-                      onCheckedChange={field.onChange}
-                      data-testid="checkbox-validated-operation"
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Validado pela Operação</FormLabel>
-                  </div>
+                <FormItem>
+                  <FormLabel>Tipo da Amostra (Fluido) *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar tipo de amostra" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="gas-natural">Gás Natural</SelectItem>
+                      <SelectItem value="oleo-cru">Óleo Cru</SelectItem>
+                      <SelectItem value="condensado">Condensado</SelectItem>
+                      <SelectItem value="agua-producao">Água de Produção</SelectItem>
+                      <SelectItem value="glp">GLP</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
 
             <FormField
               control={form.control}
-              name="validadoLaboratorio"
+              name="tipoAnalise"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value || false}
-                      onCheckedChange={field.onChange}
-                      data-testid="checkbox-validated-laboratory"
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Validado pelo Laboratório</FormLabel>
-                  </div>
+                <FormItem>
+                  <FormLabel>Tipo de Análise *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar tipo de análise" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="pvt">PVT</SelectItem>
+                      <SelectItem value="cromatografia">Cromatografia</SelectItem>
+                      <SelectItem value="bsw">BSW</SelectItem>
+                      <SelectItem value="teor-enxofre">Teor de Enxofre</SelectItem>
+                      <SelectItem value="grau-api">Grau °API</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
 
             <FormField
               control={form.control}
-              name="cilindrosDisponiveis"
+              name="aplicabilidade"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value || false}
-                      onCheckedChange={field.onChange}
-                      data-testid="checkbox-cylinders-available"
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Cilindros Disponíveis</FormLabel>
-                  </div>
+                <FormItem>
+                  <FormLabel>Aplicabilidade *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar aplicabilidade" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="fiscal">Fiscal</SelectItem>
+                      <SelectItem value="apropriacao">Apropriação</SelectItem>
+                      <SelectItem value="transferencia-custodia">Transferência de Custódia</SelectItem>
+                      <SelectItem value="operacional">Operacional</SelectItem>
+                      <SelectItem value="analise-tecnica">Análise Técnica</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
 
             <FormField
               control={form.control}
-              name="embarqueAgendado"
+              name="pontoAmostragem"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormItem>
+                  <FormLabel>Ponto de Amostragem *</FormLabel>
                   <FormControl>
-                    <Checkbox
-                      checked={field.value || false}
-                      onCheckedChange={field.onChange}
-                      data-testid="checkbox-embark-scheduled"
+                    <Input
+                      {...field}
+                      placeholder="Ex: Linha de produção, Separador 1, etc."
                     />
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Embarque Agendado</FormLabel>
-                  </div>
+                  <FormMessage />
                 </FormItem>
               )}
             />
 
             <FormField
               control={form.control}
-              name="embarqueRealizado"
+              name="periodicidade"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value || false}
-                      onCheckedChange={field.onChange}
-                      data-testid="checkbox-embark-completed"
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Embarque Realizado</FormLabel>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="coletaRealizada"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value || false}
-                      onCheckedChange={field.onChange}
-                      data-testid="checkbox-collection-completed"
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Coleta Realizada</FormLabel>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="resultadoEmitido"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value || false}
-                      onCheckedChange={field.onChange}
-                      data-testid="checkbox-result-issued"
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Resultado Emitido</FormLabel>
-                  </div>
+                <FormItem>
+                  <FormLabel>Periodicidade *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar periodicidade" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="diaria">Diária</SelectItem>
+                      <SelectItem value="semanal">Semanal</SelectItem>
+                      <SelectItem value="quinzenal">Quinzenal</SelectItem>
+                      <SelectItem value="mensal">Mensal</SelectItem>
+                      <SelectItem value="bimestral">Bimestral</SelectItem>
+                      <SelectItem value="trimestral">Trimestral</SelectItem>
+                      <SelectItem value="semestral">Semestral</SelectItem>
+                      <SelectItem value="anual">Anual</SelectItem>
+                      <SelectItem value="sob-demanda">Sob Demanda</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -373,7 +419,7 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
         {/* Observações */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold border-b pb-2">Observações</h3>
-          
+
           <FormField
             control={form.control}
             name="observacoes"
@@ -381,10 +427,11 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
               <FormItem>
                 <FormLabel>Observações</FormLabel>
                 <FormControl>
-                  <Textarea 
-                    {...field} 
+                  <Textarea
+                    {...field}
                     value={field.value || ""}
-                    placeholder="Observações sobre o plano de coleta"
+                    placeholder="Informações adicionais sobre o plano de coleta"
+                    rows={4}
                     data-testid="textarea-observations"
                   />
                 </FormControl>
@@ -396,21 +443,21 @@ export default function CollectionPlanForm({ plan, onClose, onSuccess }: Collect
 
         {/* Action Buttons */}
         <div className="flex justify-end space-x-4 pt-6 border-t">
-          <Button 
-            type="button" 
-            variant="outline" 
+          <Button
+            type="button"
+            variant="outline"
             onClick={onClose}
             data-testid="button-cancel"
           >
             Cancelar
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={createMutation.isPending || updateMutation.isPending}
             data-testid="button-save"
           >
-            {(createMutation.isPending || updateMutation.isPending) 
-              ? (isEditing ? "Atualizando..." : "Salvando...") 
+            {(createMutation.isPending || updateMutation.isPending)
+              ? (isEditing ? "Atualizando..." : "Salvando...")
               : (isEditing ? "Atualizar" : "Criar")}
           </Button>
         </div>

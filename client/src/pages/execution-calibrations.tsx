@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,6 +36,9 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function ExecutionCalibrations() {
   const [selectedEquipment, setSelectedEquipment] = useState<string>("all");
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("current_pending");
+  const [customStartDate, setCustomStartDate] = useState<string>("");
+  const [customEndDate, setCustomEndDate] = useState<string>("");
   const [isExecutionDialogOpen, setIsExecutionDialogOpen] = useState(false);
   const [selectedExecution, setSelectedExecution] = useState<ExecucaoCalibracaoWithEquipamento | null>(null);
   const { toast } = useToast();
@@ -49,6 +52,68 @@ export default function ExecutionCalibrations() {
     queryKey: ["/api/equipamentos"],
     queryFn: () => api.getEquipamentos(),
   });
+
+  // Buscar calibrações agendadas (calendário)
+  const { data: calendarioCalibracoes } = useQuery({
+    queryKey: ["/api/calendario-calibracoes"],
+    queryFn: () => api.getCalendarioCalibracoes(),
+  });
+
+  // Calcular período de filtro
+  const periodDates = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    switch (selectedPeriod) {
+      case "current_pending":
+        // Mês vigente + pendências anteriores
+        return {
+          start: new Date(2000, 0, 1), // Data muito antiga para pegar todas pendências
+          end: new Date(currentYear, currentMonth + 1, 0) // Último dia do mês atual
+        };
+      case "current_month":
+        return {
+          start: new Date(currentYear, currentMonth, 1),
+          end: new Date(currentYear, currentMonth + 1, 0)
+        };
+      case "next_month":
+        return {
+          start: new Date(currentYear, currentMonth + 1, 1),
+          end: new Date(currentYear, currentMonth + 2, 0)
+        };
+      case "next_3_months":
+        return {
+          start: new Date(currentYear, currentMonth, 1),
+          end: new Date(currentYear, currentMonth + 3, 0)
+        };
+      case "custom":
+        return {
+          start: customStartDate ? new Date(customStartDate) : new Date(2000, 0, 1),
+          end: customEndDate ? new Date(customEndDate) : new Date(2099, 11, 31)
+        };
+      default:
+        return {
+          start: new Date(2000, 0, 1),
+          end: new Date(currentYear, currentMonth + 1, 0)
+        };
+    }
+  }, [selectedPeriod, customStartDate, customEndDate]);
+
+  // Filtrar calibrações pendentes do calendário por período
+  const pendingCalibrations = useMemo(() => {
+    if (!calendarioCalibracoes) return [];
+    
+    const now = new Date();
+    return calendarioCalibracoes.filter((cal: any) => {
+      const dataCalib = new Date(cal.dataPrevistaRealizacao || cal.dataAgendamento);
+      const matchesEquipment = selectedEquipment === "all" || cal.equipamentoId?.toString() === selectedEquipment;
+      const matchesPeriod = dataCalib >= periodDates.start && dataCalib <= periodDates.end;
+      const isPending = cal.status === "pendente" || cal.status === "agendada";
+      
+      return matchesEquipment && matchesPeriod && isPending;
+    });
+  }, [calendarioCalibracoes, selectedEquipment, periodDates]);
 
   const filteredExecutions = execucoesCalibracoes?.filter((exec: any) => 
     selectedEquipment === "all" || exec.equipamentoId.toString() === selectedEquipment
@@ -101,8 +166,9 @@ export default function ExecutionCalibrations() {
           <CardTitle>Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
-            <div className="flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Equipamento</label>
               <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
                 <SelectTrigger>
                   <SelectValue placeholder="Filtrar por equipamento" />
@@ -117,9 +183,159 @@ export default function ExecutionCalibrations() {
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Período</label>
+              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o período" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="current_pending">Mês Atual + Pendências</SelectItem>
+                  <SelectItem value="current_month">Apenas Mês Atual</SelectItem>
+                  <SelectItem value="next_month">Próximo Mês</SelectItem>
+                  <SelectItem value="next_3_months">Próximos 3 Meses</SelectItem>
+                  <SelectItem value="custom">Período Personalizado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedPeriod === "custom" && (
+              <>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Data Início</label>
+                  <Input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Data Fim</label>
+                  <Input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Estatísticas do período */}
+          <div className="mt-4 pt-4 border-t">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-primary">{pendingCalibrations.length}</p>
+                <p className="text-xs text-muted-foreground">Calibrações Pendentes</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-green-600">{filteredExecutions.length}</p>
+                <p className="text-xs text-muted-foreground">Execuções Registradas</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-orange-600">
+                  {pendingCalibrations.filter((c: any) => new Date(c.dataPrevistaRealizacao || c.dataAgendamento) < new Date()).length}
+                </p>
+                <p className="text-xs text-muted-foreground">Vencidas</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-600">
+                  {pendingCalibrations.filter((c: any) => {
+                    const d = new Date(c.dataPrevistaRealizacao || c.dataAgendamento);
+                    return d >= new Date() && d <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+                  }).length}
+                </p>
+                <p className="text-xs text-muted-foreground">Próximos 7 Dias</p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Calibrações Pendentes */}
+      {pendingCalibrations.length > 0 && (
+        <Card className="mb-6 border-orange-200">
+          <CardHeader className="bg-orange-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-orange-700 flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5" />
+                  Calibrações Agendadas Pendentes ({pendingCalibrations.length})
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Equipamentos que precisam de calibração no período selecionado
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Equipamento</TableHead>
+                    <TableHead>Data Prevista</TableHead>
+                    <TableHead>Laboratório</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Observações</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingCalibrations.map((calib: any) => {
+                    const equipment = equipamentos?.find((eq: any) => eq.id === calib.equipamentoId);
+                    const dataPrevista = new Date(calib.dataPrevistaRealizacao || calib.dataAgendamento);
+                    const isOverdue = dataPrevista < new Date();
+                    const isUrgent = dataPrevista <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+                    
+                    return (
+                      <TableRow key={calib.id} className={isOverdue ? "bg-red-50" : isUrgent ? "bg-yellow-50" : ""}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{equipment?.tag}</p>
+                            <p className="text-xs text-muted-foreground">{equipment?.nome}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            {dataPrevista.toLocaleDateString('pt-BR')}
+                            {isOverdue && (
+                              <Badge className="bg-red-100 text-red-800 text-xs">Vencida</Badge>
+                            )}
+                            {!isOverdue && isUrgent && (
+                              <Badge className="bg-yellow-100 text-yellow-800 text-xs">Urgente</Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{calib.laboratorio || 'N/A'}</TableCell>
+                        <TableCell>
+                          <Badge className="bg-blue-100 text-blue-800">
+                            {calib.status === 'pendente' ? 'Pendente' : 'Agendada'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">{calib.observacoes || '-'}</TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            size="sm" 
+                            onClick={() => {
+                              setSelectedExecution(null);
+                              setIsExecutionDialogOpen(true);
+                            }}
+                          >
+                            Executar
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Main Content */}
       <div className="grid gap-6">
@@ -128,7 +344,7 @@ export default function ExecutionCalibrations() {
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <p className="mt-2 text-muted-foreground">Carregando execuções...</p>
           </div>
-        ) : filteredExecutions.length === 0 ? (
+        ) : filteredExecutions.length === 0 && pendingCalibrations.length === 0 ? (
           <Card>
             <CardContent className="text-center py-8">
               <Award className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -557,6 +773,12 @@ export default function ExecutionCalibrations() {
             <DialogTitle>
               {selectedExecution ? 'Editar Execução' : 'Nova Execução de Calibração'}
             </DialogTitle>
+            <DialogDescription>
+              {selectedExecution 
+                ? 'Atualize os dados da execução e certificados de calibração'
+                : 'Registre uma nova execução de calibração com até 3 certificados por equipamento'
+              }
+            </DialogDescription>
           </DialogHeader>
           
           <ExecutionForm 
