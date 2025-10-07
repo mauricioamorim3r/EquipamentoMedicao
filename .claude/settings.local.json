@@ -19,7 +19,8 @@
       "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Implementar sistema correto de vinculação equipamentos x telas específicas\n\n- Corrigir fluxo: equipamentos são cadastrados APENAS em /equipamentos\n- Telas específicas (placas, trechos, válvulas, medidores) servem APENAS para detalhar\n- Número de série é único e vem do equipamento (somente leitura)\n- Dropdowns mostram apenas equipamentos do tipo correspondente\n\n✨ Melhorias:\n- Adicionar filtros corretos por tipo de equipamento em todos formulários\n- Auto-preenchimento de numeroSerie a partir do equipamento selecionado\n- Desabilitar campo numeroSerie nas telas de detalhamento (read-only)\n- Atualizar textos explicativos nos formulários\n\n📝 Componentes atualizados:\n- enhanced-orifice-plate-form.tsx (placas de orifício)\n- enhanced-straight-section-form.tsx (trechos retos)\n- medidor-primario-form.tsx (medidores de vazão)\n- valve-form.tsx (válvulas)\n\n🎨 UX/UI:\n- Melhorar responsividade: sidebar, scrollbars, modais\n- Modais agora com tamanhos variáveis (sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl)\n- Otimizações mobile (touch targets 44px, inputs 16px)\n- Custom scrollbars com dark mode\n\n🧹 Limpeza de dados:\n- Script para limpar dados inconsistentes\n- Popular banco com 15 equipamentos de exemplo\n- Remover dados mock de dashboard e relatórios\n\n🚀 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git push:*)",
       "Bash(npx kill-port:*)",
-      "Bash(npm cache clean:*)"
+      "Bash(npm cache clean:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

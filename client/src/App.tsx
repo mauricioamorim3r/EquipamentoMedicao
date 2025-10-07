@@ -6,6 +6,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Sidebar from "@/components/sidebar";
 import Header from "@/components/header";
+import MobileNav from "@/components/mobile-nav";
+import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 import { LanguageProvider } from "@/hooks/useLanguage";
 
 // Lazy load pages for code splitting
@@ -33,6 +35,7 @@ const Notifications = lazy(() => import("@/pages/notifications"));
 const TestesPocos = lazy(() => import("@/pages/testes-pocos"));
 const DashboardCompleto = lazy(() => import("@/pages/dashboard-completo"));
 const Help = lazy(() => import("@/pages/help"));
+const MobileMenu = lazy(() => import("@/pages/mobile-menu"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 // Loading component
@@ -51,7 +54,7 @@ function Router() {
       </div>
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background px-4 md:px-6 py-4">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background px-4 md:px-6 py-4 pb-20 md:pb-4">
           <Suspense fallback={<LoadingFallback />}>
             <Switch>
               <Route path="/" component={Dashboard} />
@@ -79,10 +82,14 @@ function Router() {
               <Route path="/controle-incertezas" component={UncertaintyControl} />
               <Route path="/relatorios" component={Reports} />
               <Route path="/ajuda" component={Help} />
+              <Route path="/menu" component={MobileMenu} />
               <Route component={NotFound} />
             </Switch>
           </Suspense>
         </main>
+
+        {/* Mobile Bottom Navigation */}
+        <MobileNav />
       </div>
     </div>
   );
@@ -94,6 +101,7 @@ function App() {
       <LanguageProvider>
         <TooltipProvider>
           <Toaster />
+          <PWAInstallPrompt />
           <Router />
         </TooltipProvider>
       </LanguageProvider>

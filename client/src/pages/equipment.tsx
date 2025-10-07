@@ -244,6 +244,11 @@ export default function Equipment() {
                 <DialogTitle>
                   {editingEquipment ? t('edit') + ' ' + t('equipments').slice(0, -1) : t('addEquipment')}
                 </DialogTitle>
+                <DialogDescription>
+                  {editingEquipment 
+                    ? 'Atualize as informações do equipamento' 
+                    : 'Preencha os dados para cadastrar um novo equipamento no sistema'}
+                </DialogDescription>
               </DialogHeader>
               <EquipmentForm
                 equipment={editingEquipment}

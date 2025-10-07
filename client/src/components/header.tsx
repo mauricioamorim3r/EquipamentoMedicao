@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
+import { Menu } from "lucide-react";
 import { LanguageSelector } from "@/components/language-selector";
 import { useTranslation } from "@/hooks/useLanguage";
+import MobileDrawer from "@/components/mobile-drawer";
+import { OnlineStatusBadge } from "@/components/offline-indicator";
+import { Button } from "@/components/ui/button";
 
 export default function Header() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -30,13 +35,25 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-card border-b border-border p-3 md:p-4 sticky top-0 z-40" data-testid="header">
-      <div className="flex items-center justify-between gap-2 md:gap-4">
-        <div className="flex items-center space-x-2 md:space-x-4 flex-1 min-w-0">
-          <h1 className="text-base md:text-lg lg:text-xl font-semibold text-foreground truncate" data-testid="page-title">
-            <span className="hidden sm:inline">{t('metrologyDashboard')}</span>
-            <span className="sm:hidden text-sm">SGM</span>
-          </h1>
+    <>
+      <header className="bg-card border-b border-border p-3 md:p-4 sticky top-0 z-40" data-testid="header">
+        <div className="flex items-center justify-between gap-2 md:gap-4">
+          <div className="flex items-center space-x-2 md:space-x-4 flex-1 min-w-0">
+            {/* Mobile Hamburger Menu */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Abrir menu"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+
+            <h1 className="text-base md:text-lg lg:text-xl font-semibold text-foreground truncate" data-testid="page-title">
+              <span className="hidden sm:inline">{t('metrologyDashboard')}</span>
+              <span className="sm:hidden text-sm">SGM</span>
+            </h1>
           <div className="text-xs md:text-sm text-muted-foreground hidden xs:block">
             <span data-testid="current-date" className="hidden lg:inline">{formatDate(currentTime)}</span>
             <span data-testid="current-time" className="lg:hidden">{formatTime(currentTime)}</span>
@@ -45,10 +62,16 @@ export default function Header() {
           </div>
         </div>
         <div className="flex items-center space-x-2 md:space-x-3 flex-shrink-0">
+          {/* Online Status Badge */}
+          <OnlineStatusBadge />
           {/* Language Selector */}
           <LanguageSelector />
         </div>
       </div>
-    </header>
+      </header>
+
+      {/* Mobile Drawer */}
+      <MobileDrawer open={drawerOpen} onOpenChange={setDrawerOpen} />
+    </>
   );
 }
