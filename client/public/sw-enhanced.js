@@ -1,8 +1,9 @@
 // Enhanced Service Worker for PWA support
-const CACHE_NAME = 'sgm-equipamento-medicao-v2';
-const STATIC_CACHE = 'sgm-static-v2';
-const DYNAMIC_CACHE = 'sgm-dynamic-v2';
-const API_CACHE = 'sgm-api-v2';
+const VERSION = 'v20251007-297981';
+const CACHE_NAME = `sgm-equipamento-medicao-${VERSION}`;
+const STATIC_CACHE = `sgm-static-${VERSION}`;
+const DYNAMIC_CACHE = `sgm-dynamic-${VERSION}`;
+const API_CACHE = `sgm-api-${VERSION}`;
 
 // Resources to cache on install
 const staticAssets = [
@@ -41,22 +42,22 @@ self.addEventListener('install', (event) => {
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   console.log('SW: Activating...');
-  const cacheWhitelist = [STATIC_CACHE, DYNAMIC_CACHE, API_CACHE];
-  
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (!cacheWhitelist.includes(cacheName)) {
-            console.log('SW: Deleting old cache:', cacheName);
+          // Remove caches antigos que não correspondem à versão atual
+          if (cacheName.startsWith('sgm-') && !cacheName.includes(VERSION)) {
+            console.log('SW: Removing old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => {
+      console.log('SW: Cache cleanup completed');
+      return self.clients.claim();
     })
   );
-  
-  self.clients.claim();
 });
 
 // Fetch strategy - Network First for API, Cache First for static
@@ -83,18 +84,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle other requests - Network First with dynamic cache
+  // Default: Network First
   event.respondWith(
     networkFirstStrategy(request, DYNAMIC_CACHE)
   );
 });
 
-// Network First Strategy (for API and dynamic content)
+// Network First Strategy
 async function networkFirstStrategy(request, cacheName) {
   try {
     const networkResponse = await fetch(request);
     
-    if (networkResponse.status === 200) {
+    if (networkResponse.ok) {
       const cache = await caches.open(cacheName);
       cache.put(request, networkResponse.clone());
     }
@@ -110,63 +111,14 @@ async function networkFirstStrategy(request, cacheName) {
     
     // Return offline page for navigation requests
     if (request.destination === 'document') {
-      return new Response(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>SGM - Offline</title>
-            <style>
-              body { 
-                font-family: system-ui, -apple-system, sans-serif; 
-                text-align: center; 
-                padding: 2rem; 
-                background: #f8fafc;
-                color: #334155;
-              }
-              .container { 
-                max-width: 400px; 
-                margin: 0 auto; 
-                padding: 2rem;
-                background: white;
-                border-radius: 8px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-              }
-              .icon { font-size: 4rem; margin-bottom: 1rem; }
-              h1 { color: #13103b; margin-bottom: 1rem; }
-              button { 
-                background: #13103b; 
-                color: white; 
-                border: none; 
-                padding: 0.75rem 1.5rem; 
-                border-radius: 6px; 
-                cursor: pointer;
-                font-size: 1rem;
-                margin-top: 1rem;
-              }
-              button:hover { background: #1e1b4b; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="icon">📡</div>
-              <h1>SGM está offline</h1>
-              <p>Verifique sua conexão com a internet e tente novamente.</p>
-              <button onclick="window.location.reload()">Tentar novamente</button>
-            </div>
-          </body>
-        </html>
-      `, {
-        headers: { 'Content-Type': 'text/html' }
-      });
+      return caches.match('/index.html');
     }
     
     throw error;
   }
 }
 
-// Cache First Strategy (for static assets)
+// Cache First Strategy
 async function cacheFirstStrategy(request, cacheName) {
   const cachedResponse = await caches.match(request);
   
@@ -177,51 +129,71 @@ async function cacheFirstStrategy(request, cacheName) {
   try {
     const networkResponse = await fetch(request);
     
-    if (networkResponse.status === 200) {
+    if (networkResponse.ok) {
       const cache = await caches.open(cacheName);
       cache.put(request, networkResponse.clone());
     }
     
     return networkResponse;
   } catch (error) {
-    console.log('SW: Failed to fetch:', request.url, error);
+    console.log('SW: Both cache and network failed:', error);
     throw error;
   }
 }
 
-// Handle messages from the main thread
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-  
-  if (event.data && event.data.type === 'GET_VERSION') {
-    event.ports[0].postMessage({ version: CACHE_NAME });
-  }
-});
-
-// Periodic background sync (if supported)
+// Background sync for future implementations
 self.addEventListener('sync', (event) => {
+  console.log('SW: Background sync triggered:', event.tag);
+  
   if (event.tag === 'background-sync') {
-    event.waitUntil(doBackgroundSync());
+    event.waitUntil(
+      // Implement background sync logic here
+      Promise.resolve()
+    );
   }
 });
 
-async function doBackgroundSync() {
-  try {
-    // Pre-cache important API endpoints
-    const cache = await caches.open(API_CACHE);
-    const promises = apiEndpoints.map(endpoint => {
-      return fetch(endpoint).then(response => {
-        if (response.status === 200) {
-          return cache.put(endpoint, response);
-        }
-      }).catch(error => console.log('SW: Background sync failed for:', endpoint));
-    });
-    
-    await Promise.all(promises);
-    console.log('SW: Background sync completed');
-  } catch (error) {
-    console.log('SW: Background sync error:', error);
+// Push notifications
+self.addEventListener('push', (event) => {
+  console.log('SW: Push notification received');
+  
+  const options = {
+    body: event.data ? event.data.text() : 'Nova notificação do SGM',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    vibrate: [200, 100, 200],
+    data: {
+      dateOfArrival: Date.now(),
+      primaryKey: 1
+    },
+    actions: [
+      {
+        action: 'explore',
+        title: 'Ver detalhes',
+        icon: '/icon-192.png'
+      },
+      {
+        action: 'close',
+        title: 'Fechar',
+        icon: '/icon-192.png'
+      }
+    ]
+  };
+  
+  event.waitUntil(
+    self.registration.showNotification('SGM - Sistema de Gestão Metrológica', options)
+  );
+});
+
+// Notification click handler
+self.addEventListener('notificationclick', (event) => {
+  console.log('SW: Notification clicked:', event.action);
+  
+  event.notification.close();
+  
+  if (event.action === 'explore') {
+    event.waitUntil(
+      clients.openWindow('/')
+    );
   }
-}
+});

@@ -1,8 +1,9 @@
 // Service Worker para SGM - Sistema de Gestão Metrológica
-// Versão: 1.0.0
+// Versão: 2.0.0
 
-const CACHE_NAME = 'sgm-v1';
-const RUNTIME_CACHE = 'sgm-runtime-v1';
+const VERSION = 'v20251007-297981';
+const CACHE_NAME = `sgm-${VERSION}`;
+const RUNTIME_CACHE = `sgm-runtime-${VERSION}`;
 
 // Recursos essenciais para cache durante instalação
 const PRECACHE_URLS = [
@@ -36,7 +37,8 @@ self.addEventListener('activate', (event) => {
         return Promise.all(
           cacheNames
             .filter((cacheName) => {
-              return cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE;
+              // Remove caches antigos que não correspondem à versão atual
+              return cacheName.startsWith('sgm-') && !cacheName.includes(VERSION);
             })
             .map((cacheName) => {
               console.log('[SW] Deleting old cache:', cacheName);
