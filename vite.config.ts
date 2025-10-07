@@ -46,12 +46,16 @@ export default defineConfig({
     }
   },
   server: {
+    port: 3000,
+    strictPort: false,
     fs: {
       strict: true,
       deny: ["**/.*"],
     },
     hmr: {
       overlay: true,
+      port: 3000,
+      clientPort: 3000,
     },
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate',
