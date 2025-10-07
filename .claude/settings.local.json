@@ -20,7 +20,9 @@
       "Bash(git push:*)",
       "Bash(npx kill-port:*)",
       "Bash(npm cache clean:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\ntest: corrigir testes E2E que falhavam por validação incorreta\n\nCorreções aplicadas:\n- database-integration-tests.spec.ts: alterar teste de campos numéricos para usar valores válidos em vez de texto\n- comprehensive-sidebar-tests.spec.ts: adicionar lógica para ignorar campos de busca e tratar campos numéricos separadamente\n- .claude/settings.local.json: adicionar permissão para npx playwright test\n\n✅ Todos os testes agora passam corretamente\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []
