@@ -196,7 +196,7 @@ export default function CalendarioDashboard() {
                   <div
                     key={index}
                     className={`
-                      min-h-[80px] p-1 border rounded-lg transition-colors cursor-pointer
+                      min-h-[100px] p-1 border rounded-lg transition-colors cursor-pointer flex flex-col
                       ${isCurrentMonth ? 'bg-background' : 'bg-muted/30 text-muted-foreground'}
                       ${isToday ? 'ring-2 ring-primary' : ''}
                       hover:bg-muted/50
@@ -205,35 +205,30 @@ export default function CalendarioDashboard() {
                     <div className={`text-sm font-medium mb-1 ${isToday ? 'text-primary' : ''}`}>
                       {date.getDate()}
                     </div>
-                    
-                    {/* Events for this date */}
-                    <div className="space-y-1">
-                      {dayEvents.slice(0, 2).map((event, eventIndex) => {
-                        const config = getEventTypeConfig(event.type);
-                        return (
-                          <div
-                            key={eventIndex}
-                            className={`
-                              text-xs p-1 rounded text-white truncate
-                              ${config.color} ${getPriorityColor(event.priority)}
-                            `}
-                            title={`${event.title} - ${event.description || ''}`}
-                          >
-                            <div className="flex items-center gap-1">
-                              <config.icon className="w-3 h-3 flex-shrink-0" />
-                              <span className="truncate">{event.title}</span>
+
+                    {/* Events for this date - Show all events line by line with scroll */}
+                    {dayEvents.length > 0 && (
+                      <div className="flex-1 overflow-y-auto space-y-1 max-h-28 custom-scrollbar">
+                        {dayEvents.map((event, eventIndex) => {
+                          const config = getEventTypeConfig(event.type);
+                          return (
+                            <div
+                              key={eventIndex}
+                              className={`
+                                text-xs p-1 rounded text-white
+                                ${config.color} ${getPriorityColor(event.priority)}
+                              `}
+                              title={`${event.title} - ${event.description || ''}`}
+                            >
+                              <div className="flex items-center gap-1">
+                                <config.icon className="w-3 h-3 flex-shrink-0" />
+                                <span className="truncate">{event.title}</span>
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                      
-                      {/* Show count if there are more events */}
-                      {dayEvents.length > 2 && (
-                        <div className="text-xs text-muted-foreground text-center">
-                          +{dayEvents.length - 2} mais
-                        </div>
-                      )}
-                    </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -245,7 +245,7 @@ export default function CalibrationCalendar({ equipamentos, calendarios = [], on
                 <div
                   key={index}
                   className={`
-                    relative p-2 min-h-24 border rounded-lg transition-all cursor-pointer
+                    relative p-2 min-h-28 border rounded-lg transition-all cursor-pointer flex flex-col
                     ${isCurrentMonth(date) ? 'bg-background' : 'bg-muted/30'}
                     ${isToday(date) ? 'ring-2 ring-primary shadow-md' : ''}
                     ${dateStatus ? `${dateStatus.borderColor} ${dateStatus.bgColor}` : 'border-border'}
@@ -276,10 +276,11 @@ export default function CalibrationCalendar({ equipamentos, calendarios = [], on
                     )}
                   </div>
 
-                  {/* Show equipment calibrations */}
-                  {equipmentsOnDate.length > 0 && (
-                    <div className="space-y-1">
-                      {equipmentsOnDate.slice(0, 2).map((eq) => (
+                  {/* Show all items line by line with scroll */}
+                  {allItems.length > 0 && (
+                    <div className="flex-1 overflow-y-auto space-y-1 max-h-32 custom-scrollbar">
+                      {/* Show equipment calibrations */}
+                      {equipmentsOnDate.map((eq) => (
                         <div
                           key={eq.id}
                           className={`text-xs px-1.5 py-0.5 rounded font-medium truncate shadow-sm
@@ -295,13 +296,9 @@ export default function CalibrationCalendar({ equipamentos, calendarios = [], on
                           {eq.tag}
                         </div>
                       ))}
-                    </div>
-                  )}
 
-                  {/* Show scheduled calibrations */}
-                  {calendariosOnDate.length > 0 && (
-                    <div className="space-y-1 mt-1">
-                      {calendariosOnDate.slice(0, 2).map((cal) => (
+                      {/* Show scheduled calibrations */}
+                      {calendariosOnDate.map((cal) => (
                         <div
                           key={cal.id}
                           className={`text-xs px-1.5 py-0.5 rounded font-medium truncate shadow-sm border
@@ -318,15 +315,6 @@ export default function CalibrationCalendar({ equipamentos, calendarios = [], on
                           {cal.tagPontoMedicao}
                         </div>
                       ))}
-                    </div>
-                  )}
-
-                  {/* Show count if more items */}
-                  {allItems.length > 4 && (
-                    <div className="mt-1">
-                      <Badge variant="secondary" className="text-xs py-0 px-1.5">
-                        +{allItems.length - 4} mais
-                      </Badge>
                     </div>
                   )}
                 </div>
